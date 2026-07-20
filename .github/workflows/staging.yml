@@ -224,10 +224,24 @@ jobs:
           format: spdx-json
           output-file: docs/security/sbom-frontend-spdx.json
       - name: Commit SBOMs
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/security/
-          git diff --cached --quiet && exit 0
+          git diff --cached --quiet && { echo "pushed=unchanged" >> "$GITHUB_OUTPUT"; exit 0; }
           git commit -m "chore(sbom): update SBOMs for staging build ${{ github.sha }} [skip ci]"
-          git push origin HEAD:staging
+          # `staging` is a protected branch — GITHUB_TOKEN can't push to it directly unless a
+          # bypass is configured (see CLAUDE.md's setup checklist). Fall back to an artifact
+          # instead of hard-failing the job when that push is rejected.
+          if git push origin HEAD:staging; then
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload SBOMs as an artifact (push to staging was rejected)
+        if: steps.commit.outputs.pushed == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sboms-staging-${{ github.sha }}
+          path: docs/security/sbom-*.json

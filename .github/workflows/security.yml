@@ -124,12 +124,24 @@ jobs:
 
       - name: Commit ZAP report
         if: github.event_name == 'push'
+        id: commit
         run: |
           mkdir -p docs/security/zap
           cp report_html.html "docs/security/zap/zap-report-${{ github.sha }}.html" 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/security/zap/
-          git diff --cached --quiet && exit 0
+          git diff --cached --quiet && { echo "pushed=unchanged" >> "$GITHUB_OUTPUT"; exit 0; }
           git commit -m "chore(security): ZAP scan report for ${{ github.sha }} [skip ci]"
-          git push origin HEAD:staging
+          # `staging` is a protected branch — same bypass caveat as staging.yml's sbom job.
+          if git push origin HEAD:staging; then
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload ZAP report as an artifact (push to staging was rejected)
+        if: github.event_name == 'push' && steps.commit.outputs.pushed == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report-${{ github.sha }}
+          path: docs/security/zap/
