@@ -3,22 +3,23 @@ Idempotent admin seed script.
 Run: python scripts/create_admin.py
 Called automatically by Docker entrypoint after alembic upgrade head.
 """
+
 import os
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlmodel import Session, select, create_engine
-from app.models.user import User
-from app.core.security import hash_password
+from sqlmodel import Session, create_engine, select
+
 from app.core.config import settings
+from app.core.security import hash_password
+from app.models.user import User
 
 
 def create_admin():
     engine = create_engine(settings.DATABASE_URL)
     with Session(engine) as session:
-        existing = session.exec(
-            select(User).where(User.email == settings.ADMIN_EMAIL)
-        ).first()
+        existing = session.exec(select(User).where(User.email == settings.ADMIN_EMAIL)).first()
         if not existing:
             admin = User(
                 email=settings.ADMIN_EMAIL,

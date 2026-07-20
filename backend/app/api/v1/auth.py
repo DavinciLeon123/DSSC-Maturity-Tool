@@ -1,20 +1,25 @@
 import secrets
+from datetime import UTC, datetime, timedelta
+
 import resend
-from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.core.deps import get_current_user
-from app.core.security import (
-    hash_password, verify_password, create_access_token
-)
+from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_session
 from app.models.user import User
-from app.schemas.auth import Token, UserCreate, UserRead, ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    Token,
+    UserCreate,
+    UserRead,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 limiter = Limiter(key_func=get_remote_address)
@@ -41,9 +46,14 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
     session.add(user)
     session.commit()
     session.refresh(user)
-    return UserRead(id=user.id, email=user.email, role=user.role,
-                    participant_type=user.participant_type,
-                    created_at=user.created_at.isoformat())
+    assert user.id is not None  # populated by the commit+refresh above
+    return UserRead(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        participant_type=user.participant_type,
+        created_at=user.created_at.isoformat(),
+    )
 
 
 @router.post("/login", response_model=Token)
@@ -64,8 +74,8 @@ def login(
         )
 
     # Check account lockout
-    now = datetime.now(timezone.utc)
-    if user.lockout_until and user.lockout_until.replace(tzinfo=timezone.utc) > now:
+    now = datetime.now(UTC)
+    if user.lockout_until and user.lockout_until.replace(tzinfo=UTC) > now:
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
             detail=f"Account locked. Try again after {user.lockout_until.isoformat()}",
@@ -94,6 +104,7 @@ def login(
 
 @router.get("/me", response_model=UserRead)
 def me(current_user: User = Depends(get_current_user)):
+    assert current_user.id is not None  # loaded from an existing DB row
     return UserRead(
         id=current_user.id,
         email=current_user.email,
@@ -105,7 +116,6 @@ def me(current_user: User = Depends(get_current_user)):
 
 def _send_reset_email(email: str, token: str, frontend_url: str, api_key: str) -> None:
     """Send plain-text password reset email via Resend. Falls back to log-only if no API key."""
-    import logging
     reset_url = f"{frontend_url}/reset-password?token={token}"
     if not api_key:
         print(f"[DEV] Password reset link for {email}: {reset_url}", flush=True)
@@ -142,8 +152,7 @@ def forgot_password(
             token_created_at = user.password_reset_expires - timedelta(minutes=30)
             if datetime.utcnow() < token_created_at + timedelta(seconds=60):
                 raise HTTPException(
-                    status_code=429,
-                    detail="Please wait before requesting another reset link."
+                    status_code=429, detail="Please wait before requesting another reset link."
                 )
         token = secrets.token_urlsafe(32)
         user.password_reset_token = token
@@ -166,19 +175,14 @@ def reset_password(
     session: Session = Depends(get_session),
 ):
     """Validate reset token and set new password. Token is invalidated immediately after use."""
-    user = session.exec(
-        select(User).where(User.password_reset_token == payload.token)
-    ).first()
+    user = session.exec(select(User).where(User.password_reset_token == payload.token)).first()
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    if (
-        user.password_reset_expires is None
-        or user.password_reset_expires < datetime.utcnow()
-    ):
+    if user.password_reset_expires is None or user.password_reset_expires < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Reset token has expired")
 
     user.hashed_password = hash_password(payload.new_password)
-    user.password_reset_token = None      # Invalidate — one-time use only
+    user.password_reset_token = None  # Invalidate — one-time use only
     user.password_reset_expires = None
     session.add(user)
     session.commit()

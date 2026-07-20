@@ -5,17 +5,18 @@ Revises: c3f2a891e5b7
 Create Date: 2026-02-15
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "b3f7c9a1d2e8"
-down_revision: Union[str, None] = "c3f2a891e5b7"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "c3f2a891e5b7"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -34,9 +35,15 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("initiative_id", "question_id", name="uq_answer_per_question"),
     )
-    op.create_index(op.f("ix_questionnaire_answer_initiative_id"), "questionnaire_answer", ["initiative_id"])
-    op.create_index(op.f("ix_questionnaire_answer_question_id"), "questionnaire_answer", ["question_id"])
-    op.create_index(op.f("ix_questionnaire_answer_mami_code"), "questionnaire_answer", ["mami_code"])
+    op.create_index(
+        op.f("ix_questionnaire_answer_initiative_id"), "questionnaire_answer", ["initiative_id"]
+    )
+    op.create_index(
+        op.f("ix_questionnaire_answer_question_id"), "questionnaire_answer", ["question_id"]
+    )
+    op.create_index(
+        op.f("ix_questionnaire_answer_mami_code"), "questionnaire_answer", ["mami_code"]
+    )
 
 
 def downgrade() -> None:

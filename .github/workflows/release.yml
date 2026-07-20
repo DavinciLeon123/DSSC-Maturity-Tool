@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "20"
+  REGISTRY: ghcr.io
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+      - name: Backend lint, types, tests (incl. privacy canary)
+        working-directory: backend
+        run: |
+          uv sync --locked
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy app --ignore-missing-imports
+          uv run pytest tests/ -n auto -m "not perf" -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend lint, types, audit (prod deps only)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          # --omit=dev: build-only tooling (vite, esbuild, eslint...) never ships in the
+          # runtime image, so its CVEs shouldn't block a release.
+          npm audit --audit-level=high --omit=dev
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - id: image
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          repo=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          echo "backend=${{ env.REGISTRY }}/${owner}/${repo}-backend" >> "$GITHUB_OUTPUT"
+          echo "frontend=${{ env.REGISTRY }}/${owner}/${repo}-frontend" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Push under a temporary tag first so the SBOM can be generated from a real
+      # registry reference — avoids buildx-driver/local-image-visibility issues that
+      # come with generating an SBOM from a `load: true` image and then re-FROM-ing it.
+      - name: Build and push pre-SBOM backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.backend }}:${{ steps.version.outputs.version }}-prebuild
+
+      - name: Generate backend SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.image.outputs.backend }}:${{ steps.version.outputs.version }}-prebuild
+          format: cyclonedx-json
+          output-file: sbom-backend-cyclonedx.json
+
+      - name: Bake the SBOM into the shipped backend image
+        run: |
+          cat > Dockerfile.release <<'EOF'
+          ARG BASE_IMAGE
+          FROM ${BASE_IMAGE}
+          COPY sbom-backend-cyclonedx.json /sbom.json
+          EOF
+
+      - name: Build and push final backend image (SBOM baked in)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.release
+          build-args: |
+            BASE_IMAGE=${{ steps.image.outputs.backend }}:${{ steps.version.outputs.version }}-prebuild
+          push: true
+          tags: |
+            ${{ steps.image.outputs.backend }}:${{ steps.version.outputs.version }}
+            ${{ steps.image.outputs.backend }}:latest
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image.outputs.frontend }}:${{ steps.version.outputs.version }}
+            ${{ steps.image.outputs.frontend }}:latest
+
+      - name: Assemble on-prem deployment bundle
+        run: |
+          bundle_dir="dssc-maturity-tool-${{ steps.version.outputs.version }}"
+          mkdir -p "$bundle_dir/nginx"
+          cp docker-compose.prod.yml "$bundle_dir/"
+          cp .env.example "$bundle_dir/"
+          cp DEPLOYMENT.md "$bundle_dir/"
+          cp README.md "$bundle_dir/QUICKSTART.md"
+          cp -r nginx/. "$bundle_dir/nginx/"
+          zip -r "${bundle_dir}.zip" "$bundle_dir"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "dssc-maturity-tool-${{ steps.version.outputs.version }}.zip" \
+            sbom-backend-cyclonedx.json \
+            --title "${{ github.ref_name }}" \
+            --generate-notes

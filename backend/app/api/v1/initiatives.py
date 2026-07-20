@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
@@ -17,18 +18,16 @@ def create_initiative(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    existing = session.exec(
-        select(Initiative).where(Initiative.user_id == current_user.id)
-    ).first()
+    existing = session.exec(select(Initiative).where(Initiative.user_id == current_user.id)).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="You already have a registered initiative. Only one initiative per user is allowed in this version.",
+            detail="You already have a registered initiative. Only one per user is allowed.",
         )
     initiative = Initiative(
         user_id=current_user.id,
         participant_type=current_user.participant_type,
-        **initiative_in.model_dump()
+        **initiative_in.model_dump(),
     )
     session.add(initiative)
     session.commit()
@@ -82,7 +81,7 @@ def submit_initiative(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Mark initiative as submitted. Idempotent — re-submitting an already-submitted initiative is OK."""
+    """Mark initiative as submitted. Idempotent — re-submitting an already-submitted one is OK."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
         raise HTTPException(status_code=404, detail="Initiative not found")
@@ -96,11 +95,19 @@ def submit_initiative(
 
 
 def _to_read(i: Initiative) -> InitiativeRead:
+    assert i.id is not None  # always called on a persisted initiative
     return InitiativeRead(
-        id=i.id, user_id=i.user_id, name=i.name, description=i.description,
-        sector=i.sector, sector_other=i.sector_other, contact_name=i.contact_name,
-        contact_email=i.contact_email, organization=i.organization,
+        id=i.id,
+        user_id=i.user_id,
+        name=i.name,
+        description=i.description,
+        sector=i.sector,
+        sector_other=i.sector_other,
+        contact_name=i.contact_name,
+        contact_email=i.contact_email,
+        organization=i.organization,
         participant_type=i.participant_type.value,
-        status=i.status.value, created_at=i.created_at.isoformat(),
+        status=i.status.value,
+        created_at=i.created_at.isoformat(),
         updated_at=i.updated_at.isoformat(),
     )

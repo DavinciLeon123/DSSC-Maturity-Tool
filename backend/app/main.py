@@ -1,19 +1,26 @@
 from contextlib import asynccontextmanager
+
 import zen
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.core.config import settings
-from app.services.mami_config import load_mami_config, load_questionnaire_config, load_questionnaire_configs, get_scoring_dir
+from slowapi.util import get_remote_address
+
+from app.api.v1.admin import router as admin_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.evidence import router as evidence_router
 from app.api.v1.initiatives import router as initiatives_router
 from app.api.v1.questionnaire import router as questionnaire_router
-from app.api.v1.scoring import router as scoring_router
-from app.api.v1.evidence import router as evidence_router
 from app.api.v1.reports import router as reports_router
-from app.api.v1.admin import router as admin_router
+from app.api.v1.scoring import router as scoring_router
+from app.core.config import settings
+from app.services.mami_config import (
+    get_scoring_dir,
+    load_mami_config,
+    load_questionnaire_config,
+    load_questionnaire_configs,
+)
 
 
 @asynccontextmanager
@@ -55,7 +62,7 @@ app.add_middleware(
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]  # slowapi's handler type predates Starlette's generic Request[State]
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(initiatives_router, prefix="/api/v1")

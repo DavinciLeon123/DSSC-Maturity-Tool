@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Optional, List
+
 from pydantic import BaseModel
+
 from app.models.questionnaire import AnswerValue
 
 
@@ -9,8 +10,8 @@ class AnswerCreate(BaseModel):
     mami_code: str
     questionnaire_version: str
     answer_value: AnswerValue
-    followup_selections: Optional[List[str]] = None
-    followup_other: Optional[str] = None
+    followup_selections: list[str] | None = None
+    followup_other: str | None = None
 
 
 class AnswerRead(BaseModel):
@@ -20,8 +21,8 @@ class AnswerRead(BaseModel):
     mami_code: str
     questionnaire_version: str
     answer_value: AnswerValue
-    followup_selections: Optional[List[str]]
-    followup_other: Optional[str]
+    followup_selections: list[str] | None
+    followup_other: str | None
     answered_at: datetime
     updated_at: datetime
 

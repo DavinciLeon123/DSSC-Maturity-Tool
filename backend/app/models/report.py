@@ -1,13 +1,13 @@
-from typing import Optional
 from datetime import datetime
-from sqlmodel import SQLModel, Field, Column
+
 from sqlalchemy import Text
+from sqlmodel import Column, Field, SQLModel
 
 
 class ComplianceReport(SQLModel, table=True):
     __tablename__ = "compliance_report"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     initiative_id: int = Field(foreign_key="initiative.id", index=True, unique=True)
     html_content: str = Field(sa_column=Column(Text))
     generated_at: datetime = Field(default_factory=datetime.utcnow)

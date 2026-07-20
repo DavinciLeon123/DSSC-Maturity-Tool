@@ -1,9 +1,10 @@
 """Report API endpoints — generate and retrieve MAMI compliance reports."""
+
 import logging
 from datetime import datetime
 
-import zen
 import resend
+import zen
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -34,6 +35,7 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
             return
         logger.info("[MAIL] Generating PDF for %s", email)
         from weasyprint import HTML as WeasyHTML
+
         pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
         logger.info("[MAIL] PDF generated (%d bytes), sending via Resend", len(pdf_bytes))
         attachment: resend.Attachment = {
@@ -85,9 +87,7 @@ async def generate_report(
 
     # Load saved answers
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
 
     # Build code metadata lookup for scoring
@@ -146,26 +146,30 @@ async def generate_report(
     compliant_count = len(answers) - sum(1 for f in findings_raw if f.get("status") == "FINDING")
 
     # Upsert: one report per initiative — regeneration replaces previous report
-    stmt = pg_insert(ComplianceReport).values(
-        initiative_id=initiative_id,
-        html_content=html_content,
-        generated_at=datetime.utcnow(),
-        questionnaire_version="2.0",
-        total_answers=len(answers),
-        critical_count=critical_count,
-        non_critical_count=non_critical_count,
-        compliant_count=compliant_count,
-    ).on_conflict_do_update(
-        index_elements=["initiative_id"],
-        set_={
-            "html_content": pg_insert(ComplianceReport).excluded.html_content,
-            "generated_at": pg_insert(ComplianceReport).excluded.generated_at,
-            "questionnaire_version": pg_insert(ComplianceReport).excluded.questionnaire_version,
-            "total_answers": pg_insert(ComplianceReport).excluded.total_answers,
-            "critical_count": pg_insert(ComplianceReport).excluded.critical_count,
-            "non_critical_count": pg_insert(ComplianceReport).excluded.non_critical_count,
-            "compliant_count": pg_insert(ComplianceReport).excluded.compliant_count,
-        },
+    stmt = (
+        pg_insert(ComplianceReport)
+        .values(
+            initiative_id=initiative_id,
+            html_content=html_content,
+            generated_at=datetime.utcnow(),
+            questionnaire_version="2.0",
+            total_answers=len(answers),
+            critical_count=critical_count,
+            non_critical_count=non_critical_count,
+            compliant_count=compliant_count,
+        )
+        .on_conflict_do_update(
+            index_elements=["initiative_id"],
+            set_={
+                "html_content": pg_insert(ComplianceReport).excluded.html_content,
+                "generated_at": pg_insert(ComplianceReport).excluded.generated_at,
+                "questionnaire_version": pg_insert(ComplianceReport).excluded.questionnaire_version,
+                "total_answers": pg_insert(ComplianceReport).excluded.total_answers,
+                "critical_count": pg_insert(ComplianceReport).excluded.critical_count,
+                "non_critical_count": pg_insert(ComplianceReport).excluded.non_critical_count,
+                "compliant_count": pg_insert(ComplianceReport).excluded.compliant_count,
+            },
+        )
     )
     session.exec(stmt)
     session.commit()
@@ -185,9 +189,7 @@ def get_report(
         raise HTTPException(status_code=404, detail="Initiative not found")
 
     report = session.exec(
-        select(ComplianceReport).where(
-            ComplianceReport.initiative_id == initiative_id
-        )
+        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
     ).first()
     if not report:
         raise HTTPException(status_code=404, detail="No report generated yet")
@@ -210,9 +212,7 @@ async def generate_report_data_endpoint(
 
     # Load saved answers
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
 
     # Build code metadata lookup for scoring
@@ -278,18 +278,14 @@ async def get_report_data_endpoint(
 
     # Check a report exists (i.e. the user has generated one before)
     report = session.exec(
-        select(ComplianceReport).where(
-            ComplianceReport.initiative_id == initiative_id
-        )
+        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
     ).first()
     if not report:
         raise HTTPException(status_code=404, detail="No report generated yet")
 
     # Regenerate from current answers (avoids schema change for JSON storage)
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
 
     code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
@@ -341,20 +337,20 @@ async def download_report_pdf(
     mami_config: dict = Depends(get_mami_config),
 ):
     """Generate the compliance report as a PDF and return it as a file download."""
-    from weasyprint import HTML as WeasyHTML
     from fastapi.responses import Response
+    from weasyprint import HTML as WeasyHTML
 
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
     if not answers:
-        raise HTTPException(status_code=422, detail="No answers found. Please complete the questionnaire first.")
+        raise HTTPException(
+            status_code=422, detail="No answers found. Please complete the questionnaire first."
+        )
 
     code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
     answers_for_scoring = [
@@ -424,12 +420,12 @@ async def mail_report(
         raise HTTPException(status_code=404, detail="Initiative not found")
 
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
     if not answers:
-        raise HTTPException(status_code=422, detail="No answers found. Please complete the questionnaire first.")
+        raise HTTPException(
+            status_code=422, detail="No answers found. Please complete the questionnaire first."
+        )
 
     code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
     answers_for_scoring = [

@@ -1,10 +1,11 @@
+import zen
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
-import zen
+
+from app.core.security import decode_access_token
 from app.db.session import get_session
 from app.models.user import User
-from app.core.security import decode_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 

@@ -1,14 +1,16 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlmodel import Session, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from datetime import datetime
-from app.db.session import get_session
+from sqlmodel import Session, select
+
 from app.core.deps import get_current_user, get_questionnaire_configs
-from app.models.user import User
+from app.db.session import get_session
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
+from app.models.user import User
 from app.schemas.questionnaire import AnswerCreate, AnswerRead
 
 router = APIRouter(tags=["questionnaire"])
@@ -21,17 +23,21 @@ def get_questionnaire_config_endpoint(
     current_user: User = Depends(get_current_user),
     configs: dict = Depends(get_questionnaire_configs),
 ):
-    """Return the v2 questionnaire config for the current user's initiative participant type (DSI or SP)."""
+    """Return the v2 questionnaire config for the current user's participant type (DSI or SP)."""
     initiative = session.exec(
         select(Initiative).where(Initiative.user_id == current_user.id)
     ).first()
     if not initiative:
-        raise HTTPException(status_code=404, detail="Create an initiative first to access the questionnaire")
+        raise HTTPException(
+            status_code=404, detail="Create an initiative first to access the questionnaire"
+        )
     participant_type = initiative.participant_type.value  # "DSI" or "SP"
     return configs[participant_type]
 
 
-@router.put("/questionnaire/initiatives/{initiative_id}/answers/{question_id}", response_model=AnswerRead)
+@router.put(
+    "/questionnaire/initiatives/{initiative_id}/answers/{question_id}", response_model=AnswerRead
+)
 @limiter.limit("60/minute")
 def upsert_answer(
     request: Request,
@@ -99,8 +105,6 @@ def get_answers(
         raise HTTPException(status_code=403, detail="Not your initiative")
 
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
     ).all()
     return answers

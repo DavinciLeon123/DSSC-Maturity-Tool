@@ -1,0 +1,123 @@
+name: Security
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+      - working-directory: backend
+        run: |
+          uv sync --locked
+          uv export --no-dev --no-emit-project --format requirements-txt -o /tmp/requirements.txt
+          for i in 1 2 3; do
+            uv run pip-audit -r /tmp/requirements.txt --progress-spinner=off && exit 0
+            echo "pip-audit attempt $i failed"
+            [ "$i" != "3" ] && sleep 10
+          done
+          echo "pip-audit failed after 3 attempts"
+          exit 1
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+  zap-scan:
+    runs-on: ubuntu-latest
+    # Skips cleanly until STAGING_URL / STAGING_SCAN_EMAIL / STAGING_SCAN_PASSWORD secrets
+    # exist — there's no live Integration deployment to scan yet. See CLAUDE.md.
+    if: ${{ secrets.STAGING_URL != '' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && 'staging' || github.head_ref }}
+
+      - name: Wait for the staging deployment to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.STAGING_URL }}/health")
+            [ "$code" = "200" ] && exit 0
+            echo "health check attempt $i: HTTP $code, retrying in 10s..."
+            sleep 10
+          done
+          echo "staging deployment never became healthy"
+          exit 1
+
+      - name: Obtain a scan-account auth token
+        id: auth
+        run: |
+          response=$(curl -s -X POST "${{ secrets.STAGING_URL }}/api/v1/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${{ secrets.STAGING_SCAN_EMAIL }}\",\"password\":\"${{ secrets.STAGING_SCAN_PASSWORD }}\"}")
+          token=$(echo "$response" | jq -r '.access_token // empty')
+          if [ -z "$token" ]; then
+            echo "scan account login failed — check STAGING_SCAN_EMAIL/STAGING_SCAN_PASSWORD"
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: OWASP ZAP authenticated API scan
+        uses: zaproxy/action-api-scan@v0.9.0
+        with:
+          target: ${{ secrets.STAGING_URL }}/openapi.json
+          format: openapi
+          cmd_options: >-
+            -z "-config replacer.full_list(0).description=auth
+            -config replacer.full_list(0).enabled=true
+            -config replacer.full_list(0).matchtype=REQ_HEADER
+            -config replacer.full_list(0).matchstr=Authorization
+            -config replacer.full_list(0).regex=false
+            -config replacer.full_list(0).replacement=Bearer\ ${{ steps.auth.outputs.token }}"
+
+      - name: Post severity-count summary as a PR comment
+        if: github.event_name == 'pull_request'
+        run: |
+          summary=$(jq -r '
+            [.site[].alerts[]] | group_by(.riskdesc) | map("\(.[0].riskdesc): \(length)") | join("\n")
+          ' report_json.json 2>/dev/null || echo "no ZAP report_json.json produced")
+          gh pr comment "${{ github.event.pull_request.number }}" --body "**ZAP scan summary**
+          \`\`\`
+          $summary
+          \`\`\`"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit ZAP report
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p docs/security/zap
+          cp report_html.html "docs/security/zap/zap-report-${{ github.sha }}.html" 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/security/zap/
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(security): ZAP scan report for ${{ github.sha }} [skip ci]"
+          git push origin HEAD:staging

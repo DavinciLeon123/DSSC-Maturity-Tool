@@ -1,7 +1,9 @@
 """ZEN Engine scoring service — evaluates each answer individually using async_evaluate."""
+
 import asyncio
+
 import zen
-from pathlib import Path
+
 from app.services.mami_config import get_scoring_dir
 
 
@@ -48,12 +50,14 @@ async def score_all_answers(
     results = await asyncio.gather(*tasks)
 
     findings = []
-    for answer, result in zip(answers, results):
+    for answer, result in zip(answers, results, strict=True):
         outcome = result.get("result", {})
         if outcome.get("status") == "FINDING":
-            findings.append({
-                "mami_code": answer["mami_code"],
-                "severity": outcome.get("severity", ""),
-                "status": "FINDING",
-            })
+            findings.append(
+                {
+                    "mami_code": answer["mami_code"],
+                    "severity": outcome.get("severity", ""),
+                    "status": "FINDING",
+                }
+            )
     return findings

@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     # Stored as str so pydantic-settings never tries json.loads() on it.
     # Accepts: comma-separated URLs  OR  a JSON array string like '["url1","url2"]'
     CORS_ORIGINS: str = _DEFAULT_CORS_STR
-    RESEND_API_KEY: str = ""                    # Empty = dev fallback (log reset link to console)
-    FRONTEND_URL: str = "http://localhost:5173" # Used to construct the reset URL in emails
+    RESEND_API_KEY: str = ""  # Empty = dev fallback (log reset link to console)
+    FRONTEND_URL: str = "http://localhost:5173"  # Used to construct the reset URL in emails
 
     @property
     def cors_origins_list(self) -> list[str]:

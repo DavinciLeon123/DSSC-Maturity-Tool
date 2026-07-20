@@ -20,9 +20,53 @@ dependencies = [
     "weasyprint",
 ]
 
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-xdist>=3.6.0",
+    "pytest-benchmark>=4.0.0",
+    "pip-audit>=2.7.0",
+    "httpx>=0.27.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    "UP042",  # str+Enum -> StrEnum touches SQLAlchemy column serialization; migrate deliberately, not via autofix
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's DI markers are meant to be called in argument defaults; not a real B008 mutable-default risk
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Body", "fastapi.Path", "fastapi.Header", "fastapi.Cookie", "fastapi.Form"]
+
+[tool.ruff.lint.per-file-ignores]
+# Long-form compliance/email copy — wrapping breaks readability, this is content not code
+"app/services/report_generator.py" = ["E501"]
+"app/api/v1/reports.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
+exclude = ["alembic/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "perf: dedicated p95 latency checks, run in their own CI job",
+    "benchmark: heavy regression benchmarks, excluded from the PR gate",
+]

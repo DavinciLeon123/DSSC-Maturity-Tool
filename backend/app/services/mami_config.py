@@ -1,4 +1,5 @@
 """MAMI framework config loader utilities."""
+
 import json
 from pathlib import Path
 

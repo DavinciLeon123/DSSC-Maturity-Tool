@@ -1,7 +1,9 @@
 """Jinja2-based HTML report generator for MAMI compliance reports."""
+
 import re
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 _RECOMMENDATIONS: dict[str, str] = {
@@ -149,21 +151,22 @@ def _build_findings_detail(
             "NOT_APPLICABLE": "Not applicable",
         }.get(raw_answer, raw_answer)
 
-        detail.append({
-            "mami_code": f["mami_code"],
-            "severity": f.get("severity", ""),
-            "description": code.get("description", ""),
-            "moscow_level": code.get("moscow_level", ""),
-            "answer_value": raw_answer,
-            "answer_label": answer_label,
-            "followup_selections": answer.get("followup_selections") or [],
-            "followup_other": answer.get("followup_other") or "",
-            "evidence": [
-                {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")}
-                for ev in evidence
-            ],
-            "next_steps": _suggest_next_steps(f.get("severity", ""), code),
-        })
+        detail.append(
+            {
+                "mami_code": f["mami_code"],
+                "severity": f.get("severity", ""),
+                "description": code.get("description", ""),
+                "moscow_level": code.get("moscow_level", ""),
+                "answer_value": raw_answer,
+                "answer_label": answer_label,
+                "followup_selections": answer.get("followup_selections") or [],
+                "followup_other": answer.get("followup_other") or "",
+                "evidence": [
+                    {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")} for ev in evidence
+                ],
+                "next_steps": _suggest_next_steps(f.get("severity", ""), code),
+            }
+        )
 
     return detail
 
@@ -189,11 +192,7 @@ def _build_topic_structure(mami_config: dict) -> dict:
 
         if topic_id not in seen[cat]:
             seen[cat][topic_id] = len(structure[cat])
-            structure[cat].append({
-                "topic_id": topic_id,
-                "topic_label": topic_label,
-                "codes": []
-            })
+            structure[cat].append({"topic_id": topic_id, "topic_label": topic_label, "codes": []})
 
         structure[cat][seen[cat][topic_id]]["codes"].append(code_id)
 
@@ -247,11 +246,13 @@ def _build_not_yet_recommendations(answers: list[dict], mami_config: dict) -> li
         if not rec_text:
             continue
         meta = code_meta.get(code_id, {})
-        result.append({
-            "dimension_label": meta.get("dimension_label", ""),
-            "topic_label": meta.get("topic_label", code_id),
-            "text": rec_text,
-        })
+        result.append(
+            {
+                "dimension_label": meta.get("dimension_label", ""),
+                "topic_label": meta.get("topic_label", code_id),
+                "text": rec_text,
+            }
+        )
     return result
 
 

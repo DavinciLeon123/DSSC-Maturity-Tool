@@ -1,10 +1,10 @@
 import os
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 
-import sqlmodel.sql.sqltypes  # REQUIRED — prevents type mapping errors
+from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
+
+from alembic import context
 
 # Import ALL models so Alembic detects them for autogenerate
 # DO NOT REMOVE — Alembic silently produces empty migrations if models are not imported

@@ -1,9 +1,18 @@
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, field_validator
-from typing import Literal, Optional
 
 COMMON_PASSWORDS = {
-    "password", "12345678", "123456789", "qwerty123", "admin1234",
-    "letmein1", "welcome1", "monkey123", "password1", "iloveyou1"
+    "password",
+    "12345678",
+    "123456789",
+    "qwerty123",
+    "admin1234",
+    "letmein1",
+    "welcome1",
+    "monkey123",
+    "password1",
+    "iloveyou1",
 }
 
 

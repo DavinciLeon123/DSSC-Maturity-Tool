@@ -1,7 +1,7 @@
-from enum import Enum
-from sqlmodel import SQLModel, Field
-from typing import Optional
 from datetime import datetime
+from enum import Enum
+
+from sqlmodel import Field, SQLModel
 
 
 class InitiativeStatus(str, Enum):
@@ -17,21 +17,27 @@ class ParticipantType(str, Enum):
 
 # Predefined sector list — from research open question recommendation
 SECTOR_OPTIONS = [
-    "Healthcare", "Finance", "Government", "Energy",
-    "Education", "Transport", "Agriculture", "Other",
+    "Healthcare",
+    "Finance",
+    "Government",
+    "Energy",
+    "Education",
+    "Transport",
+    "Agriculture",
+    "Other",
 ]
 
 
 class Initiative(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True, unique=True)  # unique = one per user
     name: str = Field(min_length=2, max_length=200)
-    description: Optional[str] = None
-    sector: str                         # Must be in SECTOR_OPTIONS
-    sector_other: Optional[str] = None  # Required if sector == "Other"
-    contact_name: Optional[str] = None
-    contact_email: Optional[str] = None
-    organization: Optional[str] = None
+    description: str | None = None
+    sector: str  # Must be in SECTOR_OPTIONS
+    sector_other: str | None = None  # Required if sector == "Other"
+    contact_name: str | None = None
+    contact_email: str | None = None
+    organization: str | None = None
     participant_type: ParticipantType = Field(default=ParticipantType.dsi)
     status: InitiativeStatus = Field(default=InitiativeStatus.draft)
     created_at: datetime = Field(default_factory=datetime.utcnow)
