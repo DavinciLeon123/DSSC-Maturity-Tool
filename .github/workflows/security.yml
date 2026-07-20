@@ -46,11 +46,23 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
 
+  check-staging-secret:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        # jobs.<job_id>.if can't reference `secrets` directly (GitHub Actions restriction —
+        # only `github`/`needs`/`vars`/`inputs` are allowed there), so we surface it as a
+        # job output from a step instead, where the secrets context is available.
+        run: echo "configured=${{ secrets.STAGING_URL != '' }}" >> "$GITHUB_OUTPUT"
+
   zap-scan:
     runs-on: ubuntu-latest
+    needs: check-staging-secret
     # Skips cleanly until STAGING_URL / STAGING_SCAN_EMAIL / STAGING_SCAN_PASSWORD secrets
     # exist — there's no live Integration deployment to scan yet. See CLAUDE.md.
-    if: ${{ secrets.STAGING_URL != '' }}
+    if: needs.check-staging-secret.outputs.configured == 'true'
     permissions:
       contents: write
       pull-requests: write
