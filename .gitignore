@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# uv
+# Note: uv.lock IS committed — Dockerfile needs it for reproducible builds
+# uv.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.override.env

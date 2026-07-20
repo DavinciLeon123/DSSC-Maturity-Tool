@@ -1,0 +1,262 @@
+{
+  "version": "1.0",
+  "$schema": "https://json-schema.org/draft/2020-12",
+  "categories": [
+    {
+      "id": "scheme",
+      "label": "Scheme Management",
+      "dimensions": [
+        {
+          "id": "human_readable",
+          "label": "Human Readable/Actionable",
+          "questions": [
+            {
+              "id": "q_S-HRA-1.1",
+              "mami_code": "S-HRA-1.1",
+              "text": "Does your initiative have a publicly available governance document describing its rules and policies?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            },
+            {
+              "id": "q_S-HRA-1.2",
+              "mami_code": "S-HRA-1.2",
+              "text": "Is the governance document reviewed and updated at least annually?",
+              "answer_type": "yes_no_explain",
+              "required": false,
+              "has_evidence": false
+            },
+            {
+              "id": "q_S-HRA-1.3",
+              "mami_code": "S-HRA-1.3",
+              "text": "Are the terms and conditions for participants publicly available and written in plain language?",
+              "answer_type": "not_applicable_allowed",
+              "required": true,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "machine_readable",
+          "label": "Machine Readable",
+          "questions": [
+            {
+              "id": "q_S-MRA-1.1",
+              "mami_code": "S-MRA-1.1",
+              "text": "Is the governance document published in a structured machine-readable format (e.g. JSON-LD, XML)?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            },
+            {
+              "id": "q_S-MRA-1.2",
+              "mami_code": "S-MRA-1.2",
+              "text": "Does the governance document reference a formal ontology or vocabulary (e.g. DCAT, schema.org)?",
+              "answer_type": "yes_no",
+              "required": false,
+              "has_evidence": false
+            }
+          ]
+        },
+        {
+          "id": "trust_anchors",
+          "label": "Trust Anchors",
+          "questions": [
+            {
+              "id": "q_S-TA-1.1",
+              "mami_code": "S-TA-1.1",
+              "text": "Does the initiative operate under a formal legal entity or trust anchor organisation?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "participants",
+      "label": "Participants",
+      "dimensions": [
+        {
+          "id": "human_readable",
+          "label": "Human Readable/Actionable",
+          "questions": [
+            {
+              "id": "q_PP-HRA-2.1",
+              "mami_code": "PP-HRA-2.1",
+              "text": "Is a list of participating organisations publicly accessible?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            },
+            {
+              "id": "q_PP-HRA-2.2",
+              "mami_code": "PP-HRA-2.2",
+              "text": "Are participant onboarding and exit procedures documented and publicly available?",
+              "answer_type": "yes_no_explain",
+              "required": false,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "machine_readable",
+          "label": "Machine Readable",
+          "questions": [
+            {
+              "id": "q_PP-MRA-2.1",
+              "mami_code": "PP-MRA-2.1",
+              "text": "Is the participant registry available via a machine-readable API or structured data export?",
+              "answer_type": "not_applicable_allowed",
+              "required": true,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "trust_anchors",
+          "label": "Trust Anchors",
+          "questions": [
+            {
+              "id": "q_PP-TA-2.1",
+              "mami_code": "PP-TA-2.1",
+              "text": "Are participants authenticated and authorised using a recognised identity framework (e.g. eIDAS, iSHARE)?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": false
+            },
+            {
+              "id": "q_PP-TA-2.2",
+              "mami_code": "PP-TA-2.2",
+              "text": "Are participant trust levels and assurance levels documented and publicly declared?",
+              "answer_type": "yes_no",
+              "required": false,
+              "has_evidence": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data",
+      "dimensions": [
+        {
+          "id": "human_readable",
+          "label": "Human Readable/Actionable",
+          "questions": [
+            {
+              "id": "q_D-HRA-3.1",
+              "mami_code": "D-HRA-3.1",
+              "text": "Are the data model and data dictionary publicly available in human-readable form?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            },
+            {
+              "id": "q_D-HRA-3.2",
+              "mami_code": "D-HRA-3.2",
+              "text": "Are data quality requirements and validation criteria documented and available to participants?",
+              "answer_type": "yes_no_explain",
+              "required": false,
+              "has_evidence": false
+            }
+          ]
+        },
+        {
+          "id": "machine_readable",
+          "label": "Machine Readable",
+          "questions": [
+            {
+              "id": "q_D-MRA-3.1",
+              "mami_code": "D-MRA-3.1",
+              "text": "Is the data schema published as a machine-readable schema (e.g. JSON Schema, XSD, SHACL)?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "trust_anchors",
+          "label": "Trust Anchors",
+          "questions": [
+            {
+              "id": "q_D-TA-3.1",
+              "mami_code": "D-TA-3.1",
+              "text": "Are data provenance and lineage recorded and accessible to authorised participants?",
+              "answer_type": "not_applicable_allowed",
+              "required": true,
+              "has_evidence": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "label": "Services",
+      "dimensions": [
+        {
+          "id": "human_readable",
+          "label": "Human Readable/Actionable",
+          "questions": [
+            {
+              "id": "q_SER-HRA-4.1",
+              "mami_code": "SER-HRA-4.1",
+              "text": "Is a service catalogue listing all available data services publicly accessible?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            },
+            {
+              "id": "q_SER-HRA-4.2",
+              "mami_code": "SER-HRA-4.2",
+              "text": "Are service level agreements (SLAs) for each service documented and publicly available?",
+              "answer_type": "yes_no_explain",
+              "required": false,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "machine_readable",
+          "label": "Machine Readable",
+          "questions": [
+            {
+              "id": "q_SER-MRA-4.1",
+              "mami_code": "SER-MRA-4.1",
+              "text": "Do services expose a machine-readable API description (e.g. OpenAPI, WSDL, AsyncAPI)?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": true
+            }
+          ]
+        },
+        {
+          "id": "trust_anchors",
+          "label": "Trust Anchors",
+          "questions": [
+            {
+              "id": "q_SER-TA-4.1",
+              "mami_code": "SER-TA-4.1",
+              "text": "Are service endpoints secured and accessible only to authorised participants using a trust framework?",
+              "answer_type": "yes_no_explain",
+              "required": true,
+              "has_evidence": false
+            },
+            {
+              "id": "q_SER-TA-4.2",
+              "mami_code": "SER-TA-4.2",
+              "text": "Do services support audit logging of access events for accountability and traceability?",
+              "answer_type": "yes_no",
+              "required": false,
+              "has_evidence": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

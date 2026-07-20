@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MAMI Interoperability Heatmap — {{ initiative.name }}</title>
+  <style>
+    :root {
+      --primary: #06004f;
+      --bg:      #f5f7fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: #1a1a2e;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .report-header {
+      background: var(--primary);
+      color: #fff;
+      padding: 32px 48px;
+    }
+    .report-header h1 { font-size: 1.8rem; margin-bottom: 10px; }
+    .report-header .meta { opacity: 0.85; font-size: 0.9rem; line-height: 1.9; }
+
+    /* ── Body ── */
+    .report-body { max-width: 700px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Section titles ── */
+    h2.section-title {
+      color: var(--primary);
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #399e5a;
+      padding-bottom: 6px;
+    }
+
+    /* ── Heatmap card ── */
+    .heatmap-card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(6,0,79,0.08);
+      margin-bottom: 32px;
+    }
+
+    /* Header row */
+    .heatmap-header {
+      display: grid;
+      grid-template-columns: 140px repeat(3, 1fr);
+      background: #06004f;
+      padding: 8px 12px;
+      gap: 4px;
+    }
+    .heatmap-header .dim-label {
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    /* Category group header */
+    .cat-header {
+      display: grid;
+      grid-template-columns: 140px repeat(3, 1fr);
+      background: rgba(6,0,79,0.08);
+      padding: 7px 12px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: #06004f;
+      border-bottom: 1px solid rgba(6,0,79,0.12);
+    }
+    .cat-header span { grid-column: 1 / -1; }
+
+    /* Topic row */
+    .topic-row {
+      display: grid;
+      grid-template-columns: 140px repeat(3, 1fr);
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .topic-row:last-child { border-bottom: none; }
+    .topic-label {
+      padding: 7px 8px 7px 1.2rem;
+      font-size: 0.75rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+    .chip-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 5px 4px;
+    }
+
+    /* ── Status chips — matching web dashboard exactly ── */
+    .chip {
+      border-radius: 100px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+      white-space: nowrap;
+      min-width: 72px;
+      justify-content: center;
+    }
+    .chip-yes        { background: rgba(57,158,90,0.2);  color: #399e5a; }
+    .chip-not_yet    { background: rgba(61,82,213,0.2);  color: #3d52d5; }
+    .chip-n_a        { background: rgba(204,204,204,0.8); color: #666; }
+    .chip-unanswered { background: rgba(204,204,204,0.4); color: #999; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 12px 1.5rem 1rem;
+      border-top: 1px solid #f0f0f0;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: rgba(6,0,79,0.6); }
+
+    /* ── Recommendations ── */
+    .rec-section { margin-bottom: 36px; }
+    .rec-intro {
+      color: #444;
+      margin-bottom: 16px;
+      font-size: 0.92rem;
+    }
+    .rec-list { list-style: none; padding: 0; }
+    .rec-list li {
+      padding: 12px 0;
+      border-top: 1px solid rgba(6,0,79,0.08);
+      font-size: 0.875rem;
+      color: #06004f;
+      line-height: 1.6;
+    }
+    .rec-list li:first-child { border-top: none; }
+    .rec-label { font-weight: 700; margin-right: 4px; }
+
+    /* ── Expert help box ── */
+    .expert-help {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-top: 8px;
+    }
+    .expert-help h2 { font-size: 1.15rem; margin-bottom: 12px; color: #fff; }
+    .expert-help p  { font-size: 0.92rem; line-height: 1.75; opacity: 0.92; }
+    .expert-help a  { color: #9bdbba; text-decoration: none; }
+
+    @media print {
+      body { background: #fff; }
+      .report-body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <h1>MAMI Interoperability Heatmap</h1>
+  <div class="meta">
+    <strong>{{ initiative.name }}</strong>{% if initiative.organization %} &mdash; {{ initiative.organization }}{% endif %}<br />
+    Generated: {{ generated_at }}
+  </div>
+</div>
+
+<div class="report-body">
+
+  <!-- HEATMAP -->
+  <div class="heatmap-card">
+    <!-- Column headers -->
+    <div class="heatmap-header">
+      <div></div>
+      <div class="dim-label">Human readability</div>
+      <div class="dim-label">Machine readability</div>
+      <div class="dim-label">Trust anchors</div>
+    </div>
+
+    {% set categories = [
+      ("scheme",       "Scheme"),
+      ("participants", "Participants"),
+      ("data",         "Data"),
+      ("services",     "Services")
+    ] %}
+
+    {% for cat_id, cat_label in categories %}
+      <!-- Category group header -->
+      <div class="cat-header"><span>{{ cat_label }}</span></div>
+
+      <!-- Topic rows -->
+      {% for topic_row in heatmap_rows.get(cat_id, []) %}
+      <div class="topic-row">
+        <div class="topic-label">{{ topic_row.topic_label }}</div>
+
+        {% for dim in ["human_readable", "machine_readable", "trust_anchors"] %}
+          {% set s = topic_row[dim] %}
+          <div class="chip-cell">
+            {% if s == "yes" %}
+              <span class="chip chip-yes">&#10003; Yes</span>
+            {% elif s == "not_yet" %}
+              <span class="chip chip-not_yet">&#9675; Not yet</span>
+            {% elif s == "n_a" %}
+              <span class="chip chip-n_a">&mdash; N/A</span>
+            {% else %}
+              <span class="chip chip-unanswered">&mdash; Unanswered</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    {% endfor %}
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="chip chip-yes" style="min-width:auto;padding:4px 12px;">&#10003; Yes</span> = Compliant</div>
+      <div class="legend-item"><span class="chip chip-not_yet" style="min-width:auto;padding:4px 12px;">&#9675; Not yet</span> = In progress</div>
+      <div class="legend-item"><span class="chip chip-n_a" style="min-width:auto;padding:4px 12px;">&mdash; N/A</span> = Not applicable</div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  {% if not_yet_recommendations %}
+  <div class="rec-section">
+    <h2 class="section-title">Recommendations for improving your interoperability</h2>
+    <p class="rec-intro">
+      Below are suggested steps you could take in the areas that you have indicated as
+      'Not yet, but planning to do'. The MAMI document, available on the CoE-DSC website,
+      contains elaborate recommendations for all of the areas.
+    </p>
+    <ul class="rec-list">
+      {% for rec in not_yet_recommendations %}
+      <li>
+        <span class="rec-label">{{ rec.dimension_label }} &mdash; {{ rec.topic_label }}</span> - {{ rec.text }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- GET EXPERT HELP -->
+  <div class="expert-help">
+    <h2>Get expert help</h2>
+    <p>
+      The Centre of Excellence is here to help you navigate interoperability challenges.
+      You can read the full MAMI report at our website
+      <a href="https://www.coe-dsc.nl" target="_blank" rel="noopener">www.coe-dsc.nl</a>.
+      You can also contact us at
+      <a href="mailto:info@coe-dsc.nl">info@coe-dsc.nl</a>.
+      We'll be happy to translate your results into concrete actions.
+    </p>
+  </div>
+
+</div><!-- /report-body -->
+</body>
+</html>

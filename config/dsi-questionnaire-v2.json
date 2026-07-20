@@ -1,0 +1,497 @@
+{
+  "version": "2.0",
+  "participant_type": "DSI",
+  "categories": [
+    {
+      "id": "scheme",
+      "label": "Scheme Management",
+      "context_text": null,
+      "context_image": null,
+      "topics": [
+        {
+          "id": "scheme_pub_updates",
+          "label": "Scheme publication & updates",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-S-HRA-1.1",
+              "mami_code": "S-HRA-1.1",
+              "text": "Are you publishing textual content of your scheme (a.k.a. rulebook)?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which formats do you use for publishing your scheme?",
+                "options": ["HTML", "PDF", "Markdown"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-MRA-1.1",
+              "mami_code": "S-MRA-1.1",
+              "text": "Do you have (offer) testbeds/sandboxes?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which testbed/sandbox capabilities do you offer?",
+                "options": ["APIs", "HTTP methods (CRUD)"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-TA-1.1",
+              "mami_code": "S-TA-1.1",
+              "text": "Do you have a governance authority (and/or a procedure) for publishing & updating the scheme?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which governance structures are in place for publishing and updating the scheme?",
+                "options": ["Governance/scheme authority/data space authority responsible for publishing and updating the scheme"],
+                "allow_other": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "incidents_dispute",
+          "label": "Incidents & dispute management",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-S-HRA-2.1",
+              "mami_code": "S-HRA-2.1",
+              "text": "Are you manually flagging/tracking incidents (disputes)?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which channels do you use for manually tracking incidents?",
+                "options": ["HTTP Webpage", "Email adress", "Phonenumber", "Ticketing system"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-MRA-2.1",
+              "mami_code": "S-MRA-2.1",
+              "text": "Are you automatically flagging/tracking incidents (disputes)?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which automated mechanisms do you use for flagging/tracking incidents?",
+                "options": ["API calls", "HTTP methods (CRUD)"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-TA-2.1",
+              "mami_code": "S-TA-2.1",
+              "text": "Do you have a governance authority (and/or a procedure) to aid with dispute management?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which governance structures support dispute management?",
+                "options": ["Governance/scheme authority/data space authority to aid with dispute management"],
+                "allow_other": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "traceability",
+          "label": "Traceability",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-S-HRA-3.1",
+              "mami_code": "S-HRA-3.1",
+              "text": "Do you convert transaction logs into textual (human readable) content?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which formats do you use for human-readable log conversion?",
+                "options": ["CSV", "TXT"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-MRA-3.1",
+              "mami_code": "S-MRA-3.1",
+              "text": "Do you automatically register logs (audit trails)?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which standards/formats do you use for automated log registration?",
+                "options": ["JSON", "XML", "COMMON EVENT FORMAT (CEF)", "Log Event Extended Format (LEEF)", "Blockchain-based audit trails", "Transaction log portal", "Logboek Dataverwerkingen", "PROV"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-S-TA-3.1",
+              "mami_code": "S-TA-3.1",
+              "text": "Do you have (certified) service provider(s)/brokers for operation/provision of the traceability tools?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which certified providers operate your traceability tools?",
+                "options": ["(Certified) service provider(s)/ brokers recognised for operation/provision of the traceability tools"],
+                "allow_other": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "participants",
+      "label": "Participants Management",
+      "context_text": null,
+      "context_image": null,
+      "topics": [
+        {
+          "id": "onboarding",
+          "label": "On(off)-boarding",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-PM-HRA-1.1",
+              "mami_code": "PM-HRA-1.1",
+              "text": "Do you have procedures to identify participants?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which identification methods do you use for participants?",
+                "options": ["GLN - GS1 ID", "EORI (based on KVK number in NL)", "W3C DIDs", "BSN (DIGID - Dutch)", "Chamber of Commerce number", "UZI-pas", "Self-issued Energy Data Link"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-PM-MRA-1.1",
+              "mami_code": "PM-MRA-1.1",
+              "text": "Do you have procedures to authenticate/authorise participants?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which authentication/authorisation protocols do you support?",
+                "options": ["PKI X.509", "JWT", "SAML", "OAuth2.0", "OpenID Connect", "OpenID4VC", "Verifiable Credentials/Presentations", "Decentralized Claims Protocol", "eHerkenning (Dutch)", "DigiD (Dutch)", "PKI-Overheid (Dutch)"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-PM-TA-1.1",
+              "mami_code": "PM-TA-1.1",
+              "text": "Do you have a governance authority for onboarding and/or trusted SPs for identity services?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which governance structures and trusted service providers support onboarding?",
+                "options": ["Governance/scheme authority/data space authority responsible for establish binding effect through the onboarding contracts", "Various (Certified/qualified) trusted service providers to issue"],
+                "allow_other": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "participants_discovery",
+          "label": "Participants discovery",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-PM-HRA-2.1",
+              "mami_code": "PM-HRA-2.1",
+              "text": "Do you have a human readable registry of participants?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which formats does your human-readable participant registry use?",
+                "options": ["HTML", "SQL"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-PM-MRA-2.1",
+              "mami_code": "PM-MRA-2.1",
+              "text": "Do you have a machine readable registry of participants?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which technologies does your machine-readable participant registry use?",
+                "options": ["APIs", "Database configurations/engines", "DLT"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-PM-TA-2.1",
+              "mami_code": "PM-TA-2.1",
+              "text": "Do you have trusted SPs responsible for the operation/provision of the registry tools?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which certified providers operate your participant registry?",
+                "options": ["(Certified/qualified) trusted service providers responsible for the operation/provision of the registry tools"],
+                "allow_other": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data and Data Sets Management",
+      "context_text": null,
+      "context_image": null,
+      "topics": [
+        {
+          "id": "data_pub_discovery",
+          "label": "Data(sets) Publication & discovery",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-D-HRA-1.1",
+              "mami_code": "D-HRA-1.1",
+              "text": "Do you use human readable metadata?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which human-readable metadata formats do you use?",
+                "options": ["PDF", "HTML"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-D-MRA-1.1",
+              "mami_code": "D-MRA-1.1",
+              "text": "Do you use machine readable metadata?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which machine-readable metadata standards do you use?",
+                "options": ["RDF Schema and SHACL for RDF", "OWL (Web Ontology Language) also for RDF", "SKOS (Simple Knowledge Organization System)", "JSON Schema", "XML Schema (XSD)Schematron", "CSVW for CSV-oriented tabular data", "XSLT R2RML RML CSVW", "ISO 19115 (Geographic Information Metadata)", "NISO Z39.87 (Data Dictionary for Libraries)", "Dublin Core Metadata Terms", "IEEE 1484.12.x (Learning Object Metadata)", "OASIS Context Server Business Standards", "SODA 2.0 (for open data services)", "MEDFORD metadata language", "OpenAPI", "MIM", "DCAT (e.g. DCAT-AP-NL 3.0)", "NL-SBB", "Asset Administration Shell", "Digital Product Passports (DPPs)"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-D-TA-1.1",
+              "mami_code": "D-TA-1.1",
+              "text": "Do you have trusted/recognised organisations to follow for metadata standards?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which trusted organisations do you follow for metadata standards?",
+                "options": ["Trusted/recognised organisations to follow for metadata standards in the applicable context e.g. W3C and ISO"],
+                "allow_other": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "data_provisions",
+          "label": "Data(sets) Provisions",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-D-HRA-2.1",
+              "mami_code": "D-HRA-2.1",
+              "text": "Do you use human readable data usage policies?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which standards do you use for human-readable data usage policies?",
+                "options": ["DCAT", "ODRL"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-D-MRA-2.1",
+              "mami_code": "D-MRA-2.1",
+              "text": "Do you use machine readable data usage policies?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which standards do you use for machine-readable data usage policies?",
+                "options": ["DCAT (e.g. DCAT-AP-NL 3.0)", "ODRL", "XACML", "SPARQL", "REGO policy language", "ISO/IEC TS 27560:2023", "IDS Usage Control specifications RAM 4.0", "Gaia-X Policy Reasoning Engine", "Aster X verification & compliance deployment", "Prometheus X verification & compliance deployment", "iSHARE Delegation policy information point"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-D-TA-2.1",
+              "mami_code": "D-TA-2.1",
+              "text": "Do you have a governance authority (and/or a procedure) to aid participants in creating access & usage policies for their datasets?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which governance structures help participants create data usage policies?",
+                "options": ["Governance/scheme authority/data space authority to aid/guide participants in establishing access & usage policies for their datasets"],
+                "allow_other": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "label": "Services Management",
+      "context_text": null,
+      "context_image": null,
+      "topics": [
+        {
+          "id": "services_pub_discovery",
+          "label": "Services Publications and discovery",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-SER-HRA-1.1",
+              "mami_code": "SER-HRA-1.1",
+              "text": "Do you have a human readable services catalogue?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which formats does your human-readable services catalogue use?",
+                "options": ["HTML", "PDF", "DCAT", "OAS"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-SER-MRA-1.1",
+              "mami_code": "SER-MRA-1.1",
+              "text": "Do you have a machine readable services catalogue?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which technologies does your machine-readable services catalogue use?",
+                "options": ["APIs", "Database configurations", "DCAT", "DLT"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-SER-TA-1.1",
+              "mami_code": "SER-TA-1.1",
+              "text": "Do you have trusted SPs for core & additional services under your initiative (scheme)?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which certified providers deliver core and additional services for your initiative?",
+                "options": ["(Certified/qualified) trusted service providers"],
+                "allow_other": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "services_provisions",
+          "label": "Services Provisions",
+          "mami_dimension": null,
+          "context_text": null,
+          "context_image": null,
+          "questions": [
+            {
+              "id": "q_DSI-SER-HRA-2.1",
+              "mami_code": "SER-HRA-2.1",
+              "text": "Do you use human readable service provision conditions?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which formats do you use for human-readable service provision conditions?",
+                "options": ["HTML", "PDF"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-SER-MRA-2.1",
+              "mami_code": "SER-MRA-2.1",
+              "text": "Do you use machine readable service provision conditions?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": true,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which standards do you use for machine-readable service provision conditions?",
+                "options": ["APIs", "IDS Contract Negotiations (CN) protocol", "Gaia-X Contract Negotiations protocol", "Proof of payment protocol (e.g., SWIFT MT103)"],
+                "allow_other": true
+              }
+            },
+            {
+              "id": "q_DSI-SER-TA-2.1",
+              "mami_code": "SER-TA-2.1",
+              "text": "Do you have a governance authority to validate & overtime audit trusted SPs for provision of services and adherence to security measures?",
+              "answer_type": "yes_notyet_na",
+              "required": true,
+              "has_evidence": false,
+              "followup": {
+                "trigger": ["YES", "NOT_THERE_YET"],
+                "prompt": "Which governance structures validate and audit trusted providers?",
+                "options": ["Governance/scheme authority/data space authority to validate and overtime audit that trusted providers have right credentials/ certification/ attestations for provision of services and adhere to security measures established in scheme agreements"],
+                "allow_other": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
