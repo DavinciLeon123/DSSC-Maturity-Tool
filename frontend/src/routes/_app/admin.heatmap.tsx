@@ -245,9 +245,8 @@ export function AdminHeatmapPage() {
   const [spError, setSpError] = useState<string | null>(null);
   const [spFetched, setSpFetched] = useState(false);
 
-  // Fetch DSI on mount
+  // Fetch DSI on mount (dsiLoading already starts true — no need to set it again here)
   useEffect(() => {
-    setDsiLoading(true);
     api
       .get<AdminHeatmapResponse>("/admin/heatmap?type=dsi")
       .then((res) => setDsiData(res.data))
