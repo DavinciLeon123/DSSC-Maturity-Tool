@@ -1,8 +1,8 @@
 ---
 phase: 13
 slug: new-questionnaire-config-schema-data-model-migration
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-22
 ---
@@ -75,11 +75,13 @@ Task IDs are TBD — filled in by the planner as PLAN.md tasks are created. Veri
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency acceptable (migration test stays in the seconds range)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (confirmed by gsd-plan-checker across all 4 PLAN.md files)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (test_dssc_config.py/test_questionnaire.py → 13-01; test_evidence_removed.py + factory/test updates → 13-02; test_questionnaire_schemas.py → 13-03; tests/migrations/test_v1_archive_migration.py → 13-04)
+- [x] No watch-mode flags
+- [x] Feedback latency acceptable (migration test stays in the seconds range)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+`wave_0_complete` stays `false` until execution actually lands the test files above — this sign-off certifies the plans' *design* is Nyquist-compliant, not that the tests exist yet.
+
+**Approval:** approved 2026-07-22 (gsd-plan-checker: 0 blockers)
