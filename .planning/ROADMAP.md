@@ -84,9 +84,20 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 13-01-PLAN.md — New universal 52-question/6-category config + single-file loader + universal config endpoint (Wave 1; QSTN-01/03/04/05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 13-02-PLAN.md — Remove evidence/URL subsystem entirely; strip evidence plumbing, keep suite green (Wave 2; MIGR-02)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 13-03-PLAN.md — New Assessment + v1 archive models, reshaped 1-5-score answer, schema_version, nullable participant_type, assessment-first upsert (Wave 3; QSTN-01, MIGR-01)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 13-04-PLAN.md — Hand-written archive-split Alembic migration + BLOCKING migration-verification test + openapi regen (Wave 4; MIGR-01)
 
 ### Phase 14: Scoring Engine Replacement
