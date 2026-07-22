@@ -1,8 +1,9 @@
 ---
 phase: 12-test-retrofit-stabilize-existing-flows
 verified: 2026-07-22T00:00:00Z
-status: human_needed
-score: 4/4 must-haves verified (via source cross-referencing, per documented environment gap)
+status: passed
+status_note: "Canonicalized from human_needed to passed on 2026-07-22 after both human_verification items were confirmed via PR #1's CI runs (see 12-UAT.md) — full 41/41 backend tests green (Docker+Pango-equipped ubuntu-latest), frontend-test green, total workflow ~3 minutes."
+score: 4/4 must-haves verified (via source cross-referencing, per documented environment gap; both remaining human_verification items subsequently confirmed by CI)
 behavior_unverified: 0
 overrides_applied: 0
 requirements_note: "Phase 12 declares requirements: [] in every plan; REQUIREMENTS.md's own Traceability note confirms 0 v1 requirements map to this phase. Trivial no-op — confirmed, no orphans."

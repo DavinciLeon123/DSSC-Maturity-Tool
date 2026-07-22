@@ -8,9 +8,14 @@ Guidance for Claude Code (and humans) working in this repo.
 |---|---|---|---|
 | `feature/*` | Active dev, cut from `staging` | No | Local only |
 | `staging` | Integration, PR-merged only | Yes (PR + CI) | Railway auto-deploys the Integration environment when CI is green |
-| `main` | Release-ready | Yes (PR + CI + 2 approvals) | Manual Railway redeploy from the dashboard |
+| `main` | Release-ready | Yes (PR + CI) | Manual Railway redeploy from the dashboard |
 
-Flow: `feature/*` → PR into `staging` (CI gates) → `staging` → PR into `main` (CI + human approval) → tag `vX.Y.Z` → release workflow.
+Flow: `feature/*` → PR into `staging` (CI gates) → `staging` → PR into `main` (CI gates) → tag `vX.Y.Z` → release workflow.
+
+**Note (2026-07-22):** `main` originally required 2 approvals before merging. Dropped to
+PR + CI only (same gate as `staging`) — this repo has a single collaborator, and the
+2-approval rule blocked the owner's own merges (see the removed setup-checklist item
+below, formerly flagged as expected first-PR friction).
 
 **Railway wiring is not a GitHub Actions step.** The standard, most reliable way to do
 "auto-deploy on green CI" is to let Railway's own GitHub integration watch the `staging`
@@ -86,5 +91,6 @@ degrade gracefully (skip, not hard-fail) until they're filled in:
 - **The codebase had never been linted before this setup.** Turning on `ruff`/`mypy` as hard PR gates against unlinted code would have broken on the very first PR, so I ran the auto-fix pass now: 145 lint issues auto-fixed, ~10 genuine mypy findings fixed by hand (mostly `int | None` narrowing after DB inserts, one real `zip()` missing `strict=True`), a few config exceptions added deliberately (`UP042` ignored — `str`+`Enum` → `StrEnum` touches SQLAlchemy column serialization and shouldn't happen via autofix; FastAPI's `Depends()`/`Query()`/etc. added to `extend-immutable-calls` since ruff's B008 otherwise flags idiomatic FastAPI DI as a bug).
 - **`uv.lock` had 49 known vulnerabilities across 13 packages** (starlette, pyjwt, pillow, python-multipart, urllib3, weasyprint, etc.) before this setup — all pre-existing, none introduced by this change. Ran `uv lock --upgrade` within the *existing* pyproject.toml version constraints (no constraint changes) and re-verified the full test suite — now zero known vulnerabilities. Flagging this since it's a real fix bundled into what was nominally a CI-setup task.
 - **No test suite existed at all.** Added minimal scaffolding (`tests/test_health.py`, `tests/perf/test_scoring_perf.py`, `tests/benchmark/test_scoring_regression.py`, `tests/test_privacy_canary.py`) so every CI gate is real and green on day one, not fabricated. These are a starting point, not coverage — there's no test yet that touches the database (auth, initiatives, scoring endpoints are all untested). First real addition to this repo should probably be a Postgres-backed test fixture.
-- **`main` currently has one collaborator (you).** The 2-approval rule on `main` will block your own merges until you add a second reviewer or use an admin override to merge. Flagging this now so it's not a surprise on the first PR into `main`.
+  - **Done (2026-07-22, Phase 12):** `tests/conftest.py` gained real-Postgres testcontainer fixtures (`postgres_container`/`engine`/`session`/`client`/`admin_client`/`user_client`), and `tests/api/` + `tests/services/` now cover auth, admin, and reports/report_generator. See `.planning/phases/12-test-retrofit-stabilize-existing-flows/`.
+- **~~`main` currently has one collaborator (you). The 2-approval rule on `main` will block your own merges...~~ Resolved (2026-07-22):** dropped `main`'s 2-approval requirement — see the Branch model note above.
 - **Default branch**: set to `staging` on GitHub (see below), since that's where `feature/*` branches are cut from and where PRs should land by default.

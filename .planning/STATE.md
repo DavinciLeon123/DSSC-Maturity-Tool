@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-last_updated: "2026-07-22T15:30:00.000Z"
+last_updated: "2026-07-22T16:00:00.000Z"
 progress:
   total_phases: 18
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 42
   completed_plans: 43
 ---
@@ -18,7 +18,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 12 (Test Retrofit — Stabilize Existing Flows) — landing via `feature/test-retrofit-auth-admin-reports`, merged into this repo's pre-existing CI/test infrastructure. Human verification pending (CI confirmation of the full Postgres-backed suite).
+**Current focus:** Phase 12 (Test Retrofit — Stabilize Existing Flows) COMPLETE. Next: Phase 13 (New Questionnaire Config Schema & Data Model Migration) — not yet planned.
 
 ## Milestone Status
 
@@ -37,10 +37,10 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 12-test-retrofit-stabilize-existing-flows
-**Current plan:** 5/5 plans executed. Verification: human_needed — CI confirmation of the merged Postgres-backed test suite pending (see `12-UAT.md`).
+**Active phase:** 12-test-retrofit-stabilize-existing-flows — COMPLETE
+**Next phase:** 13-new-questionnaire-config-schema-data-model-migration — not yet planned
 
-Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-Compliance-Checker` to this repo; merged test infra (conftest.py, pyproject.toml, backend/tests/api+services, frontend Vitest) additively into this repo's pre-existing CI/test setup; fixed a WeasyPrint native-library gap in all 4 pytest-running CI workflows; opened PR into `staging`.
+Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-Compliance-Checker` to this repo; merged test infra (conftest.py, pyproject.toml, backend/tests/api+services, frontend Vitest) additively into this repo's pre-existing CI/test setup; fixed a WeasyPrint native-library gap in all 4 pytest-running CI workflows; opened PR #1 into `staging`, merged after CI confirmed all 41 backend tests + frontend-test green (PR Checks run 29923476874, post-merge Staging CI/CD run 29923588482). Phase 12 marked complete. User also disabled the 2-approval requirement on `main`'s branch protection (was blocking solo-maintainer merges — see CLAUDE.md).
 
 ## Accumulated Context
 
@@ -51,10 +51,12 @@ Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-C
 - Deployment: Railway (Docker Compose), staging + production
 - Auth: JWT (24h), bcrypt, localStorage key `mami_access_token`
 - Testing (this repo, added 2026-07-20 to 2026-07-22): backend — ruff/mypy/pytest-xdist/pytest-benchmark/pip-audit + testcontainers[postgres]/faker/pytest-asyncio/pytest-mock/pytest-cov (Phase 12); frontend — Vitest + Testing Library (Phase 12, net new)
-- CI/CD: 5 GitHub Actions workflows (pr/staging/main/release/security), branch model `feature/*` → `staging` (protected) → `main` (protected, 2 approvals) → tag release
+- CI/CD: 5 GitHub Actions workflows (pr/staging/main/release/security), branch model `feature/*` → `staging` (protected) → `main` (protected, PR + CI only — 2-approval rule dropped 2026-07-22, see below) → tag release
 
 ### Key Decisions
 
+- [Phase 12, complete]: PR #1 merged 2026-07-22 — all 41 backend tests + frontend-test confirmed green in CI (PR Checks + post-merge Staging CI/CD), resolving the only open gap (G-12-1, WeasyPrint system-library fix)
+- [2026-07-22]: Dropped `main`'s 2-approval branch protection rule (the "4-eye principle") at the repo owner's request — this repo has one collaborator, and the rule was blocking the owner's own merges (flagged as an expected friction point in CLAUDE.md's original setup notes). `main` now requires PR + CI only, same gate as `staging`.
 - [Phase 12, this PR]: Merged Phase 12's Postgres-testcontainer test infra additively into this repo's pre-existing conftest.py/pyproject.toml rather than overwriting — no fixture-name or dependency collisions existed
 - [Phase 12, this PR]: Skipped creating a redundant test_smoke.py — this repo's existing test_health.py already proved the lifespan-aware TestClient chain; enhanced it with the one additional app.state assertion instead
 - [Phase 12, this PR]: Added a `frontend-test` job to the existing pr.yml/staging.yml/main.yml/release.yml rather than a new standalone test.yml — this repo had no frontend test job at all before Phase 12

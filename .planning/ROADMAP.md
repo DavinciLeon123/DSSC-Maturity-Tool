@@ -29,7 +29,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 
 </details>
 
-- [ ] **Phase 12: Test Retrofit — Stabilize Existing Flows** - Regression safety net for auth, admin, and PDF/email delivery, in place before the rebuild touches anything
+- [x] **Phase 12: Test Retrofit — Stabilize Existing Flows** - Regression safety net for auth, admin, and PDF/email delivery, in place before the rebuild touches anything (Complete 2026-07-22)
 - [ ] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data
 - [ ] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely
 - [ ] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history
@@ -51,8 +51,8 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
   3. PDF generation and email delivery of a completed report are covered by an automated regression test.
   4. This suite runs quickly enough to execute before merging each subsequent phase's changes, giving a clear pass/fail signal throughout the rebuild.
 
-**Plans**: 5/5 plans executed (originally against a MaMi-Compliance-Checker checkout; merged here into this repo's existing test/CI infrastructure via `feature/test-retrofit-auth-admin-reports`)
-**Status**: Human verification pending — CI confirmation of the merged suite (this repo's `ubuntu-latest` runners provide Docker, so the Postgres-testcontainer tests that couldn't be proven green in prior local runs should pass; the WeasyPrint system-library gap found locally has been fixed in all 4 workflow files that run pytest)
+**Plans**: 5/5 plans executed (originally against a MaMi-Compliance-Checker checkout; merged here into this repo's existing test/CI infrastructure via `feature/test-retrofit-auth-admin-reports`, PR #1, merged 2026-07-22)
+**Status**: Complete — CI confirmed all 41 backend tests + frontend-test green on both the PR run and the post-merge `staging` run (~3 min total workflow wall-clock)
 
 **Wave 1**
 
@@ -165,7 +165,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
-| 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Human verification pending (CI confirmation) |  |
+| 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 0/TBD | Not started | - |
 | 14. Scoring Engine Replacement | v2.0 | 0/TBD | Not started | - |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
