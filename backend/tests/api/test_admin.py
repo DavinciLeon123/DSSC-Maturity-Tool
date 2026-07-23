@@ -15,12 +15,10 @@ import io
 import pytest
 from sqlmodel import select
 
-from app.models.evidence import EvidenceURL
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from tests.factories import (
     make_answer,
-    make_evidence,
     make_initiative,
     make_report,
     make_submitted_initiative,
@@ -108,13 +106,13 @@ def test_list_initiatives_returns_user_email_and_answer_count(admin_client, sess
 
 def test_delete_user_cascades_all_child_rows(admin_client, session):
     # Pins T-12-03-CASCADE (STRIDE: Tampering) — _delete_user_cascade's
-    # manual FK-order delete must leave zero orphaned rows in ALL three
-    # child tables, not just return a 200. RESEARCH.md Pattern 4.
+    # manual FK-order delete must leave zero orphaned rows in all child
+    # tables, not just return a 200. RESEARCH.md Pattern 4. (Evidence-table
+    # cascade removed per MIGR-02 — the evidence subsystem no longer exists.)
     user = make_user(session)
     initiative = make_initiative(session, user=user)
     make_answer(session, initiative=initiative)
     make_answer(session, initiative=initiative)
-    make_evidence(session, initiative=initiative)
     make_report(session, initiative=initiative)
 
     initiative_id = initiative.id
@@ -127,10 +125,6 @@ def test_delete_user_cascades_all_child_rows(admin_client, session):
         session.exec(
             select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
         ).all()
-        == []
-    )
-    assert (
-        session.exec(select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)).all()
         == []
     )
     assert (
@@ -161,7 +155,6 @@ def test_delete_initiative_removes_children_but_keeps_user(admin_client, session
     user = make_user(session)
     initiative = make_initiative(session, user=user)
     make_answer(session, initiative=initiative)
-    make_evidence(session, initiative=initiative)
 
     initiative_id = initiative.id
     user_id = user.id
@@ -173,10 +166,6 @@ def test_delete_initiative_removes_children_but_keeps_user(admin_client, session
         session.exec(
             select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
         ).all()
-        == []
-    )
-    assert (
-        session.exec(select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)).all()
         == []
     )
     # The user itself must survive — only the initiative and its children

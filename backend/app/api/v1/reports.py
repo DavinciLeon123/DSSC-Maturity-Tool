@@ -13,7 +13,6 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.deps import get_current_user, get_mami_config, get_zen_engine
 from app.db.session import get_session
-from app.models.evidence import EvidenceURL
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
@@ -77,9 +76,9 @@ async def generate_report(
 ):
     """Generate a compliance report for an initiative.
 
-    Scores all saved answers, loads evidence, renders a full HTML report via
-    Jinja2, and upserts the result into the compliance_report table.
-    Returns the rendered HTML directly.
+    Scores all saved answers, renders a full HTML report via Jinja2, and
+    upserts the result into the compliance_report table. Returns the
+    rendered HTML directly.
     """
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
@@ -106,14 +105,6 @@ async def generate_report(
     # Score answers — returns only FINDING-status entries
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    # Load evidence URLs grouped by mami_code
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
     # Prepare plain-dict versions for the generator
     answers_dict = [
         {
@@ -136,7 +127,6 @@ async def generate_report(
         initiative=initiative_dict,
         answers=answers_dict,
         findings=findings_raw,
-        evidence_by_code=evidence_by_code,
         mami_config=mami_config,
     )
 
@@ -231,14 +221,6 @@ async def generate_report_data_endpoint(
     # Score answers — returns only FINDING-status entries
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    # Load evidence URLs grouped by mami_code
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
     # Prepare plain-dict versions for the generator
     answers_dict = [
         {
@@ -254,7 +236,6 @@ async def generate_report_data_endpoint(
         initiative=initiative,
         answers=answers_dict,
         findings=findings_raw,
-        evidence_by_code=evidence_by_code,
         mami_config=mami_config,
     )
 
@@ -302,13 +283,6 @@ async def get_report_data_endpoint(
 
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
     answers_dict = [
         {
             "mami_code": a.mami_code,
@@ -323,7 +297,6 @@ async def get_report_data_endpoint(
         initiative=initiative,
         answers=answers_dict,
         findings=findings_raw,
-        evidence_by_code=evidence_by_code,
         mami_config=mami_config,
     )
 
@@ -364,13 +337,6 @@ async def download_report_pdf(
     ]
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
     answers_dict = [
         {
             "mami_code": a.mami_code,
@@ -390,7 +356,6 @@ async def download_report_pdf(
         initiative=initiative_dict,
         answers=answers_dict,
         findings=findings_raw,
-        evidence_by_code=evidence_by_code,
         mami_config=mami_config,
     )
     pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
@@ -439,13 +404,6 @@ async def mail_report(
     ]
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
     answers_dict = [
         {
             "mami_code": a.mami_code,
@@ -465,7 +423,6 @@ async def mail_report(
         initiative=initiative_dict,
         answers=answers_dict,
         findings=findings_raw,
-        evidence_by_code=evidence_by_code,
         mami_config=mami_config,
     )
 

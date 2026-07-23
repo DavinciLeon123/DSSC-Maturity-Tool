@@ -102,7 +102,6 @@ def test_generate_report_data_returns_expected_contract_shape():
         initiative=initiative,
         answers=answers,
         findings=findings,
-        evidence_by_code={},
         mami_config=config,
     )
 
@@ -146,7 +145,6 @@ def test_generate_html_report_renders_non_empty_html_with_initiative_name():
         initiative=initiative,
         answers=answers,
         findings=findings,
-        evidence_by_code={},
         mami_config=config,
     )
 

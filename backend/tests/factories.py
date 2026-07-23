@@ -14,7 +14,6 @@ from faker import Faker
 from sqlmodel import Session
 
 from app.core.security import hash_password
-from app.models.evidence import EvidenceURL
 from app.models.initiative import SECTOR_OPTIONS, Initiative, InitiativeStatus, ParticipantType
 from app.models.questionnaire import AnswerValue, QuestionnaireAnswer
 from app.models.report import ComplianceReport
@@ -108,26 +107,6 @@ def make_answer(
     session.commit()
     session.refresh(answer)
     return answer
-
-
-def make_evidence(
-    session: Session,
-    *,
-    initiative: Initiative,
-    question_id: str | None = None,
-    mami_code: str | None = None,
-    url: str | None = None,
-) -> EvidenceURL:
-    evidence = EvidenceURL(
-        initiative_id=initiative.id,
-        question_id=question_id or f"q_{uuid.uuid4().hex[:8]}",
-        mami_code=mami_code or f"S-HRA-{fake.random_int(1, 4)}.{fake.random_int(1, 2)}",
-        url=url or fake.url(),
-    )
-    session.add(evidence)
-    session.commit()
-    session.refresh(evidence)
-    return evidence
 
 
 def make_report(

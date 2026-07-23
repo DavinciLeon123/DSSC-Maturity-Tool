@@ -15,7 +15,6 @@ from sqlmodel import delete as sql_delete
 
 from app.core.deps import require_admin
 from app.db.session import get_session
-from app.models.evidence import EvidenceURL
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
@@ -75,7 +74,6 @@ def _delete_initiative_children(initiative_id: int, session: Session) -> None:
     session.exec(
         sql_delete(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)  # type: ignore[arg-type]
     )
-    session.exec(sql_delete(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id))  # type: ignore[arg-type]
     session.exec(
         sql_delete(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)  # type: ignore[arg-type]
     )
@@ -143,7 +141,7 @@ def delete_user(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Hard-delete a user and all their data (initiative, answers, evidence, report)."""
+    """Hard-delete a user and all their data (initiative, answers, report)."""
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -195,7 +193,7 @@ def delete_initiative(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Delete an initiative and its child rows (answers, evidence, report), keeping the user."""
+    """Delete an initiative and its child rows (answers, report), keeping the user."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
         raise HTTPException(status_code=404, detail="Initiative not found")
@@ -213,8 +211,7 @@ def export_dataset(
 ):
     """Stream all initiatives + answers as a CSV file download.
 
-    Note: evidence URLs are stored in a separate EvidenceURL table and are not
-    included in this export. The CSV contains one row per questionnaire answer.
+    The CSV contains one row per questionnaire answer.
     """
 
     def generate_csv():

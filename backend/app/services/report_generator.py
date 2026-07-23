@@ -56,7 +56,6 @@ def generate_html_report(
     initiative: dict,
     answers: list[dict],
     findings: list[dict],
-    evidence_by_code: dict,
     mami_config: dict,
 ) -> str:
     """Render the compliance report HTML from a Jinja2 template.
@@ -65,7 +64,6 @@ def generate_html_report(
         initiative: dict with name, organization, contact_name
         answers:    list of dicts with mami_code, answer_value, rationale
         findings:   list of dicts from score_all_answers (FINDING status only)
-        evidence_by_code: dict mapping mami_code -> list of EvidenceURL objects
         mami_config: full MAMI framework config dict
 
     Returns:
@@ -128,7 +126,6 @@ def _build_matrix(answers: list[dict], findings: list[dict], mami_config: dict) 
 def _build_findings_detail(
     answers: list[dict],
     findings: list[dict],
-    evidence_by_code: dict,
     mami_config: dict,
 ) -> list[dict]:
     """Build per-finding detail list for the report template."""
@@ -141,7 +138,6 @@ def _build_findings_detail(
             continue
         code = code_lookup.get(f["mami_code"], {})
         answer = answer_lookup.get(f["mami_code"], {})
-        evidence = evidence_by_code.get(f["mami_code"], [])
 
         # Display answer value as human-readable label
         raw_answer = answer.get("answer_value", "")
@@ -161,9 +157,6 @@ def _build_findings_detail(
                 "answer_label": answer_label,
                 "followup_selections": answer.get("followup_selections") or [],
                 "followup_other": answer.get("followup_other") or "",
-                "evidence": [
-                    {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")} for ev in evidence
-                ],
                 "next_steps": _suggest_next_steps(f.get("severity", ""), code),
             }
         )
@@ -260,7 +253,6 @@ def generate_report_data(
     initiative,
     answers: list[dict],
     findings: list[dict],
-    evidence_by_code: dict,
     mami_config: dict,
 ) -> dict:
     """Return structured JSON-serialisable report data for the React /report page.
@@ -269,7 +261,6 @@ def generate_report_data(
         initiative: Initiative ORM object (or dict) with id, name attributes
         answers:    list of dicts with mami_code, answer_value, followup_selections, followup_other
         findings:   list of dicts from score_all_answers (FINDING status only)
-        evidence_by_code: dict mapping mami_code -> list of EvidenceURL objects or dicts
         mami_config: full MAMI framework config dict
 
     Returns:
@@ -301,10 +292,6 @@ def generate_report_data(
                 "description": code_lookup.get(a["mami_code"], {}).get("description", ""),
                 "followup_selections": a.get("followup_selections") or [],
                 "followup_other": a.get("followup_other") or "",
-                "evidence": [
-                    {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")}
-                    for ev in evidence_by_code.get(a["mami_code"], [])
-                ],
             }
             for a in answers
         ],
