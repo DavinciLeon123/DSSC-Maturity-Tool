@@ -30,7 +30,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 </details>
 
 - [x] **Phase 12: Test Retrofit — Stabilize Existing Flows** - Regression safety net for auth, admin, and PDF/email delivery, in place before the rebuild touches anything (Complete 2026-07-22)
-- [ ] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data
+- [x] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data (Complete 2026-07-23)
 - [ ] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely
 - [ ] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history
 - [ ] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view
@@ -81,7 +81,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
   4. All pre-migration v1.0 MAMI initiative and answer data remains intact and queryable read-only after the migration runs.
   5. The evidence/URL-per-question subsystem (tables, endpoints, UI) no longer exists anywhere in the codebase.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -98,7 +98,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 13-04-PLAN.md — Hand-written archive-split Alembic migration + BLOCKING migration-verification test + openapi regen (Wave 4; MIGR-01)
+- [x] 13-04-PLAN.md — Hand-written archive-split Alembic migration + BLOCKING migration-verification test + openapi regen (Wave 4; MIGR-01)
 
 ### Phase 14: Scoring Engine Replacement
 
@@ -183,7 +183,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 |-------|-----------|----------------|--------|-----------|
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
-| 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 3/4 | In Progress|  |
+| 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | In Progress|  |
 | 14. Scoring Engine Replacement | v2.0 | 0/TBD | Not started | - |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |

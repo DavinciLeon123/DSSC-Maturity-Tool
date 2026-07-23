@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-07-23T09:50:00.000Z"
+stopped_at: Completed 13-04-PLAN.md (phase 13 complete)
+last_updated: "2026-07-23T07:49:11.940Z"
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 9
   completed_plans: 9
 ---
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 13 — new-questionnaire-config-schema-data-model-migration
+**Current focus:** Phase 14 — scoring-engine-replacement (Phase 13 complete)
 
 ## Milestone Status
 
@@ -38,8 +38,8 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — Plan 13-03 COMPLETE, 13-04 next (wave 4 of 4, sequential — final plan in this phase)
-**Next phase:** 14-scoring-engine-replacement — blocked on Phase 13
+**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — COMPLETE (4/4 plans, all waves done)
+**Next phase:** 14-scoring-engine-replacement — unblocked, ready to plan/execute
 
 Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-Compliance-Checker` to this repo; merged test infra (conftest.py, pyproject.toml, backend/tests/api+services, frontend Vitest) additively into this repo's pre-existing CI/test setup; fixed a WeasyPrint native-library gap in all 4 pytest-running CI workflows; opened PR #1 into `staging`, merged after CI confirmed all 41 backend tests + frontend-test green (PR Checks run 29923476874, post-merge Staging CI/CD run 29923588482). Phase 12 marked complete. User also disabled the 2-approval requirement on `main`'s branch protection (was blocking solo-maintainer merges — see CLAUDE.md).
 
@@ -49,7 +49,9 @@ Prior session (2026-07-23): Executed Plan 13-01 (universal questionnaire config 
 
 Prior session (2026-07-23): Executed Plan 13-02 (evidence subsystem removal, MIGR-02). Deleted `backend/app/models/evidence.py`, `backend/app/schemas/evidence.py`, `backend/app/api/v1/evidence.py`, and both frontend files (`lib/evidence.ts`, `EvidenceInput.tsx`) outright per D-11 — no archive step. Stripped all `EvidenceURL` imports/usages from `admin.py` (cascade-delete), `reports.py` (5 call sites), and `report_generator.py` (dropped the `evidence_by_code` parameter from 3 functions), plus updated `tests/factories.py`/`test_admin.py`/`test_report_generator.py` to match. Added `test_evidence_removed.py` (route-404 + static-absence via substring scan + AST walk, class name built from parts to avoid self-matching). App imports cleanly, ruff/mypy clean, frontend tsc/eslint clean, 44/48 backend tests pass (same 4 pre-existing local WeasyPrint failures as 13-01, unrelated). Fixed one stale doc reference (`tests/README.md` still named the deleted model) and regenerated `docs/api/openapi.json` for docs-freshness. MIGR-02 marked complete. Ready to execute 13-03 (Assessment/answer-model reshape).
 
-This session (2026-07-23): Executed Plan 13-03 (Assessment entity, answer reshape, D-01/D-02/D-03/D-06/D-07/D-12). Added `backend/app/models/assessment.py` (`Assessment`/`AssessmentStatus`, draft/submitted lifecycle) and `backend/app/models/questionnaire_answer_archive.py` (`QuestionnaireAnswerV1Archive`, no FK to initiative, explicit String `answer_value`). Reshaped `QuestionnaireAnswer` to `assessment_id`/`category_id`/`score` (1-5), removing `mami_code`/`initiative_id`/the 3-way enum entirely; renamed unique constraint to `uq_answer_per_question_v2`. Added `Initiative.schema_version` (default "v2") and made `participant_type` nullable on `Initiative`/`User`, fixing Pydantic/admin-row fallout (`InitiativeRead`, `UserRead`, `AdminUserRow`, `AdminInitiativeRow`). Extended the PUT/GET answer endpoints to an assessment-first flow (lazy draft `Assessment` creation, ownership re-derived through `Assessment.initiative_id -> Initiative.user_id`, security V4). Adapted `admin.py`/`reports.py` and, as a Rule 1 auto-fix not in the plan's file list, `scoring.py` (all three would otherwise raise `AttributeError` against the reshaped model) to degrade to zero findings/an all-zero heatmap for new-schema initiatives rather than crashing — documented inline as a known Phase 13->14 interim gap (RESEARCH Pitfall 3/Assumption A3), not a real "compliant" signal. Added 21 new tests (`tests/schemas/test_questionnaire_schemas.py`, `tests/api/test_questionnaire_answers.py`); updated `tests/factories.py`/`test_admin.py`/`test_reports.py` for the new shape. App imports cleanly, ruff/mypy/format all clean, 65/69 backend tests pass (same 4 pre-existing local WeasyPrint failures as 13-01/13-02, unrelated, now recurring a third time — logged in `deferred-items.md`). Regenerated `docs/api/openapi.json`. QSTN-01 re-confirmed complete; MIGR-01 deliberately NOT marked complete — the actual v1.0 data migration is 13-04's job. Ready to execute 13-04 (Alembic migration + verification, the final plan in this phase).
+Prior session (2026-07-23): Executed Plan 13-03 (Assessment entity, answer reshape, D-01/D-02/D-03/D-06/D-07/D-12). Added `backend/app/models/assessment.py` (`Assessment`/`AssessmentStatus`, draft/submitted lifecycle) and `backend/app/models/questionnaire_answer_archive.py` (`QuestionnaireAnswerV1Archive`, no FK to initiative, explicit String `answer_value`). Reshaped `QuestionnaireAnswer` to `assessment_id`/`category_id`/`score` (1-5), removing `mami_code`/`initiative_id`/the 3-way enum entirely; renamed unique constraint to `uq_answer_per_question_v2`. Added `Initiative.schema_version` (default "v2") and made `participant_type` nullable on `Initiative`/`User`, fixing Pydantic/admin-row fallout (`InitiativeRead`, `UserRead`, `AdminUserRow`, `AdminInitiativeRow`). Extended the PUT/GET answer endpoints to an assessment-first flow (lazy draft `Assessment` creation, ownership re-derived through `Assessment.initiative_id -> Initiative.user_id`, security V4). Adapted `admin.py`/`reports.py` and, as a Rule 1 auto-fix not in the plan's file list, `scoring.py` (all three would otherwise raise `AttributeError` against the reshaped model) to degrade to zero findings/an all-zero heatmap for new-schema initiatives rather than crashing — documented inline as a known Phase 13->14 interim gap (RESEARCH Pitfall 3/Assumption A3), not a real "compliant" signal. Added 21 new tests (`tests/schemas/test_questionnaire_schemas.py`, `tests/api/test_questionnaire_answers.py`); updated `tests/factories.py`/`test_admin.py`/`test_reports.py` for the new shape. App imports cleanly, ruff/mypy/format all clean, 65/69 backend tests pass (same 4 pre-existing local WeasyPrint failures as 13-01/13-02, unrelated, now recurring a third time — logged in `deferred-items.md`). Regenerated `docs/api/openapi.json`. QSTN-01 re-confirmed complete; MIGR-01 deliberately NOT marked complete — the actual v1.0 data migration is 13-04's job. Ready to execute 13-04 (Alembic migration + verification, the final plan in this phase).
+
+This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split Alembic migration + BLOCKING migration-verification test, MIGR-01 — the final plan in Phase 13). Wrote `backend/alembic/versions/i9d7e6f5a4b3_questionnaire_v2_schema_migration.py`, chained from head `h8c6d5e4f3a2`: creates `assessment`, creates `questionnaire_answer_v1_archive` (old shape, explicit `sa.String()` for `answer_value` — never a native Postgres ENUM, RESEARCH Pitfall 1; deliberately no FK to `initiative.id`, D-01/A2), copies every existing `questionnaire_answer` row into the archive verbatim, adds `initiative.schema_version` and tags initiatives with archived answers `'v1_legacy'` (leaving answerless initiatives at `'v2'`), makes `participant_type` nullable on `initiative`/`user` (D-12), then drops and recreates `questionnaire_answer` with the new `assessment_id`/`category_id`/`score` shape plus a DB-level `CHECK(score BETWEEN 1 AND 5)` (security V5). `downgrade()` reverses every step in dependency-safe order, documented as lossy for new-shape answers written after upgrade (same precedent as `f6a4b3c2d1e9`). Added `backend/tests/migrations/` — the first migration-verification test category in this repo, using isolated per-test `PostgresContainer` fixtures (not the shared session-scoped `postgres_container`/`engine`) to run `alembic.command.upgrade`/`downgrade` programmatically against the real upgrade path (RESEARCH Pitfall 2, previously zero coverage since `conftest.py` only ever used `SQLModel.metadata.create_all()`). Three tests all pass: empty-DB upgrade creates the new tables/shape; seeded-DB upgrade preserves archive row count/content/linkage exactly and tags legacy initiatives correctly (including the answerless-initiative-stays-'v2' edge); upgrade/downgrade/upgrade round-trip succeeds against seeded data. `docs/api/openapi.json` regenerated with zero diff (no Pydantic schema changed this plan). Full quality gate green: ruff/mypy clean, 68/72 backend tests pass (same 4 pre-existing local WeasyPrint failures, unrelated, recurring a fourth time — logged in `deferred-items.md`). MIGR-01 marked complete. **Phase 13 is now fully complete (4/4 plans)** — Phase 14 (scoring engine replacement) is unblocked.
 
 ## Accumulated Context
 
@@ -130,8 +132,8 @@ This session (2026-07-23): Executed Plan 13-03 (Assessment entity, answer reshap
 
 ## Session
 
-**Last session:** 2026-07-23T09:50:00Z
-**Stopped at:** Completed 13-03-PLAN.md
+**Last session:** 2026-07-23T07:49:11.934Z
+**Stopped at:** Completed 13-04-PLAN.md (phase 13 complete)
 **Resume file:** None
 
 ## Performance Metrics
@@ -141,6 +143,7 @@ This session (2026-07-23): Executed Plan 13-03 (Assessment entity, answer reshap
 | Phase 13 P01 | 25min | 3 tasks | 9 files |
 | Phase 13 P02 | 20min | 3 tasks | 16 files |
 | Phase 13 P03 | 35min | 3 tasks | 22 files |
+| Phase 13 P04 | 20min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -154,3 +157,6 @@ This session (2026-07-23): Executed Plan 13-03 (Assessment entity, answer reshap
 - [Phase 13-03]: No hard 422 guard added for new-schema initiatives hitting report/heatmap/score endpoints (Assumption A3) — degrades to zero findings/all-zero heatmap instead, documented inline as a known Phase 13->14 interim gap
 - [Phase 13-03]: MIGR-01 requirement NOT marked complete despite being in this plan's frontmatter — the actual v1.0 data migration/preservation is 13-04's job; only QSTN-01 marked complete this plan
 - [Phase 13-03]: Did not change auth.py's /register or initiatives.py's create_initiative to stop writing participant_type from user input — kept out of scope pending a future explicit ask, since it would change the registration API contract beyond this plan's file/task list
+- [Phase 13-04]: Hand-wrote the archive-table-split Alembic migration (i9d7e6f5a4b3, chains from h8c6d5e4f3a2) exactly per RESEARCH Pattern 2 — no autogenerate; used the plan's proposed revision id verbatim
+- [Phase 13-04]: Added backend/tests/migrations/ — the first migration-verification test category in this repo, using isolated per-test PostgresContainer fixtures (not the shared session-scoped fixture) to prove the real alembic upgrade/downgrade path against seeded pre-migration data
+- [Phase 13-04]: MIGR-01 marked complete — Phase 13 fully complete (4/4 plans); Phase 14 unblocked
