@@ -1,0 +1,346 @@
+{
+  "version": "dssc-v2-placeholder",
+  "_schema_note": "Universal DSSC questionnaire config. Every question inherits `default_options` (5 labels mapped to integer scores 1-5) unless it defines its own `options` array of the same 5-object shape, which overrides the default for that question only. Placeholder text only; swapping in real question/category/label content requires editing this file alone -- no loader, dependency, endpoint, or model changes.",
+  "default_options": [
+    {
+      "label": "Not started",
+      "score": 1
+    },
+    {
+      "label": "Initial",
+      "score": 2
+    },
+    {
+      "label": "Developing",
+      "score": 3
+    },
+    {
+      "label": "Established",
+      "score": 4
+    },
+    {
+      "label": "Optimized",
+      "score": 5
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Category 1",
+      "questions": [
+        {
+          "id": "q-1-1",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 1",
+          "options": [
+            {
+              "label": "Override label 1",
+              "score": 1
+            },
+            {
+              "label": "Override label 2",
+              "score": 2
+            },
+            {
+              "label": "Override label 3",
+              "score": 3
+            },
+            {
+              "label": "Override label 4",
+              "score": 4
+            },
+            {
+              "label": "Override label 5",
+              "score": 5
+            }
+          ]
+        },
+        {
+          "id": "q-1-2",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 2"
+        },
+        {
+          "id": "q-1-3",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 3"
+        },
+        {
+          "id": "q-1-4",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 4"
+        },
+        {
+          "id": "q-1-5",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 5"
+        },
+        {
+          "id": "q-1-6",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 6"
+        },
+        {
+          "id": "q-1-7",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 7"
+        },
+        {
+          "id": "q-1-8",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 8"
+        },
+        {
+          "id": "q-1-9",
+          "category_id": "cat-1",
+          "text": "Category 1 - Question 9"
+        }
+      ]
+    },
+    {
+      "id": "cat-2",
+      "name": "Category 2",
+      "questions": [
+        {
+          "id": "q-2-1",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 1"
+        },
+        {
+          "id": "q-2-2",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 2"
+        },
+        {
+          "id": "q-2-3",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 3"
+        },
+        {
+          "id": "q-2-4",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 4"
+        },
+        {
+          "id": "q-2-5",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 5"
+        },
+        {
+          "id": "q-2-6",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 6"
+        },
+        {
+          "id": "q-2-7",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 7"
+        },
+        {
+          "id": "q-2-8",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 8"
+        },
+        {
+          "id": "q-2-9",
+          "category_id": "cat-2",
+          "text": "Category 2 - Question 9"
+        }
+      ]
+    },
+    {
+      "id": "cat-3",
+      "name": "Category 3",
+      "questions": [
+        {
+          "id": "q-3-1",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 1"
+        },
+        {
+          "id": "q-3-2",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 2"
+        },
+        {
+          "id": "q-3-3",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 3"
+        },
+        {
+          "id": "q-3-4",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 4"
+        },
+        {
+          "id": "q-3-5",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 5"
+        },
+        {
+          "id": "q-3-6",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 6"
+        },
+        {
+          "id": "q-3-7",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 7"
+        },
+        {
+          "id": "q-3-8",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 8"
+        },
+        {
+          "id": "q-3-9",
+          "category_id": "cat-3",
+          "text": "Category 3 - Question 9"
+        }
+      ]
+    },
+    {
+      "id": "cat-4",
+      "name": "Category 4",
+      "questions": [
+        {
+          "id": "q-4-1",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 1"
+        },
+        {
+          "id": "q-4-2",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 2"
+        },
+        {
+          "id": "q-4-3",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 3"
+        },
+        {
+          "id": "q-4-4",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 4"
+        },
+        {
+          "id": "q-4-5",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 5"
+        },
+        {
+          "id": "q-4-6",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 6"
+        },
+        {
+          "id": "q-4-7",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 7"
+        },
+        {
+          "id": "q-4-8",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 8"
+        },
+        {
+          "id": "q-4-9",
+          "category_id": "cat-4",
+          "text": "Category 4 - Question 9"
+        }
+      ]
+    },
+    {
+      "id": "cat-5",
+      "name": "Category 5",
+      "questions": [
+        {
+          "id": "q-5-1",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 1"
+        },
+        {
+          "id": "q-5-2",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 2"
+        },
+        {
+          "id": "q-5-3",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 3"
+        },
+        {
+          "id": "q-5-4",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 4"
+        },
+        {
+          "id": "q-5-5",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 5"
+        },
+        {
+          "id": "q-5-6",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 6"
+        },
+        {
+          "id": "q-5-7",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 7"
+        },
+        {
+          "id": "q-5-8",
+          "category_id": "cat-5",
+          "text": "Category 5 - Question 8"
+        }
+      ]
+    },
+    {
+      "id": "cat-6",
+      "name": "Category 6",
+      "questions": [
+        {
+          "id": "q-6-1",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 1"
+        },
+        {
+          "id": "q-6-2",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 2"
+        },
+        {
+          "id": "q-6-3",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 3"
+        },
+        {
+          "id": "q-6-4",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 4"
+        },
+        {
+          "id": "q-6-5",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 5"
+        },
+        {
+          "id": "q-6-6",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 6"
+        },
+        {
+          "id": "q-6-7",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 7"
+        },
+        {
+          "id": "q-6-8",
+          "category_id": "cat-6",
+          "text": "Category 6 - Question 8"
+        }
+      ]
+    }
+  ]
+}
