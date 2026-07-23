@@ -44,7 +44,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 ### Data Migration (MIGR)
 
 - [ ] **MIGR-01**: Existing v1.0 MAMI initiative/answer data is preserved read-only for historical reference, not deleted
-- [ ] **MIGR-02**: The evidence/URL-per-question subsystem from MAMI is removed entirely — no equivalent in the new schema
+- [x] **MIGR-02**: The evidence/URL-per-question subsystem from MAMI is removed entirely — no equivalent in the new schema
 
 ### Security (SECU)
 
@@ -113,7 +113,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAVE-03 | Phase 15 | Pending |
 | SAVE-04 | Phase 15 | Pending |
 | MIGR-01 | Phase 13 | Pending |
-| MIGR-02 | Phase 13 | Pending |
+| MIGR-02 | Phase 13 | Complete |
 | SECU-01 | Phase 18 | Pending |
 | SECU-02 | Phase 18 | Pending |
 | SECU-03 | Phase 18 | Pending |

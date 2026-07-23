@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-07-23T06:57:49.462Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-07-23T07:08:33Z"
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -38,14 +38,16 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — Plan 13-01 COMPLETE, 13-02 next (wave 2 of 4, sequential)
+**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — Plan 13-02 COMPLETE, 13-03 next (wave 3 of 4, sequential)
 **Next phase:** 14-scoring-engine-replacement — blocked on Phase 13
 
 Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-Compliance-Checker` to this repo; merged test infra (conftest.py, pyproject.toml, backend/tests/api+services, frontend Vitest) additively into this repo's pre-existing CI/test setup; fixed a WeasyPrint native-library gap in all 4 pytest-running CI workflows; opened PR #1 into `staging`, merged after CI confirmed all 41 backend tests + frontend-test green (PR Checks run 29923476874, post-merge Staging CI/CD run 29923588482). Phase 12 marked complete. User also disabled the 2-approval requirement on `main`'s branch protection (was blocking solo-maintainer merges — see CLAUDE.md).
 
 Prior session (2026-07-22): Planned Phase 13 (New Questionnaire Config Schema & Data Model Migration). Researched migration mechanics, pattern-mapped the codebase, and produced 4 plans across 4 strictly sequential waves (13-01 config/loader → 13-02 evidence removal → 13-03 data model reshape → 13-04 Alembic migration + verification). Plan-checker passed with 0 blockers. Planner agent hit 2 transient API connection errors mid-run and was resumed via SendMessage rather than restarted from scratch — final output verified consistent across the resumed session. UI safety gate false-positive-fired (RESEARCH.md mentions deleting 2 frontend files) and was overridden — confirmed by plan-checker as a pure orphan-file deletion, no hidden UI work.
 
-This session (2026-07-23): Executed Plan 13-01 (universal questionnaire config schema). Authored `config/dssc-questionnaire.json` (52 questions/6 categories, shared default_options + one override), added `load_dssc_questionnaire_config()`/`get_dssc_questionnaire_config()`/lifespan cache, and rewired `GET /questionnaire/config` to serve the universal config with no participant_type branch and no Initiative-existence gate (assumption A1 decision). Added 4 new tests (all pass); regenerated `docs/api/openapi.json` for the docs-freshness CI gate. One pre-existing, unrelated local-env gap (WeasyPrint native library missing on this Mac, not caused by this plan) logged in `deferred-items.md` rather than fixed. QSTN-01/03/04/05 marked complete. Ready to execute 13-02 (evidence subsystem removal).
+Prior session (2026-07-23): Executed Plan 13-01 (universal questionnaire config schema). Authored `config/dssc-questionnaire.json` (52 questions/6 categories, shared default_options + one override), added `load_dssc_questionnaire_config()`/`get_dssc_questionnaire_config()`/lifespan cache, and rewired `GET /questionnaire/config` to serve the universal config with no participant_type branch and no Initiative-existence gate (assumption A1 decision). Added 4 new tests (all pass); regenerated `docs/api/openapi.json` for the docs-freshness CI gate. One pre-existing, unrelated local-env gap (WeasyPrint native library missing on this Mac, not caused by this plan) logged in `deferred-items.md` rather than fixed. QSTN-01/03/04/05 marked complete.
+
+This session (2026-07-23): Executed Plan 13-02 (evidence subsystem removal, MIGR-02). Deleted `backend/app/models/evidence.py`, `backend/app/schemas/evidence.py`, `backend/app/api/v1/evidence.py`, and both frontend files (`lib/evidence.ts`, `EvidenceInput.tsx`) outright per D-11 — no archive step. Stripped all `EvidenceURL` imports/usages from `admin.py` (cascade-delete), `reports.py` (5 call sites), and `report_generator.py` (dropped the `evidence_by_code` parameter from 3 functions), plus updated `tests/factories.py`/`test_admin.py`/`test_report_generator.py` to match. Added `test_evidence_removed.py` (route-404 + static-absence via substring scan + AST walk, class name built from parts to avoid self-matching). App imports cleanly, ruff/mypy clean, frontend tsc/eslint clean, 44/48 backend tests pass (same 4 pre-existing local WeasyPrint failures as 13-01, unrelated). Fixed one stale doc reference (`tests/README.md` still named the deleted model) and regenerated `docs/api/openapi.json` for docs-freshness. MIGR-02 marked complete. Ready to execute 13-03 (Assessment/answer-model reshape).
 
 ## Accumulated Context
 
@@ -126,8 +128,8 @@ This session (2026-07-23): Executed Plan 13-01 (universal questionnaire config s
 
 ## Session
 
-**Last session:** 2026-07-23T06:57:49.458Z
-**Stopped at:** Completed 13-01-PLAN.md
+**Last session:** 2026-07-23T07:08:33Z
+**Stopped at:** Completed 13-02-PLAN.md
 **Resume file:** None
 
 ## Performance Metrics
@@ -135,8 +137,11 @@ This session (2026-07-23): Executed Plan 13-01 (universal questionnaire config s
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 13 P01 | 25min | 3 tasks | 9 files |
+| Phase 13 P02 | 20min | 3 tasks | 16 files |
 
 ## Decisions
 
 - [Phase 13-01]: Dropped participant_type-driven 404-if-no-Initiative gate on GET /questionnaire/config per assumption A1 — the universal config needs no Initiative to resolve
 - [Phase 13-01]: Kept old MAMI/ZEN config loaders (load_questionnaire_config/load_questionnaire_configs) untouched — additive change per the Phase 14 boundary
+- [Phase 13-02]: Evidence data dropped outright, no archive step, per D-11 — evidence_url table itself is dropped in the 13-04 migration; this plan only removed the application-layer plumbing
+- [Phase 13-02]: Dropped the evidence_by_code parameter entirely from report_generator.py's three functions (smaller-diff option) rather than passing {} inline at each call site
