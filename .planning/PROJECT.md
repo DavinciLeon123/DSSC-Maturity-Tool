@@ -26,6 +26,8 @@ The application is production-deployed on Railway and demo-ready for events with
 
 **Since forking from MAMI Compliance Checker (2026-07-20), independently of the v2.0 milestone below**, this repo also added: a 5-workflow CI/CD pipeline (PR checks, staging, main, release, security), ruff/mypy quality gates, a starter test suite (health check, privacy canary, scoring perf/benchmark regression), dependency vulnerability remediation, and branch protection. See `CLAUDE.md` for the full branch model and CI details.
 
+**Phase 13 complete (2026-07-23):** The data layer now serves the new universal 52-question/6-category DSSC config (`config/dssc-questionnaire.json`) with no DSI/SP participant-type split, a new `Assessment` draft/submitted lifecycle entity, and a reshaped `questionnaire_answer` (assessment_id/category_id/1-5 score). All pre-migration v1.0 answer data is preserved read-only in a new archive table via a hand-written Alembic migration; the evidence/URL-per-question subsystem is fully removed. The old MAMI/ZEN scoring path and wizard/report frontend still read the OLD answer shape and are intentionally untouched pending Phase 14 (scoring engine replacement) and Phases 15/16 (wizard + report rebuild) — new-schema initiatives currently degrade to zero-findings/all-zero results on those legacy endpoints, a documented interim gap, not a defect.
+
 **Tech stack:** Python/FastAPI + SQLModel + PostgreSQL + React/Vite + GoRules ZEN Engine + WeasyPrint + Resend SDK · Deployed: Railway
 
 ## Core Value
@@ -116,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 - **Branding**: Uses coe-dsc.nl color scheme (navy #06004f, green #399e5a, Rubik font)
 
 ---
-*Last updated: 2026-07-22 — Phase 12 (test retrofit) relocated here from MaMi-Compliance-Checker and merged with this repo's existing CI/test infrastructure*
+*Last updated: 2026-07-23 — Phase 13 (new questionnaire config schema & data model migration) complete*
