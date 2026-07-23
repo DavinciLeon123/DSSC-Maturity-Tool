@@ -360,68 +360,6 @@
         "title": "Body_login_api_v1_auth_login_post",
         "type": "object"
       },
-      "EvidenceCreate": {
-        "properties": {
-          "mami_code": {
-            "title": "Mami Code",
-            "type": "string"
-          },
-          "question_id": {
-            "title": "Question Id",
-            "type": "string"
-          },
-          "url": {
-            "title": "Url",
-            "type": "string"
-          }
-        },
-        "required": [
-          "question_id",
-          "mami_code",
-          "url"
-        ],
-        "title": "EvidenceCreate",
-        "type": "object"
-      },
-      "EvidenceRead": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "integer"
-          },
-          "initiative_id": {
-            "title": "Initiative Id",
-            "type": "integer"
-          },
-          "mami_code": {
-            "title": "Mami Code",
-            "type": "string"
-          },
-          "question_id": {
-            "title": "Question Id",
-            "type": "string"
-          },
-          "url": {
-            "title": "Url",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "initiative_id",
-          "question_id",
-          "mami_code",
-          "url",
-          "created_at"
-        ],
-        "title": "EvidenceRead",
-        "type": "object"
-      },
       "FindingRead": {
         "properties": {
           "mami_code": {
@@ -956,7 +894,7 @@
   "paths": {
     "/api/v1/admin/export": {
       "get": {
-        "description": "Stream all initiatives + answers as a CSV file download.\n\nNote: evidence URLs are stored in a separate EvidenceURL table and are not\nincluded in this export. The CSV contains one row per questionnaire answer.",
+        "description": "Stream all initiatives + answers as a CSV file download.\n\nThe CSV contains one row per questionnaire answer.",
         "operationId": "export_dataset_api_v1_admin_export_get",
         "responses": {
           "200": {
@@ -1067,7 +1005,7 @@
     },
     "/api/v1/admin/initiatives/{initiative_id}": {
       "delete": {
-        "description": "Delete an initiative and its child rows (answers, evidence, report), keeping the user.",
+        "description": "Delete an initiative and its child rows (answers, report), keeping the user.",
         "operationId": "delete_initiative_api_v1_admin_initiatives__initiative_id__delete",
         "parameters": [
           {
@@ -1169,7 +1107,7 @@
     },
     "/api/v1/admin/users/{user_id}": {
       "delete": {
-        "description": "Hard-delete a user and all their data (initiative, answers, evidence, report).",
+        "description": "Hard-delete a user and all their data (initiative, answers, report).",
         "operationId": "delete_user_api_v1_admin_users__user_id__delete",
         "parameters": [
           {
@@ -1530,166 +1468,6 @@
         ]
       }
     },
-    "/api/v1/initiatives/{initiative_id}/evidence": {
-      "get": {
-        "operationId": "list_evidence_api_v1_initiatives__initiative_id__evidence_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "initiative_id",
-            "required": true,
-            "schema": {
-              "title": "Initiative Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/EvidenceRead"
-                  },
-                  "title": "Response List Evidence Api V1 Initiatives  Initiative Id  Evidence Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "List Evidence",
-        "tags": [
-          "evidence"
-        ]
-      },
-      "post": {
-        "operationId": "submit_evidence_api_v1_initiatives__initiative_id__evidence_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "initiative_id",
-            "required": true,
-            "schema": {
-              "title": "Initiative Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvidenceCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EvidenceRead"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Submit Evidence",
-        "tags": [
-          "evidence"
-        ]
-      }
-    },
-    "/api/v1/initiatives/{initiative_id}/evidence/{evidence_id}": {
-      "delete": {
-        "operationId": "delete_evidence_api_v1_initiatives__initiative_id__evidence__evidence_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "initiative_id",
-            "required": true,
-            "schema": {
-              "title": "Initiative Id",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "path",
-            "name": "evidence_id",
-            "required": true,
-            "schema": {
-              "title": "Evidence Id",
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "summary": "Delete Evidence",
-        "tags": [
-          "evidence"
-        ]
-      }
-    },
     "/api/v1/initiatives/{initiative_id}/report": {
       "get": {
         "description": "Retrieve the stored compliance report HTML for an initiative.",
@@ -1738,7 +1516,7 @@
         ]
       },
       "post": {
-        "description": "Generate a compliance report for an initiative.\n\nScores all saved answers, loads evidence, renders a full HTML report via\nJinja2, and upserts the result into the compliance_report table.\nReturns the rendered HTML directly.",
+        "description": "Generate a compliance report for an initiative.\n\nScores all saved answers, renders a full HTML report via Jinja2, and\nupserts the result into the compliance_report table. Returns the\nrendered HTML directly.",
         "operationId": "generate_report_api_v1_initiatives__initiative_id__report_post",
         "parameters": [
           {
