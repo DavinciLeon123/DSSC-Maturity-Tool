@@ -78,3 +78,27 @@ gap as Plans 13-01/13-02, already tracked above). CI has the native library
 installed and remains the authoritative signal; 60/64 quick-suite tests pass
 locally, including this plan's own new `tests/schemas/test_questionnaire_schemas.py`
 (16 tests).
+
+## Plan 13-04
+
+### Same WeasyPrint native-library gap recurs a fourth time (still pre-existing, still unrelated)
+
+**Found during:** Task 3 full-suite verification (`uv run pytest tests/ -n auto -m "not perf and not benchmark" -q`).
+
+**Symptom:** The same 4 tests in `backend/tests/api/test_reports.py`
+(`test_download_report_pdf_returns_pdf_content_type`,
+`test_mail_report_generates_pdf_and_sends_email`,
+`test_mail_report_dev_mode_skips_resend_send`,
+`test_download_report_pdf_no_answers_returns_422`) fail locally with
+`OSError: cannot load library 'libgobject-2.0-0'`. This plan (13-04) touches
+only `backend/alembic/versions/i9d7e6f5a4b3_questionnaire_v2_schema_migration.py`
+and `backend/tests/migrations/`, neither of which is imported by
+`reports.py`/`report_generator.py` — confirmed by reading the same
+WeasyPrint/cffi import failure trace as Plans 13-01/13-02/13-03.
+
+**Action taken:** Not fixed (out of scope — same local-machine environment
+gap, already tracked above, now recurring a fourth consecutive plan). CI has
+the native library installed and remains the authoritative signal; 68/72
+quick-suite tests pass locally, including this plan's own 3 new
+`tests/migrations/test_v1_archive_migration.py` tests (the BLOCKING
+migration-verification gate, all green).
