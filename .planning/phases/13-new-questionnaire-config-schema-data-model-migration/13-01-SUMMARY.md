@@ -143,6 +143,10 @@ None - no external service configuration required.
 
 The universal 52-question/6-category config shape is now stable and servable — Phase 14 (scoring) and Phase 15 (wizard) can build against `config/dssc-questionnaire.json`'s `categories[].questions[].{id, category_id, text, options?}` shape and the shared `default_options` fallback. No blockers. Note for downstream planners: this plan does not touch `Assessment`, `questionnaire_answer` reshape, or evidence removal — those land in 13-02/13-03/13-04 per the phase's strictly sequential wave plan.
 
+## Self-Check: PASSED
+
+All created files confirmed on disk (`config/dssc-questionnaire.json`, `backend/tests/services/test_dssc_config.py`, `backend/tests/api/test_questionnaire.py`, this SUMMARY, `deferred-items.md`) and all 5 task/fix commits (`5ed4947`, `266f250`, `ad6e6df`, `5077856`, `183a4c9`) confirmed present in `git log`.
+
 ---
 *Phase: 13-new-questionnaire-config-schema-data-model-migration*
 *Completed: 2026-07-23*
