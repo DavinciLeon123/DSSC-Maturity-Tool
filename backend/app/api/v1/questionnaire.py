@@ -98,6 +98,7 @@ def upsert_answer(
     answer_in: AnswerCreate,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Upsert one answer for a question against the initiative's current
     draft Assessment. Creates the Assessment lazily on the first answer
@@ -127,6 +128,24 @@ def upsert_answer(
         raise HTTPException(
             status_code=422,
             detail="Body question_id does not match the URL path question_id",
+        )
+
+    # WR-02: validate question_id/category_id against the loaded DSSC config
+    # before persisting — previously only score bounds were schema-checked,
+    # so an unknown question_id or a category_id that doesn't match the
+    # question's real category would be silently persisted, seeding bad data
+    # future scoring/reporting (Phase 14/16) will key off.
+    valid_categories_by_question = {
+        q["id"]: q["category_id"]
+        for cat in config.get("categories", [])
+        for q in cat.get("questions", [])
+    }
+    if question_id not in valid_categories_by_question:
+        raise HTTPException(status_code=422, detail="Unknown question_id")
+    if valid_categories_by_question[question_id] != answer_in.category_id:
+        raise HTTPException(
+            status_code=422,
+            detail="category_id does not match this question's category in the questionnaire config",
         )
 
     assessment = _get_or_create_draft_assessment(session, initiative_id)
