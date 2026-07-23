@@ -145,7 +145,7 @@ def upsert_answer(
     if valid_categories_by_question[question_id] != answer_in.category_id:
         raise HTTPException(
             status_code=422,
-            detail="category_id does not match this question's category in the questionnaire config",
+            detail="category_id does not match this question's category in the config",
         )
 
     assessment = _get_or_create_draft_assessment(session, initiative_id)
