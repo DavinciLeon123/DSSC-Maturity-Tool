@@ -81,7 +81,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
   4. All pre-migration v1.0 MAMI initiative and answer data remains intact and queryable read-only after the migration runs.
   5. The evidence/URL-per-question subsystem (tables, endpoints, UI) no longer exists anywhere in the codebase.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -94,7 +94,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 13-03-PLAN.md — New Assessment + v1 archive models, reshaped 1-5-score answer, schema_version, nullable participant_type, assessment-first upsert (Wave 3; QSTN-01, MIGR-01)
+- [x] 13-03-PLAN.md — New Assessment + v1 archive models, reshaped 1-5-score answer, schema_version, nullable participant_type, assessment-first upsert (Wave 3; QSTN-01, MIGR-01)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -183,7 +183,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 |-------|-----------|----------------|--------|-----------|
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
-| 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 2/4 | In Progress|  |
+| 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 3/4 | In Progress|  |
 | 14. Scoring Engine Replacement | v2.0 | 0/TBD | Not started | - |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
