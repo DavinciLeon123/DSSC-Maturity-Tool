@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
 from app.models.assessment import Assessment, AssessmentStatus
-from app.models.initiative import Initiative
+from app.models.initiative import Initiative, InitiativeStatus
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.user import User
 from app.schemas.questionnaire import AnswerCreate, AnswerRead
@@ -86,6 +86,12 @@ def upsert_answer(
         raise HTTPException(status_code=404, detail="Initiative not found")
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
+    # CR-01: submission is supposed to lock the questionnaire — mirror the
+    # same immutability guarantee update_initiative already enforces for
+    # initiative metadata (initiatives.py:update_initiative), otherwise
+    # submit_initiative flipping Assessment.status is meaningless.
+    if initiative.status == InitiativeStatus.submitted:
+        raise HTTPException(status_code=403, detail="Submitted assessments cannot be edited")
 
     assessment = _get_or_create_draft_assessment(session, initiative_id)
 

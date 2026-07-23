@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 
 from app.core.deps import get_current_user
 from app.db.session import get_session
+from app.models.assessment import Assessment, AssessmentStatus
 from app.models.initiative import Initiative, InitiativeStatus
 from app.models.user import User
 from app.schemas.initiative import InitiativeCreate, InitiativeRead, InitiativeUpdate
@@ -81,7 +82,13 @@ def submit_initiative(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Mark initiative as submitted. Idempotent — re-submitting an already-submitted one is OK."""
+    """Mark initiative as submitted. Idempotent — re-submitting an already-submitted one is OK.
+
+    CR-01: also flips the initiative's current draft Assessment (if any) to
+    submitted and stamps submitted_at — this is what actually locks
+    questionnaire answers against further edits (enforced in
+    questionnaire.py's upsert_answer), not just the Initiative row.
+    """
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
         raise HTTPException(status_code=404, detail="Initiative not found")
@@ -90,6 +97,20 @@ def submit_initiative(
     initiative.status = InitiativeStatus.submitted
     initiative.updated_at = datetime.utcnow()
     session.add(initiative)
+
+    assessment = session.exec(
+        select(Assessment)
+        .where(
+            Assessment.initiative_id == initiative_id,
+            Assessment.status == AssessmentStatus.draft,
+        )
+        .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+    ).first()
+    if assessment:
+        assessment.status = AssessmentStatus.submitted
+        assessment.submitted_at = datetime.utcnow()
+        session.add(assessment)
+
     session.commit()
     return {"message": "Initiative submitted successfully", "status": initiative.status.value}
 
