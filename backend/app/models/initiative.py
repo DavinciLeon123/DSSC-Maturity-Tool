@@ -38,8 +38,10 @@ class Initiative(SQLModel, table=True):
     contact_name: str | None = None
     contact_email: str | None = None
     organization: str | None = None
-    # Nullable per D-12 — kept for historical DSI/SP reference on legacy rows,
-    # never populated/enforced on new initiatives going forward.
+    # Nullable per D-12 so legacy rows the migration tags with NULL remain
+    # valid — this only relaxed the NOT NULL constraint. New initiatives are
+    # still populated (create_initiative copies it from the owning User);
+    # nothing currently stops writing it going forward (WR-04).
     participant_type: ParticipantType | None = Field(default=None)
     status: InitiativeStatus = Field(default=InitiativeStatus.draft)
     # "is this an old MAMI initiative" tag (D-03) — cheap filter without a

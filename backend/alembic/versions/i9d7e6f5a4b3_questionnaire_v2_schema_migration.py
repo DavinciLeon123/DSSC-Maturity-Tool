@@ -24,7 +24,12 @@ Changes (in order):
 4. Add `initiative.schema_version` (server_default 'v2', D-03) and tag
    initiatives that have archived answers as 'v1_legacy'.
 5. Make `initiative.participant_type` / `user.participant_type` nullable
-   (D-12) — kept for historical reference, never populated going forward.
+   (D-12) so the legacy rows this migration itself tags with NULL remain
+   valid. NOTE (WR-04): this only relaxes the NOT NULL constraint — new
+   registrations/initiatives created after this migration still populate
+   the field (UserCreate defaults to "DSI"/"SP"; create_initiative copies it
+   from the owning user). Nothing in the reviewed code actually stops
+   writing it going forward.
 6. Drop the old-shape `questionnaire_answer` and recreate it with the new
    assessment_id/category_id/score shape (D-02), including a DB-level
    CHECK (score BETWEEN 1 AND 5) for defense-in-depth (security V5).
@@ -150,7 +155,10 @@ def upgrade() -> None:
     # left at the 'v2' default — it is indistinguishable from a brand new
     # initiative and needs no legacy handling.
 
-    # 5. participant_type stays but stops being enforced going forward (D-12).
+    # 5. participant_type's NOT NULL constraint is relaxed so the legacy
+    #    rows tagged NULL above remain valid (D-12). New rows still populate
+    #    this field via UserCreate/create_initiative — only the constraint
+    #    changed, not the write path (WR-04).
     op.alter_column("initiative", "participant_type", nullable=True)
     op.alter_column("user", "participant_type", nullable=True)
 
