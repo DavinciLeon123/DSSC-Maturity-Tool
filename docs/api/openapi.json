@@ -2062,7 +2062,7 @@
     },
     "/api/v1/questionnaire/config": {
       "get": {
-        "description": "Return the v2 questionnaire config for the current user's participant type (DSI or SP).",
+        "description": "Return the universal DSSC questionnaire config (52 questions / 6\ncategories). Identical for every authenticated caller regardless of\nparticipant_type or whether they own an Initiative (D-10, QSTN-04).\n\nPer plan 13-01 assumption A1: the old participant_type-driven\n404-if-no-Initiative gate is dropped here \u2014 it was incidental coupling\nto the now-removed DSI/SP config selection, not load-bearing UX. This\nphase does not re-add an initiative-existence guard; if gating\nquestionnaire access before registration is later desired, that is a\nseparate ask for a future phase.",
         "operationId": "get_questionnaire_config_endpoint_api_v1_questionnaire_config_get",
         "responses": {
           "200": {
