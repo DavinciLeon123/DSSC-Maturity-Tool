@@ -24,6 +24,11 @@
       },
       "AdminHeatmapResponse": {
         "properties": {
+          "degraded": {
+            "default": true,
+            "title": "Degraded",
+            "type": "boolean"
+          },
           "matrix": {
             "additionalProperties": {
               "additionalProperties": {
@@ -1755,7 +1760,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/submit": {
       "post": {
-        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.",
+        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.\n\nCR-01: also flips the initiative's current draft Assessment (if any) to\nsubmitted and stamps submitted_at \u2014 this is what actually locks\nquestionnaire answers against further edits (enforced in\nquestionnaire.py's upsert_answer), not just the Initiative row.",
         "operationId": "submit_initiative_api_v1_initiatives__initiative_id__submit_post",
         "parameters": [
           {
