@@ -38,6 +38,13 @@ class AdminHeatmapResponse(BaseModel):
     total_submitted: int
     matrix: dict[str, dict[str, dict[str, AdminHeatmapCell]]]
     topic_structure: dict[str, list[dict]]
+    # WR-05: this endpoint's counts/lookup logic is keyed off the legacy
+    # mami_code/answer_value shape (see docstring below) and never matches
+    # the new-schema category_id/score data, nor does it join the v1 legacy
+    # archive — so it always returns an all-zero matrix today. Expose that
+    # machine-readably so a dashboard consumer can render a warning instead
+    # of an indistinguishable empty heatmap.
+    degraded: bool = True
 
 
 # ─── Response schemas ─────────────────────────────────────────────────────────
@@ -429,4 +436,7 @@ def get_admin_heatmap(
         total_submitted=total_submitted,
         matrix=matrix,
         topic_structure=topic_structure,
+        # WR-05: always degraded today — see AdminHeatmapResponse.degraded
+        # and the docstring above for why counts never populate any cell.
+        degraded=True,
     )
