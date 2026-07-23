@@ -17,6 +17,7 @@ from app.api.v1.scoring import router as scoring_router
 from app.core.config import settings
 from app.services.mami_config import (
     get_scoring_dir,
+    load_dssc_questionnaire_config,
     load_mami_config,
     load_questionnaire_config,
     load_questionnaire_configs,
@@ -31,6 +32,10 @@ async def lifespan(app: FastAPI):
     app.state.questionnaire_config = load_questionnaire_config()
     # Load v2 questionnaire configs keyed by participant type {"DSI": {...}, "SP": {...}}
     app.state.questionnaire_configs = load_questionnaire_configs()
+    # Load the new universal DSSC questionnaire config (52 questions / 6
+    # categories, no participant_type split) — additive alongside the MAMI/ZEN
+    # config loads above, which stay alive per the Phase 14 boundary.
+    app.state.dssc_questionnaire_config = load_dssc_questionnaire_config()
     # Initialize ZEN Engine singleton with file-system loader
     scoring_dir = get_scoring_dir()
 

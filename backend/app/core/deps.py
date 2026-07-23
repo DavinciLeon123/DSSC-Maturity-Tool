@@ -57,3 +57,11 @@ def get_questionnaire_config(request: Request) -> dict:
 def get_questionnaire_configs(request: Request) -> dict:
     """FastAPI dependency: returns both v2 questionnaire configs as {"DSI": {...}, "SP": {...}}."""
     return request.app.state.questionnaire_configs
+
+
+def get_dssc_questionnaire_config(request: Request) -> dict:
+    """FastAPI dependency: returns the universal DSSC questionnaire config
+    (52 questions / 6 categories) cached at lifespan startup. No
+    participant_type selection — this config is served identically to every
+    caller (D-10, QSTN-04)."""
+    return request.app.state.dssc_questionnaire_config

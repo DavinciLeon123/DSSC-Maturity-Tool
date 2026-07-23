@@ -6,7 +6,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, select
 
-from app.core.deps import get_current_user, get_questionnaire_configs
+from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
@@ -19,20 +19,21 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/questionnaire/config")
 def get_questionnaire_config_endpoint(
-    session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    configs: dict = Depends(get_questionnaire_configs),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Return the v2 questionnaire config for the current user's participant type (DSI or SP)."""
-    initiative = session.exec(
-        select(Initiative).where(Initiative.user_id == current_user.id)
-    ).first()
-    if not initiative:
-        raise HTTPException(
-            status_code=404, detail="Create an initiative first to access the questionnaire"
-        )
-    participant_type = initiative.participant_type.value  # "DSI" or "SP"
-    return configs[participant_type]
+    """Return the universal DSSC questionnaire config (52 questions / 6
+    categories). Identical for every authenticated caller regardless of
+    participant_type or whether they own an Initiative (D-10, QSTN-04).
+
+    Per plan 13-01 assumption A1: the old participant_type-driven
+    404-if-no-Initiative gate is dropped here — it was incidental coupling
+    to the now-removed DSI/SP config selection, not load-bearing UX. This
+    phase does not re-add an initiative-existence guard; if gating
+    questionnaire access before registration is later desired, that is a
+    separate ask for a future phase.
+    """
+    return config
 
 
 @router.put(
