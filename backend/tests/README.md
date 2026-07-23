@@ -10,7 +10,9 @@
   `user_client` (real Postgres via testcontainers, added for the tests below).
 - `factories.py` — plain fixture-factory functions (not `factory_boy`) producing
   schema-realistic synthetic data via `faker` — `User`, `Initiative`,
-  `QuestionnaireAnswer`, `EvidenceURL`, `ComplianceReport`.
+  `QuestionnaireAnswer`, `ComplianceReport`. (`EvidenceURL`/`make_evidence`
+  removed in Phase 13 Plan 02 per MIGR-02 — the evidence subsystem no longer
+  exists.)
 - `api/` — one file per `app/api/v1/*.py` router under characterization test
   (`test_auth.py`, `test_admin.py`, `test_reports.py`).
 - `services/` — pure-function/transform-level tests (`test_report_generator.py`)
