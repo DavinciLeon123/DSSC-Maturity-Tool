@@ -120,6 +120,15 @@ def upsert_answer(
     if initiative.status == InitiativeStatus.submitted:
         raise HTTPException(status_code=403, detail="Submitted assessments cannot be edited")
 
+    # WR-03: the path param is the source of truth for question_id (used for
+    # both the insert and the re-fetch below); reject a body that disagrees
+    # rather than silently ignoring answer_in.question_id.
+    if answer_in.question_id != question_id:
+        raise HTTPException(
+            status_code=422,
+            detail="Body question_id does not match the URL path question_id",
+        )
+
     assessment = _get_or_create_draft_assessment(session, initiative_id)
 
     # PostgreSQL upsert (insert or update on conflict), keyed by the new
