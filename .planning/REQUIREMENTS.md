@@ -9,11 +9,11 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Questionnaire (QSTN)
 
-- [ ] **QSTN-01**: User answers a 52-question assessment organized into 6 categories (dimensions)
+- [x] **QSTN-01**: User answers a 52-question assessment organized into 6 categories (dimensions)
 - [ ] **QSTN-02**: Each question presents 5 answer options via a horizontal line with radio circles, each mapped to a 1-5 maturity score
-- [ ] **QSTN-03**: Question and answer-option text (including per-question custom option labels) is fully config-driven — no code deploy required to change content
-- [ ] **QSTN-04**: Questionnaire is universal — no DSI/Service-Provider (or other) participant-type split
-- [ ] **QSTN-05**: Real v2.0 question and category content is loaded into config (content pending from user, tracked separately from engineering work)
+- [x] **QSTN-03**: Question and answer-option text (including per-question custom option labels) is fully config-driven — no code deploy required to change content
+- [x] **QSTN-04**: Questionnaire is universal — no DSI/Service-Provider (or other) participant-type split
+- [x] **QSTN-05**: Real v2.0 question and category content is loaded into config (content pending from user, tracked separately from engineering work)
 
 ### Scoring (SCOR)
 
@@ -93,11 +93,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QSTN-01 | Phase 13 | Pending |
+| QSTN-01 | Phase 13 | Complete |
 | QSTN-02 | Phase 15 | Pending |
-| QSTN-03 | Phase 13 | Pending |
-| QSTN-04 | Phase 13 | Pending |
-| QSTN-05 | Phase 13 | Pending |
+| QSTN-03 | Phase 13 | Complete |
+| QSTN-04 | Phase 13 | Complete |
+| QSTN-05 | Phase 13 | Complete |
 | SCOR-01 | Phase 14 | Pending |
 | SCOR-02 | Phase 14 | Pending |
 | SCOR-03 | Phase 14 | Pending |
@@ -125,6 +125,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 18 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 30 total
 - Mapped to phases: 30/30 ✓
 - Unmapped: 0

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 13 planned — ready to execute
-last_updated: "2026-07-22T21:24:00.000Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-07-23T06:57:49.462Z"
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 12 (Test Retrofit — Stabilize Existing Flows) COMPLETE. Phase 13 (New Questionnaire Config Schema & Data Model Migration) planned — 4 plans across 4 sequential waves, ready to execute.
+**Current focus:** Phase 13 — new-questionnaire-config-schema-data-model-migration
 
 ## Milestone Status
 
@@ -38,12 +38,14 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — PLANNED, ready to execute
+**Active phase:** 13-new-questionnaire-config-schema-data-model-migration — Plan 13-01 COMPLETE, 13-02 next (wave 2 of 4, sequential)
 **Next phase:** 14-scoring-engine-replacement — blocked on Phase 13
 
 Last session (2026-07-22): Relocated Phase 12 + v2.0 milestone docs from `MaMi-Compliance-Checker` to this repo; merged test infra (conftest.py, pyproject.toml, backend/tests/api+services, frontend Vitest) additively into this repo's pre-existing CI/test setup; fixed a WeasyPrint native-library gap in all 4 pytest-running CI workflows; opened PR #1 into `staging`, merged after CI confirmed all 41 backend tests + frontend-test green (PR Checks run 29923476874, post-merge Staging CI/CD run 29923588482). Phase 12 marked complete. User also disabled the 2-approval requirement on `main`'s branch protection (was blocking solo-maintainer merges — see CLAUDE.md).
 
-This session (2026-07-22): Planned Phase 13 (New Questionnaire Config Schema & Data Model Migration). Researched migration mechanics, pattern-mapped the codebase, and produced 4 plans across 4 strictly sequential waves (13-01 config/loader → 13-02 evidence removal → 13-03 data model reshape → 13-04 Alembic migration + verification). Plan-checker passed with 0 blockers. Planner agent hit 2 transient API connection errors mid-run and was resumed via SendMessage rather than restarted from scratch — final output verified consistent across the resumed session. UI safety gate false-positive-fired (RESEARCH.md mentions deleting 2 frontend files) and was overridden — confirmed by plan-checker as a pure orphan-file deletion, no hidden UI work.
+Prior session (2026-07-22): Planned Phase 13 (New Questionnaire Config Schema & Data Model Migration). Researched migration mechanics, pattern-mapped the codebase, and produced 4 plans across 4 strictly sequential waves (13-01 config/loader → 13-02 evidence removal → 13-03 data model reshape → 13-04 Alembic migration + verification). Plan-checker passed with 0 blockers. Planner agent hit 2 transient API connection errors mid-run and was resumed via SendMessage rather than restarted from scratch — final output verified consistent across the resumed session. UI safety gate false-positive-fired (RESEARCH.md mentions deleting 2 frontend files) and was overridden — confirmed by plan-checker as a pure orphan-file deletion, no hidden UI work.
+
+This session (2026-07-23): Executed Plan 13-01 (universal questionnaire config schema). Authored `config/dssc-questionnaire.json` (52 questions/6 categories, shared default_options + one override), added `load_dssc_questionnaire_config()`/`get_dssc_questionnaire_config()`/lifespan cache, and rewired `GET /questionnaire/config` to serve the universal config with no participant_type branch and no Initiative-existence gate (assumption A1 decision). Added 4 new tests (all pass); regenerated `docs/api/openapi.json` for the docs-freshness CI gate. One pre-existing, unrelated local-env gap (WeasyPrint native library missing on this Mac, not caused by this plan) logged in `deferred-items.md` rather than fixed. QSTN-01/03/04/05 marked complete. Ready to execute 13-02 (evidence subsystem removal).
 
 ## Accumulated Context
 
@@ -124,6 +126,17 @@ This session (2026-07-22): Planned Phase 13 (New Questionnaire Config Schema & D
 
 ## Session
 
-**Last session:** 2026-07-22T18:18:21.522Z
-**Stopped at:** Phase 13 context gathered
-**Resume file:** .planning/phases/13-new-questionnaire-config-schema-data-model-migration/13-CONTEXT.md
+**Last session:** 2026-07-23T06:57:49.458Z
+**Stopped at:** Completed 13-01-PLAN.md
+**Resume file:** None
+
+## Performance Metrics
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 13 P01 | 25min | 3 tasks | 9 files |
+
+## Decisions
+
+- [Phase 13-01]: Dropped participant_type-driven 404-if-no-Initiative gate on GET /questionnaire/config per assumption A1 — the universal config needs no Initiative to resolve
+- [Phase 13-01]: Kept old MAMI/ZEN config loaders (load_questionnaire_config/load_questionnaire_configs) untouched — additive change per the Phase 14 boundary
