@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
@@ -41,7 +42,16 @@ def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Ass
     """Look up the initiative's current draft Assessment, or create one
     (D-06/D-07: an Assessment is created lazily on the first answer write,
     not deferred to submission). Ownership of `initiative_id` must already
-    be verified by the caller before this is invoked."""
+    be verified by the caller before this is invoked.
+
+    CR-02: two concurrent first-answer requests for the same initiative can
+    both see "no draft exists" and race to insert. The partial unique index
+    `uq_assessment_one_draft_per_initiative` (migration i9d7e6f5a4b3)
+    guarantees only one insert wins at the DB level; the loser catches the
+    resulting IntegrityError, rolls back its own failed insert, and
+    re-queries for the winner's row rather than silently creating a second,
+    orphaned draft Assessment.
+    """
     assessment = session.exec(
         select(Assessment)
         .where(
@@ -55,7 +65,24 @@ def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Ass
 
     assessment = Assessment(initiative_id=initiative_id)
     session.add(assessment)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        assessment = session.exec(
+            select(Assessment)
+            .where(
+                Assessment.initiative_id == initiative_id,
+                Assessment.status == AssessmentStatus.draft,
+            )
+            .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+        ).first()
+        if assessment is None:
+            # The conflict wasn't actually a duplicate draft (e.g. a
+            # different constraint violation) — surface the real error
+            # rather than masking it.
+            raise
+        return assessment
     session.refresh(assessment)
     return assessment
 

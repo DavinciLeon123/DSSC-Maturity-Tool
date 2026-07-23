@@ -76,6 +76,22 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_assessment_initiative_id"), "assessment", ["initiative_id"])
+    # CR-02: guard against the lazy-create race in
+    # questionnaire.py::_get_or_create_draft_assessment — two concurrent
+    # first-answer requests for the same initiative could otherwise both see
+    # "no draft exists" and each insert their own Assessment row, silently
+    # orphaning any answers written against the older draft. A partial
+    # unique index lets Postgres itself reject the second concurrent insert;
+    # the application layer catches the resulting IntegrityError and
+    # re-queries for the winning row instead of relying on an unguarded
+    # check-then-insert.
+    op.create_index(
+        "uq_assessment_one_draft_per_initiative",
+        "assessment",
+        ["initiative_id"],
+        unique=True,
+        postgresql_where=sa.text("status = 'draft'"),
+    )
 
     # 2. Archive table — mirrors the OLD questionnaire_answer shape verbatim.
     #    answer_value is sa.String(), NOT sa.Enum — RESEARCH Pitfall 1.
