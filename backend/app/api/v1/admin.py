@@ -46,7 +46,7 @@ class AdminUserRow(BaseModel):
     id: int
     email: str
     role: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     created_at: str
     initiative_name: str | None = None
     initiative_status: str | None = None
@@ -57,7 +57,7 @@ class AdminInitiativeRow(BaseModel):
     id: int
     user_email: str
     name: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     status: str
     created_at: str
     answer_count: int

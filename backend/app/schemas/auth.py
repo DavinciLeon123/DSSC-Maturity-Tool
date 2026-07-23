@@ -35,7 +35,7 @@ class UserRead(BaseModel):
     id: int
     email: str
     role: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     created_at: str  # ISO format
 
 

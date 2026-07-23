@@ -8,7 +8,9 @@ class User(SQLModel, table=True):
     email: str = Field(unique=True, index=True)
     hashed_password: str
     role: str = Field(default="USER")  # "USER" or "ADMIN"
-    participant_type: str = Field(default="DSI")  # "DSI" or "SP"
+    # Nullable per D-12 — kept for historical DSI/SP reference on legacy
+    # users, never populated/enforced on new registrations going forward.
+    participant_type: str | None = Field(default=None)
     failed_login_attempts: int = Field(default=0)
     lockout_until: datetime | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

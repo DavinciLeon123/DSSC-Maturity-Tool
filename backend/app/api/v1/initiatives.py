@@ -106,7 +106,9 @@ def _to_read(i: Initiative) -> InitiativeRead:
         contact_name=i.contact_name,
         contact_email=i.contact_email,
         organization=i.organization,
-        participant_type=i.participant_type.value,
+        # D-12/Pitfall 5: participant_type is nullable now — guard .value so a
+        # future None (legacy-tagged or new-record) doesn't AttributeError.
+        participant_type=i.participant_type.value if i.participant_type else None,
         status=i.status.value,
         created_at=i.created_at.isoformat(),
         updated_at=i.updated_at.isoformat(),

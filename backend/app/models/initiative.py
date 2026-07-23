@@ -38,7 +38,13 @@ class Initiative(SQLModel, table=True):
     contact_name: str | None = None
     contact_email: str | None = None
     organization: str | None = None
-    participant_type: ParticipantType = Field(default=ParticipantType.dsi)
+    # Nullable per D-12 — kept for historical DSI/SP reference on legacy rows,
+    # never populated/enforced on new initiatives going forward.
+    participant_type: ParticipantType | None = Field(default=None)
     status: InitiativeStatus = Field(default=InitiativeStatus.draft)
+    # "is this an old MAMI initiative" tag (D-03) — cheap filter without a
+    # join to answers/archive; also the filter Phase 15 uses once an
+    # Initiative can carry multiple Assessment rows.
+    schema_version: str = Field(default="v2")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
