@@ -225,6 +225,68 @@ def test_upgrade_preserves_seeded_v1_answers_and_tags_legacy_initiatives(alembic
             )
 
 
+def test_assessment_unique_draft_index_rejects_concurrent_duplicate(alembic_env):
+    """CR-02 regression guard: the partial unique index
+    `uq_assessment_one_draft_per_initiative` (created alongside the
+    `assessment` table in this migration) must reject a second 'draft'
+    Assessment row for the same initiative_id — this is what makes
+    `questionnaire.py::_get_or_create_draft_assessment`'s IntegrityError
+    catch-and-retry meaningful. `SQLModel.metadata.create_all()` (the
+    schema-build path every other backend test uses) does NOT include this
+    index, since it is not declared on the `Assessment` SQLModel class —
+    only the real `alembic upgrade head` path does, so this test must build
+    schema via `alembic_env`, not the shared `conftest.py` fixtures."""
+    config, engine = alembic_env
+    command.upgrade(config, "head")
+
+    now = datetime.utcnow()
+    with engine.begin() as conn:
+        user_id = conn.execute(
+            sa.text(
+                """
+                INSERT INTO "user" (email, hashed_password, role, participant_type,
+                                      failed_login_attempts, created_at)
+                VALUES ('cr02-seed@example.com', 'hashed', 'USER', 'DSI', 0, :now)
+                RETURNING id
+                """
+            ),
+            {"now": now},
+        ).scalar_one()
+        initiative_id = conn.execute(
+            sa.text(
+                """
+                INSERT INTO initiative (user_id, name, sector, participant_type,
+                                          status, created_at, updated_at)
+                VALUES (:user_id, 'CR-02 Seed Initiative', 'Healthcare', 'DSI',
+                        'draft', :now, :now)
+                RETURNING id
+                """
+            ),
+            {"user_id": user_id, "now": now},
+        ).scalar_one()
+
+        conn.execute(
+            sa.text(
+                """
+                INSERT INTO assessment (initiative_id, version, status, created_at)
+                VALUES (:initiative_id, 1, 'draft', :now)
+                """
+            ),
+            {"initiative_id": initiative_id, "now": now},
+        )
+
+        with pytest.raises(sa.exc.IntegrityError):
+            conn.execute(
+                sa.text(
+                    """
+                    INSERT INTO assessment (initiative_id, version, status, created_at)
+                    VALUES (:initiative_id, 1, 'draft', :now)
+                    """
+                ),
+                {"initiative_id": initiative_id, "now": now},
+            )
+
+
 def test_upgrade_downgrade_upgrade_round_trip_succeeds(alembic_env):
     """Round-trip: upgrade -> downgrade -> upgrade succeeds without error
     against a DB carrying seeded pre-migration data."""
