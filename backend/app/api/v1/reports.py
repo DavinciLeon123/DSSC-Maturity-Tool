@@ -57,6 +57,32 @@ def _degraded_scoring_inputs() -> tuple[list[dict], list[dict]]:
     return [], []
 
 
+# WR-01: the in-code documentation above is excellent but was previously
+# invisible over HTTP — a caller hitting these endpoints got a
+# production-looking, misleadingly "compliant" report with no signal that
+# scoring is degraded. Surface it: a visible banner in rendered HTML/PDF
+# output, and a machine-readable `degraded` flag in JSON responses.
+_DEGRADED_SCORING_BANNER_HTML = (
+    '<div style="background:#fff3cd;border:1px solid #ffe69c;color:#664d03;'
+    'padding:12px 20px;margin-bottom:16px;font-family:sans-serif;font-size:14px;">'
+    "<strong>Provisional result:</strong> Scoring for the new DSSC questionnaire "
+    "is not yet implemented (Phase 14). This report currently shows zero "
+    "findings for every answer and does not reflect a genuine compliance "
+    "assessment."
+    "</div>"
+)
+
+
+def _inject_degraded_banner(html_content: str) -> str:
+    """Insert the provisional-result banner right after <body> (or, failing
+    that, prepend it) so degraded reports are never visually indistinguishable
+    from a genuine result."""
+    marker = "<body>"
+    if marker in html_content:
+        return html_content.replace(marker, marker + "\n" + _DEGRADED_SCORING_BANNER_HTML, 1)
+    return _DEGRADED_SCORING_BANNER_HTML + html_content
+
+
 def _initiative_dict(initiative: Initiative) -> dict:
     return {
         "name": initiative.name,
@@ -137,11 +163,13 @@ async def generate_report(
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
     # Render the HTML report
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        answers=answers_dict,
-        findings=findings_raw,
-        mami_config=mami_config,
+    html_content = _inject_degraded_banner(
+        generate_html_report(
+            initiative=_initiative_dict(initiative),
+            answers=answers_dict,
+            findings=findings_raw,
+            mami_config=mami_config,
+        )
     )
 
     # Compute counts
@@ -223,12 +251,16 @@ async def generate_report_data_endpoint(
     # Score answers — returns only FINDING-status entries
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    return generate_report_data(
+    data = generate_report_data(
         initiative=initiative,
         answers=answers_dict,
         findings=findings_raw,
         mami_config=mami_config,
     )
+    # WR-01: see _degraded_scoring_inputs docstring — flag this response as
+    # provisional so a caller can't mistake it for a real scoring result.
+    data["degraded"] = True
+    return data
 
 
 @router.get("/initiatives/{initiative_id}/report/data")
@@ -263,12 +295,15 @@ async def get_report_data_endpoint(
 
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    return generate_report_data(
+    data = generate_report_data(
         initiative=initiative,
         answers=answers_dict,
         findings=findings_raw,
         mami_config=mami_config,
     )
+    # WR-01: see _degraded_scoring_inputs docstring.
+    data["degraded"] = True
+    return data
 
 
 @router.get("/initiatives/{initiative_id}/report/pdf")
@@ -297,11 +332,13 @@ async def download_report_pdf(
     answers_for_scoring, answers_dict = _degraded_scoring_inputs()
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        answers=answers_dict,
-        findings=findings_raw,
-        mami_config=mami_config,
+    html_content = _inject_degraded_banner(
+        generate_html_report(
+            initiative=_initiative_dict(initiative),
+            answers=answers_dict,
+            findings=findings_raw,
+            mami_config=mami_config,
+        )
     )
     pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
     return Response(
@@ -339,11 +376,13 @@ async def mail_report(
     answers_for_scoring, answers_dict = _degraded_scoring_inputs()
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        answers=answers_dict,
-        findings=findings_raw,
-        mami_config=mami_config,
+    html_content = _inject_degraded_banner(
+        generate_html_report(
+            initiative=_initiative_dict(initiative),
+            answers=answers_dict,
+            findings=findings_raw,
+            mami_config=mami_config,
+        )
     )
 
     background_tasks.add_task(
