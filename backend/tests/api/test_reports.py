@@ -1,11 +1,16 @@
 """Characterization tests for report generation/PDF/email delivery
 (backend/app/api/v1/reports.py + backend/app/services/report_generator.py).
 
-Per D-04, the real (current) ZEN/MoSCoW scoring path (`score_all_answers`)
-runs UNMOCKED end-to-end in every test below — only the external boundaries
-(WeasyPrint's PDF byte-rendering, Resend's HTTP send) are mocked. Any bug
-discovered while writing these tests is logged in the SUMMARY as a backlog
-item, not fixed inline (D-04).
+Phase 13 (D-02/D-06) reshaped the answer table to assessment_id/category_id/
+score, removing mami_code/answer_value entirely. The legacy MAMI-code-keyed
+ZEN/MoSCoW scoring path (`score_all_answers`) has no valid input shape for
+new-schema answers, so reports.py deliberately degrades to zero
+findings/recommendations for them rather than raising (RESEARCH Pitfall 3 /
+Assumption A3 — documented inline in reports.py). Per D-04, this newly
+pinned degraded behavior is what's characterized below (total_answers still
+reflects the real row count; findings/critical/non-critical counts are all
+zero) — a full per-assessment scoring rebuild against the new DSSC config is
+explicitly Phase 14/16's job, not this plan's.
 
 WeasyPrint is imported lazily *inside* `_send_report_email` and
 `download_report_pdf` (deferred import) — tests patch `weasyprint.HTML`
@@ -16,16 +21,10 @@ body runs — patching it would silently no-op, per RESEARCH.md Pitfall 2).
 
 from sqlmodel import select
 
-from app.models.questionnaire import AnswerValue
 from app.models.report import ComplianceReport
 from tests.factories import make_answer, make_initiative, make_user
 
 VALID_PASSWORD = "Str0ngPassw0rd!123"
-
-# Real MAMI codes from config/mami-framework.json — used so the report's
-# category/dimension/topic aggregation (which iterates mami_config["codes"])
-# actually matches at least some of the fixture answers.
-REAL_CODES = ["S-HRA-1.1", "S-MRA-1.1", "S-TA-1.1", "S-HRA-2.1", "S-MRA-2.1"]
 
 
 def _login(client, email, password):
@@ -46,18 +45,20 @@ def _login(client, email, password):
 
 
 def _initiative_with_answers(session, *, n=5):
-    """Build a user + owned initiative + a set of QuestionnaireAnswer rows
-    (real MAMI codes, mixed YES/NOT_THERE_YET) so scoring has real input to
-    run against the real ZEN engine (D-04 — never mocked in this file)."""
+    """Build a user + owned initiative + `n` new-schema QuestionnaireAnswer
+    rows (assessment_id/category_id/score, D-02/D-06) — enough to exercise
+    the "has answers" 422-guard and the total_answers counting path.
+    Scoring itself degrades to zero findings for these (see module
+    docstring) — this fixture is not meant to produce real findings."""
     user = make_user(session, password=VALID_PASSWORD)
     initiative = make_initiative(session, user=user)
     for i in range(n):
         make_answer(
             session,
             initiative=initiative,
-            mami_code=REAL_CODES[i % len(REAL_CODES)],
             question_id=f"q_{i}",
-            answer_value=AnswerValue.not_there_yet if i % 2 == 0 else AnswerValue.yes,
+            category_id=f"cat-{(i % 6) + 1}",
+            score=(i % 5) + 1,
         )
     return user, initiative
 

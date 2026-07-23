@@ -50,3 +50,31 @@ paths run).
 gap as Plan 13-01, already tracked above). CI has the native library
 installed and remains the authoritative signal; 41/45 quick-suite tests pass
 locally, including this plan's own new `test_evidence_removed.py`.
+
+## Plan 13-03
+
+### Same WeasyPrint native-library gap recurs a third time (still pre-existing, still unrelated)
+
+**Found during:** Task 3 full-suite verification (`uv run pytest tests/ -n auto -m "not perf and not benchmark" -q`).
+
+**Symptom:** The same 4 tests in `backend/tests/api/test_reports.py`
+(`test_mail_report_generates_pdf_and_sends_email`,
+`test_mail_report_dev_mode_skips_resend_send`,
+`test_download_report_pdf_returns_pdf_content_type`,
+`test_download_report_pdf_no_answers_returns_422`) fail locally with
+`OSError: cannot load library 'libgobject-2.0-0'`. This plan's Task 3
+rewrites `reports.py` extensively (assessment-first answer fetching,
+degraded scoring), but the failure traceback confirms it errors inside
+`weasyprint`'s cffi import (triggered by the unconditional
+`from weasyprint import HTML as WeasyHTML` at the top of
+`download_report_pdf`, and by `mocker.patch("weasyprint.HTML")` needing to
+import the real module before it can patch it) — before any of this plan's
+changed code paths run. This import statement's position (unconditional,
+before the ownership/answers checks) is unchanged from the pre-Phase-13
+code; not introduced or altered by this plan.
+
+**Action taken:** Not fixed (out of scope — same local-machine environment
+gap as Plans 13-01/13-02, already tracked above). CI has the native library
+installed and remains the authoritative signal; 60/64 quick-suite tests pass
+locally, including this plan's own new `tests/schemas/test_questionnaire_schemas.py`
+(16 tests).

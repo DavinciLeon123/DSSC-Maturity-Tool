@@ -15,6 +15,7 @@ from sqlmodel import delete as sql_delete
 
 from app.core.deps import require_admin
 from app.db.session import get_session
+from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
@@ -68,12 +69,27 @@ class AdminInitiativeRow(BaseModel):
 
 def _delete_initiative_children(initiative_id: int, session: Session) -> None:
     """Delete all child rows of an initiative in correct FK order.
-    Models have no ondelete=CASCADE — must delete children manually."""
+    Models have no ondelete=CASCADE — must delete children manually.
+
+    D-06: questionnaire_answer is now keyed by assessment_id, not
+    initiative_id directly — answers must be deleted before their
+    Assessment(s), which must be deleted before the Initiative itself.
+    (This deliberately does NOT touch questionnaire_answer_v1_archive —
+    archived legacy rows have no FK to initiative and must survive an
+    admin hard-delete of the initiative, RESEARCH Anti-Pattern / A2.)
+    """
     # SQLModel has no mypy plugin, so `Model.field == value` type-checks as plain `bool`
     # here instead of `ColumnElement[bool]` — the query itself is the standard SQLModel pattern.
-    session.exec(
-        sql_delete(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)  # type: ignore[arg-type]
-    )
+    assessment_ids = session.exec(
+        select(Assessment.id).where(Assessment.initiative_id == initiative_id)
+    ).all()
+    if assessment_ids:
+        session.exec(
+            sql_delete(QuestionnaireAnswer).where(
+                QuestionnaireAnswer.assessment_id.in_(assessment_ids)  # type: ignore[attr-defined]
+            )
+        )
+        session.exec(sql_delete(Assessment).where(Assessment.initiative_id == initiative_id))  # type: ignore[arg-type]
     session.exec(
         sql_delete(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)  # type: ignore[arg-type]
     )
@@ -115,8 +131,14 @@ def list_users(
         initiative_id = row["initiative_id"]
         answer_count = 0
         if initiative_id:
+            # D-06: questionnaire_answer keys off assessment_id, not
+            # initiative_id — join through assessment to count answers.
             count_result = session.execute(
-                text("SELECT COUNT(*) FROM questionnaire_answer WHERE initiative_id = :iid"),
+                text("""
+                    SELECT COUNT(*) FROM questionnaire_answer qa
+                    JOIN assessment a ON a.id = qa.assessment_id
+                    WHERE a.initiative_id = :iid
+                """),
                 {"iid": initiative_id},
             )
             answer_count = count_result.scalar() or 0
@@ -158,7 +180,9 @@ def list_initiatives(
     _admin: User = Depends(require_admin),
 ):
     """List all initiatives with owner email, status, and answer count."""
-    # Use raw SQL to avoid enum deserialization errors on legacy data
+    # Use raw SQL to avoid enum deserialization errors on legacy data.
+    # D-06: questionnaire_answer keys off assessment_id, not initiative_id —
+    # join through assessment to count answers per initiative.
     result = session.execute(
         text("""
         SELECT i.id, i.name, i.participant_type, i.status, i.created_at,
@@ -166,7 +190,8 @@ def list_initiatives(
                COUNT(qa.id) AS answer_count
         FROM initiative i
         LEFT JOIN "user" u ON u.id = i.user_id
-        LEFT JOIN questionnaire_answer qa ON qa.initiative_id = i.id
+        LEFT JOIN assessment a ON a.initiative_id = i.id
+        LEFT JOIN questionnaire_answer qa ON qa.assessment_id = a.id
         GROUP BY i.id, i.name, i.participant_type, i.status, i.created_at, u.email
         ORDER BY i.created_at DESC
     """)
@@ -217,7 +242,13 @@ def export_dataset(
     def generate_csv():
         output = io.StringIO()
         writer = csv.writer(output)
-        # Header row — columns reflect what is actually populated
+        # Header row — columns reflect what is actually populated.
+        # D-02/D-06: mami_code/answer_value/followup_* no longer exist on the
+        # new-schema answer table — replaced by category_id/score. Legacy
+        # v1.0 answers are preserved read-only in
+        # questionnaire_answer_v1_archive (D-01/D-04, DB-level access only,
+        # no export/endpoint this phase) and are intentionally NOT included
+        # in this export.
         writer.writerow(
             [
                 "user_email",
@@ -225,10 +256,8 @@ def export_dataset(
                 "participant_type",
                 "initiative_status",
                 "question_id",
-                "mami_code",
-                "answer_value",
-                "followup_selections",
-                "followup_other",
+                "category_id",
+                "score",
             ]
         )
         output.seek(0)
@@ -240,18 +269,16 @@ def export_dataset(
         rows = session.execute(
             text("""
             SELECT u.email, i.name AS initiative_name, i.participant_type, i.status,
-                   qa.question_id, qa.mami_code, qa.answer_value,
-                   qa.followup_selections, qa.followup_other
+                   qa.question_id, qa.category_id, qa.score
             FROM "user" u
             JOIN initiative i ON i.user_id = u.id
-            JOIN questionnaire_answer qa ON qa.initiative_id = i.id
+            JOIN assessment a ON a.initiative_id = i.id
+            JOIN questionnaire_answer qa ON qa.assessment_id = a.id
             ORDER BY u.email, i.id, qa.question_id
         """)
         )
 
         for row in rows.mappings():
-            selections = row["followup_selections"]
-            selections_str = "; ".join(selections) if selections else ""
             writer.writerow(
                 [
                     row["email"],
@@ -259,10 +286,8 @@ def export_dataset(
                     row["participant_type"],
                     row["status"],
                     row["question_id"],
-                    row["mami_code"],
-                    row["answer_value"],
-                    selections_str,
-                    row["followup_other"] or "",
+                    row["category_id"],
+                    row["score"],
                 ]
             )
             output.seek(0)
@@ -306,7 +331,22 @@ def get_admin_heatmap(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives."""
+    """Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives.
+
+    Phase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3): the
+    new-schema answer table carries category_id/score (1-5), not the legacy
+    mami_code/answer_value (YES/NOT_THERE_YET/NOT_APPLICABLE) shape this
+    MAMI-framework-keyed heatmap was built around. `code_lookup` below is
+    built from `mami_config`'s old MAMI codes, which never match a new
+    config's category_id values — so `counts` never populates any cell for
+    new-schema answers, and this degrades to an all-zero heatmap rather than
+    raising (do NOT read an all-zero heatmap as "no findings" / "fully
+    compliant" — it's an interim gap, not a real signal). Legacy (v1_legacy)
+    initiatives whose answers were migrated to questionnaire_answer_v1_archive
+    are likewise excluded (D-04: archive is DB-level-only, no query path
+    wired into this endpoint this phase). Real per-assessment scoring against
+    the new DSSC config is Phase 14/16's job.
+    """
     type_filter = "AND LOWER(i.participant_type) = :ptype" if type else ""
     params: dict = {"ptype": type.lower()} if type else {}
 
@@ -317,23 +357,26 @@ def get_admin_heatmap(
     )
     total_submitted = int(count_result.scalar() or 0)
 
-    # Aggregate answer counts per (mami_code, answer_value) for submitted initiatives only
+    # Aggregate answer counts per (category_id, score) for submitted initiatives only.
+    # D-06: questionnaire_answer keys off assessment_id — join through assessment.
     agg_result = session.execute(
         text(f"""
-        SELECT qa.mami_code, qa.answer_value, COUNT(*) as cnt
+        SELECT qa.category_id, qa.score, COUNT(*) as cnt
         FROM questionnaire_answer qa
-        JOIN initiative i ON i.id = qa.initiative_id
+        JOIN assessment a ON a.id = qa.assessment_id
+        JOIN initiative i ON i.id = a.initiative_id
         WHERE i.status = 'submitted' {type_filter}
-        GROUP BY qa.mami_code, qa.answer_value
+        GROUP BY qa.category_id, qa.score
     """),
         params,
     )
 
-    # Build counts dict: {mami_code: {answer_value: count}}
+    # Build counts dict: {category_id: {score: count}} — see docstring above;
+    # these keys never match code_lookup's legacy mami_code entries below.
     counts: dict = {}
     for row in agg_result.mappings():
-        code = row["mami_code"]
-        val = row["answer_value"]
+        code = row["category_id"]
+        val = row["score"]
         cnt = int(row["cnt"])
         counts.setdefault(code, {})
         counts[code][val] = cnt

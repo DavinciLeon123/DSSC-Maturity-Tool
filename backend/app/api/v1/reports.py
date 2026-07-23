@@ -1,6 +1,7 @@
 """Report API endpoints — generate and retrieve MAMI compliance reports."""
 
 import logging
+from collections.abc import Sequence
 from datetime import datetime
 
 import resend
@@ -13,6 +14,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.deps import get_current_user, get_mami_config, get_zen_engine
 from app.db.session import get_session
+from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
@@ -24,6 +26,47 @@ router = APIRouter(tags=["reports"])
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_answers_for_initiative(
+    session: Session, initiative_id: int
+) -> Sequence[QuestionnaireAnswer]:
+    """Fetch all new-schema answers for an initiative via its Assessment(s)
+    (D-06: questionnaire_answer is keyed by assessment_id, not
+    initiative_id directly)."""
+    return session.exec(
+        select(QuestionnaireAnswer)
+        .join(Assessment, QuestionnaireAnswer.assessment_id == Assessment.id)  # type: ignore[arg-type]
+        .where(Assessment.initiative_id == initiative_id)
+    ).all()
+
+
+def _degraded_scoring_inputs() -> tuple[list[dict], list[dict]]:
+    """Phase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3):
+    new-schema answers carry category_id/score (1-5), not the legacy
+    mami_code/answer_value shape the ZEN/MoSCoW scoring engine and
+    report_generator's matrix/recommendation builders expect. A real
+    per-assessment scoring/report rebuild is explicitly Phase 14 (scoring)
+    and Phase 16 (report contract)'s job — until then this degrades to
+    zero findings/recommendations rather than raising an AttributeError.
+
+    Do NOT read a report generated this way as a genuine "fully compliant"
+    result for a new-schema initiative — it is a known, documented interim
+    gap, not a real signal (RESEARCH Assumption A3 / plan prohibition).
+    """
+    return [], []
+
+
+def _initiative_dict(initiative: Initiative) -> dict:
+    return {
+        "name": initiative.name,
+        "organization": initiative.organization,
+        "contact_name": initiative.contact_name,
+        # D-12/Pitfall 5: participant_type is nullable now — guard .value.
+        "participant_type": (
+            initiative.participant_type.value if initiative.participant_type else None
+        ),
+    }
 
 
 def _send_report_email(email: str, html_content: str, api_key: str) -> None:
@@ -84,47 +127,18 @@ async def generate_report(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    # Load saved answers
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
+    # Load saved answers (D-06: via Assessment, not initiative_id directly)
+    answers = _get_answers_for_initiative(session, initiative_id)
 
-    # Build code metadata lookup for scoring
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
+    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
+    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
 
     # Score answers — returns only FINDING-status entries
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    # Prepare plain-dict versions for the generator
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
-
     # Render the HTML report
     html_content = generate_html_report(
-        initiative=initiative_dict,
+        initiative=_initiative_dict(initiative),
         answers=answers_dict,
         findings=findings_raw,
         mami_config=mami_config,
@@ -200,37 +214,14 @@ async def generate_report_data_endpoint(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    # Load saved answers
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
+    # Load saved answers (D-06: via Assessment, not initiative_id directly)
+    _get_answers_for_initiative(session, initiative_id)
 
-    # Build code metadata lookup for scoring
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
+    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
+    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
 
     # Score answers — returns only FINDING-status entries
     findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    # Prepare plain-dict versions for the generator
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
 
     return generate_report_data(
         initiative=initiative,
@@ -265,33 +256,12 @@ async def get_report_data_endpoint(
         raise HTTPException(status_code=404, detail="No report generated yet")
 
     # Regenerate from current answers (avoids schema change for JSON storage)
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
+    _get_answers_for_initiative(session, initiative_id)
 
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
+    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
+    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
 
     findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
 
     return generate_report_data(
         initiative=initiative,
@@ -317,43 +287,18 @@ async def download_report_pdf(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
+    answers = _get_answers_for_initiative(session, initiative_id)
     if not answers:
         raise HTTPException(
             status_code=422, detail="No answers found. Please complete the questionnaire first."
         )
 
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
+    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
+    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
     html_content = generate_html_report(
-        initiative=initiative_dict,
+        initiative=_initiative_dict(initiative),
         answers=answers_dict,
         findings=findings_raw,
         mami_config=mami_config,
@@ -384,43 +329,18 @@ async def mail_report(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
+    answers = _get_answers_for_initiative(session, initiative_id)
     if not answers:
         raise HTTPException(
             status_code=422, detail="No answers found. Please complete the questionnaire first."
         )
 
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
+    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
+    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
     findings_raw = await score_all_answers(engine, answers_for_scoring)
 
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
     html_content = generate_html_report(
-        initiative=initiative_dict,
+        initiative=_initiative_dict(initiative),
         answers=answers_dict,
         findings=findings_raw,
         mami_config=mami_config,

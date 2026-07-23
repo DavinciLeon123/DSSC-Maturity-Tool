@@ -15,6 +15,7 @@ import io
 import pytest
 from sqlmodel import select
 
+from app.models.assessment import Assessment
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from tests.factories import (
@@ -24,6 +25,17 @@ from tests.factories import (
     make_submitted_initiative,
     make_user,
 )
+
+
+def _answers_for_initiative(session, initiative_id: int) -> list[QuestionnaireAnswer]:
+    """D-06: questionnaire_answer keys off assessment_id now — join through
+    Assessment to fetch answers for an initiative, same as the app itself."""
+    return session.exec(
+        select(QuestionnaireAnswer)
+        .join(Assessment, QuestionnaireAnswer.assessment_id == Assessment.id)
+        .where(Assessment.initiative_id == initiative_id)
+    ).all()
+
 
 # ---------------------------------------------------------------------------
 # Task 1: Access-control boundary + list_users / list_initiatives
@@ -121,12 +133,7 @@ def test_delete_user_cascades_all_child_rows(admin_client, session):
     response = admin_client.delete(f"/api/v1/admin/users/{user_id}")
     assert response.status_code == 200
 
-    assert (
-        session.exec(
-            select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-        ).all()
-        == []
-    )
+    assert _answers_for_initiative(session, initiative_id) == []
     assert (
         session.exec(
             select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
@@ -162,12 +169,7 @@ def test_delete_initiative_removes_children_but_keeps_user(admin_client, session
     response = admin_client.delete(f"/api/v1/admin/initiatives/{initiative_id}")
     assert response.status_code == 200
 
-    assert (
-        session.exec(
-            select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-        ).all()
-        == []
-    )
+    assert _answers_for_initiative(session, initiative_id) == []
     # The user itself must survive — only the initiative and its children
     # are removed by delete_initiative.
     from app.models.user import User
@@ -176,8 +178,9 @@ def test_delete_initiative_removes_children_but_keeps_user(admin_client, session
 
 
 def test_export_dataset_csv_shape(admin_client, session):
-    # D-04 characterization lock: the exact 9-column header list, flagged
-    # for Phase 13 to update deliberately when answer_value's ENUM changes.
+    # D-04 characterization lock, updated deliberately this phase (D-02/D-06):
+    # mami_code/answer_value/followup_* no longer exist on the new-schema
+    # answer table — replaced by category_id/score.
     user = make_user(session)
     initiative = make_initiative(session, user=user)
     make_answer(session, initiative=initiative)
@@ -196,10 +199,8 @@ def test_export_dataset_csv_shape(admin_client, session):
         "participant_type",
         "initiative_status",
         "question_id",
-        "mami_code",
-        "answer_value",
-        "followup_selections",
-        "followup_other",
+        "category_id",
+        "score",
     ]
     rows = list(reader)
     assert len(rows) == 3

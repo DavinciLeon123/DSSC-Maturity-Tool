@@ -14,8 +14,9 @@ from faker import Faker
 from sqlmodel import Session
 
 from app.core.security import hash_password
+from app.models.assessment import Assessment, AssessmentStatus
 from app.models.initiative import SECTOR_OPTIONS, Initiative, InitiativeStatus, ParticipantType
-from app.models.questionnaire import AnswerValue, QuestionnaireAnswer
+from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from app.models.user import User
 
@@ -80,28 +81,46 @@ def make_submitted_initiative(session: Session, *, user: User, **kwargs) -> Init
     return make_initiative(session, user=user, status=InitiativeStatus.submitted, **kwargs)
 
 
+def make_assessment(
+    session: Session,
+    *,
+    initiative: Initiative,
+    status: AssessmentStatus = AssessmentStatus.draft,
+) -> Assessment:
+    """Build an Assessment for `initiative` — the new join point answers key
+    off (D-06/D-07). `make_answer()` creates one lazily if the caller
+    doesn't pass one, mirroring the app's own assessment-first upsert flow
+    (questionnaire.py::_get_or_create_draft_assessment)."""
+    assessment = Assessment(initiative_id=initiative.id, status=status)
+    session.add(assessment)
+    session.commit()
+    session.refresh(assessment)
+    return assessment
+
+
 def make_answer(
     session: Session,
     *,
     initiative: Initiative,
+    assessment: Assessment | None = None,
     question_id: str | None = None,
-    mami_code: str | None = None,
-    answer_value: AnswerValue = AnswerValue.yes,
-    questionnaire_version: str = "2.0",
+    category_id: str | None = None,
+    score: int = 3,
 ) -> QuestionnaireAnswer:
-    """Build a QuestionnaireAnswer using the AnswerValue enum member (not a
-    raw string) — this exact enum is what Phase 13 changes, so factories
-    must fail loudly (ValueError/TypeError) rather than silently accept a
-    string if the enum shape changes. Respects the unique
-    (initiative_id, question_id) constraint — pass a distinct question_id
-    per call for the same initiative."""
+    """Build a QuestionnaireAnswer keyed by assessment_id/category_id/score
+    (D-02/D-06) — this exact shape is what Phase 13 introduced, replacing
+    the old initiative_id/mami_code/answer_value shape. Creates a draft
+    Assessment lazily for `initiative` if the caller doesn't pass one.
+    Respects the new (assessment_id, question_id) unique constraint — pass
+    a distinct question_id per call for the same assessment."""
+    if assessment is None:
+        assessment = make_assessment(session, initiative=initiative)
     qid = question_id or f"q_{uuid.uuid4().hex[:8]}"
     answer = QuestionnaireAnswer(
-        initiative_id=initiative.id,
+        assessment_id=assessment.id,
         question_id=qid,
-        mami_code=mami_code or f"S-HRA-{fake.random_int(1, 4)}.{fake.random_int(1, 2)}",
-        questionnaire_version=questionnaire_version,
-        answer_value=answer_value,
+        category_id=category_id or f"cat-{fake.random_int(1, 6)}",
+        score=score,
     )
     session.add(answer)
     session.commit()

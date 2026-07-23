@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
+from app.models.assessment import Assessment, AssessmentStatus
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.user import User
@@ -36,6 +37,29 @@ def get_questionnaire_config_endpoint(
     return config
 
 
+def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Assessment:
+    """Look up the initiative's current draft Assessment, or create one
+    (D-06/D-07: an Assessment is created lazily on the first answer write,
+    not deferred to submission). Ownership of `initiative_id` must already
+    be verified by the caller before this is invoked."""
+    assessment = session.exec(
+        select(Assessment)
+        .where(
+            Assessment.initiative_id == initiative_id,
+            Assessment.status == AssessmentStatus.draft,
+        )
+        .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+    ).first()
+    if assessment:
+        return assessment
+
+    assessment = Assessment(initiative_id=initiative_id)
+    session.add(assessment)
+    session.commit()
+    session.refresh(assessment)
+    return assessment
+
+
 @router.put(
     "/questionnaire/initiatives/{initiative_id}/answers/{question_id}", response_model=AnswerRead
 )
@@ -48,8 +72,14 @@ def upsert_answer(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    """Upsert one answer for a question. Creates on first save, updates on subsequent saves.
-    Enforces ownership: current user must own the initiative."""
+    """Upsert one answer for a question against the initiative's current
+    draft Assessment. Creates the Assessment lazily on the first answer
+    (D-06/D-07) and creates/updates the answer on subsequent saves.
+
+    Enforces ownership: current user must own the initiative — re-derived
+    through Assessment.initiative_id back to Initiative.user_id (security
+    V4); assessment_id itself is never trusted as sufficient authorization
+    on its own."""
     # Verify initiative ownership
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
@@ -57,25 +87,23 @@ def upsert_answer(
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
 
-    # PostgreSQL upsert (insert or update on conflict)
+    assessment = _get_or_create_draft_assessment(session, initiative_id)
+
+    # PostgreSQL upsert (insert or update on conflict), keyed by the new
+    # (assessment_id, question_id) constraint (D-06, RESEARCH Pattern 2).
     stmt = pg_insert(QuestionnaireAnswer).values(
-        initiative_id=initiative_id,
+        assessment_id=assessment.id,
         question_id=question_id,
-        mami_code=answer_in.mami_code,
-        questionnaire_version=answer_in.questionnaire_version,
-        answer_value=answer_in.answer_value,
-        followup_selections=answer_in.followup_selections,
-        followup_other=answer_in.followup_other,
+        category_id=answer_in.category_id,
+        score=answer_in.score,
         answered_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
     stmt = stmt.on_conflict_do_update(
-        constraint="uq_answer_per_question",
+        constraint="uq_answer_per_question_v2",
         set_={
-            "answer_value": stmt.excluded.answer_value,
-            "followup_selections": stmt.excluded.followup_selections,
-            "followup_other": stmt.excluded.followup_other,
-            "questionnaire_version": stmt.excluded.questionnaire_version,
+            "category_id": stmt.excluded.category_id,
+            "score": stmt.excluded.score,
             "updated_at": stmt.excluded.updated_at,
         },
     )
@@ -85,7 +113,7 @@ def upsert_answer(
     # Fetch and return the upserted row
     result = session.exec(
         select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.initiative_id == initiative_id,
+            QuestionnaireAnswer.assessment_id == assessment.id,
             QuestionnaireAnswer.question_id == question_id,
         )
     ).one()
@@ -98,14 +126,27 @@ def get_answers(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    """Return all saved answers for an initiative (for save/resume — QUES-02)."""
+    """Return all saved answers for the initiative's current draft
+    Assessment (for save/resume — QUES-02). Re-derives ownership the same
+    way as the upsert endpoint (security V4)."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
         raise HTTPException(status_code=404, detail="Initiative not found")
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
 
+    assessment = session.exec(
+        select(Assessment)
+        .where(
+            Assessment.initiative_id == initiative_id,
+            Assessment.status == AssessmentStatus.draft,
+        )
+        .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+    ).first()
+    if not assessment:
+        return []
+
     answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.assessment_id == assessment.id)
     ).all()
     return answers

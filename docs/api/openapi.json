@@ -80,8 +80,15 @@
             "type": "string"
           },
           "participant_type": {
-            "title": "Participant Type",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Type"
           },
           "status": {
             "title": "Status",
@@ -146,8 +153,15 @@
             "title": "Initiative Status"
           },
           "participant_type": {
-            "title": "Participant Type",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Type"
           },
           "role": {
             "title": "Role",
@@ -166,110 +180,55 @@
       },
       "AnswerCreate": {
         "properties": {
-          "answer_value": {
-            "$ref": "#/components/schemas/AnswerValue"
-          },
-          "followup_other": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Followup Other"
-          },
-          "followup_selections": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Followup Selections"
-          },
-          "mami_code": {
-            "title": "Mami Code",
+          "category_id": {
+            "title": "Category Id",
             "type": "string"
           },
           "question_id": {
             "title": "Question Id",
             "type": "string"
           },
-          "questionnaire_version": {
-            "title": "Questionnaire Version",
-            "type": "string"
+          "score": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Score",
+            "type": "integer"
           }
         },
         "required": [
           "question_id",
-          "mami_code",
-          "questionnaire_version",
-          "answer_value"
+          "category_id",
+          "score"
         ],
         "title": "AnswerCreate",
         "type": "object"
       },
       "AnswerRead": {
         "properties": {
-          "answer_value": {
-            "$ref": "#/components/schemas/AnswerValue"
-          },
           "answered_at": {
             "format": "date-time",
             "title": "Answered At",
             "type": "string"
           },
-          "followup_other": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Followup Other"
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
           },
-          "followup_selections": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Followup Selections"
+          "category_id": {
+            "title": "Category Id",
+            "type": "string"
           },
           "id": {
             "title": "Id",
             "type": "integer"
           },
-          "initiative_id": {
-            "title": "Initiative Id",
-            "type": "integer"
-          },
-          "mami_code": {
-            "title": "Mami Code",
-            "type": "string"
-          },
           "question_id": {
             "title": "Question Id",
             "type": "string"
           },
-          "questionnaire_version": {
-            "title": "Questionnaire Version",
-            "type": "string"
+          "score": {
+            "title": "Score",
+            "type": "integer"
           },
           "updated_at": {
             "format": "date-time",
@@ -279,27 +238,15 @@
         },
         "required": [
           "id",
-          "initiative_id",
+          "assessment_id",
           "question_id",
-          "mami_code",
-          "questionnaire_version",
-          "answer_value",
-          "followup_selections",
-          "followup_other",
+          "category_id",
+          "score",
           "answered_at",
           "updated_at"
         ],
         "title": "AnswerRead",
         "type": "object"
-      },
-      "AnswerValue": {
-        "enum": [
-          "YES",
-          "NOT_THERE_YET",
-          "NOT_APPLICABLE"
-        ],
-        "title": "AnswerValue",
-        "type": "string"
       },
       "Body_login_api_v1_auth_login_post": {
         "properties": {
@@ -543,8 +490,15 @@
             "title": "Organization"
           },
           "participant_type": {
-            "title": "Participant Type",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Type"
           },
           "sector": {
             "title": "Sector",
@@ -810,8 +764,15 @@
             "type": "integer"
           },
           "participant_type": {
-            "title": "Participant Type",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participant Type"
           },
           "role": {
             "title": "Role",
@@ -919,7 +880,7 @@
     },
     "/api/v1/admin/heatmap": {
       "get": {
-        "description": "Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives.",
+        "description": "Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives.\n\nPhase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3): the\nnew-schema answer table carries category_id/score (1-5), not the legacy\nmami_code/answer_value (YES/NOT_THERE_YET/NOT_APPLICABLE) shape this\nMAMI-framework-keyed heatmap was built around. `code_lookup` below is\nbuilt from `mami_config`'s old MAMI codes, which never match a new\nconfig's category_id values \u2014 so `counts` never populates any cell for\nnew-schema answers, and this degrades to an all-zero heatmap rather than\nraising (do NOT read an all-zero heatmap as \"no findings\" / \"fully\ncompliant\" \u2014 it's an interim gap, not a real signal). Legacy (v1_legacy)\ninitiatives whose answers were migrated to questionnaire_answer_v1_archive\nare likewise excluded (D-04: archive is DB-level-only, no query path\nwired into this endpoint this phase). Real per-assessment scoring against\nthe new DSSC config is Phase 14/16's job.",
         "operationId": "get_admin_heatmap_api_v1_admin_heatmap_get",
         "parameters": [
           {
@@ -1865,7 +1826,7 @@
     },
     "/api/v1/questionnaire/initiatives/{initiative_id}/answers": {
       "get": {
-        "description": "Return all saved answers for an initiative (for save/resume \u2014 QUES-02).",
+        "description": "Return all saved answers for the initiative's current draft\nAssessment (for save/resume \u2014 QUES-02). Re-derives ownership the same\nway as the upsert endpoint (security V4).",
         "operationId": "get_answers_api_v1_questionnaire_initiatives__initiative_id__answers_get",
         "parameters": [
           {
@@ -1917,7 +1878,7 @@
     },
     "/api/v1/questionnaire/initiatives/{initiative_id}/answers/{question_id}": {
       "put": {
-        "description": "Upsert one answer for a question. Creates on first save, updates on subsequent saves.\nEnforces ownership: current user must own the initiative.",
+        "description": "Upsert one answer for a question against the initiative's current\ndraft Assessment. Creates the Assessment lazily on the first answer\n(D-06/D-07) and creates/updates the answer on subsequent saves.\n\nEnforces ownership: current user must own the initiative \u2014 re-derived\nthrough Assessment.initiative_id back to Initiative.user_id (security\nV4); assessment_id itself is never trusted as sufficient authorization\non its own.",
         "operationId": "upsert_answer_api_v1_questionnaire_initiatives__initiative_id__answers__question_id__put",
         "parameters": [
           {

@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 
 from app.core.deps import get_current_user, get_mami_config, get_zen_engine
 from app.db.session import get_session
+from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.user import User
@@ -43,9 +44,11 @@ async def score_initiative(
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
 
-    # Load saved answers
+    # Load saved answers (D-06: via Assessment, not initiative_id directly)
     answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
+        select(QuestionnaireAnswer)
+        .join(Assessment, QuestionnaireAnswer.assessment_id == Assessment.id)  # type: ignore[arg-type]
+        .where(Assessment.initiative_id == initiative_id)
     ).all()
 
     if not answers:
@@ -57,27 +60,12 @@ async def score_initiative(
             non_critical_count=0,
         )
 
-    # Build MAMI code lookup: {code_id: {moscow_level, critical_override}}
-    code_lookup = {
-        code["id"]: {
-            "moscow_level": code["moscow_level"],
-            "critical_override": code.get("critical_override"),
-        }
-        for code in mami_config.get("codes", [])
-    }
-
-    # Prepare answer dicts for scoring (join answer with MAMI code metadata)
-    answers_for_scoring = []
-    for answer in answers:
-        code_meta = code_lookup.get(answer.mami_code, {})
-        answers_for_scoring.append(
-            {
-                "mami_code": answer.mami_code,
-                "moscow_level": code_meta.get("moscow_level", "SHOULD"),
-                "answer_value": answer.answer_value,
-                "critical_override": code_meta.get("critical_override"),
-            }
-        )
+    # Phase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3):
+    # new-schema answers carry category_id/score (1-5), not the legacy
+    # mami_code/answer_value shape this MAMI-code-keyed ZEN scoring pipeline
+    # expects — real per-assessment scoring against the new DSSC config is
+    # Phase 14's job. Degrade to zero findings rather than raising.
+    answers_for_scoring: list[dict] = []
 
     # Score using ZEN Engine (async per-answer)
     findings_raw = await score_all_answers(engine, answers_for_scoring)
