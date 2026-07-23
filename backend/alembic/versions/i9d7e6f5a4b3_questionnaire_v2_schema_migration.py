@@ -47,6 +47,17 @@ score) answers written after the original upgrade — those have no
 old-shape representation and are not restored. This is the same accepted
 lossiness precedent as f6a4b3c2d1e9's downgrade (which also cannot
 distinguish original NO vs. COMPLY_EXPLAIN once merged).
+
+Downgrade lossiness (WR-06): downgrade() also blanket-assigns
+participant_type = 'DSI' to *every* row still NULL at downgrade time
+(initiative and user), in order to re-enforce the NOT NULL constraint
+reverted from step 5. This fabricates a DSI classification for ANY
+row with NULL participant_type at that point — not just the legacy rows
+this migration itself tagged, but also any brand-new user/initiative
+created after the v2 upgrade that was never given a participant_type. A
+downgrade run against a live-for-a-while v2 database will misclassify those
+rows as DSI with no record that this happened; there is no way to
+distinguish them from genuinely-legacy-DSI rows after the fact.
 """
 
 import sqlalchemy as sa
