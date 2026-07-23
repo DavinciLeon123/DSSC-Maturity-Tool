@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
 stopped_at: Completed 13-04-PLAN.md (phase 13 complete)
-last_updated: "2026-07-23T07:49:11.940Z"
+last_updated: "2026-07-23T13:13:35.836Z"
 progress:
   total_phases: 2
   completed_phases: 2
