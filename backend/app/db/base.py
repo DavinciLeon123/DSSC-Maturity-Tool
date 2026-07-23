@@ -1,6 +1,5 @@
 from sqlmodel import SQLModel  # noqa: F401
 
-from app.models.evidence import EvidenceURL  # noqa: F401
 from app.models.initiative import Initiative  # noqa: F401
 from app.models.questionnaire import QuestionnaireAnswer  # noqa: F401
 from app.models.report import ComplianceReport  # noqa: F401

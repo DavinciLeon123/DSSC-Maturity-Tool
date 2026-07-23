@@ -9,7 +9,6 @@ from slowapi.util import get_remote_address
 
 from app.api.v1.admin import router as admin_router
 from app.api.v1.auth import router as auth_router
-from app.api.v1.evidence import router as evidence_router
 from app.api.v1.initiatives import router as initiatives_router
 from app.api.v1.questionnaire import router as questionnaire_router
 from app.api.v1.reports import router as reports_router
@@ -73,7 +72,6 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(initiatives_router, prefix="/api/v1")
 app.include_router(questionnaire_router, prefix="/api/v1")
 app.include_router(scoring_router, prefix="/api/v1")
-app.include_router(evidence_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 
