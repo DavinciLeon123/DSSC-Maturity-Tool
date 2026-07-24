@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-07-24T08:59:40.305Z"
+stopped_at: Completed 14-04-PLAN.md
+last_updated: "2026-07-24T09:12:00.000Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -38,10 +38,12 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 14-scoring-engine-replacement — Plan 03/04 complete, Plan 04 next
-**Next phase:** Phase 14 Plan 04 (ZEN/MoSCoW dependency removal + openapi.json regeneration — final plan, Wave 3)
+**Active phase:** 14-scoring-engine-replacement — 4/4 plans executed, phase complete pending verification
+**Next phase:** Verify Phase 14, then Phase 15 (Questionnaire Submission API, Wizard UI & Save Reliability)
 
-This session (2026-07-24): Executed Plan 14-03 (report endpoints + admin heatmap adaptation, SCOR-04). Trimmed `backend/app/services/report_generator.py` from 313 to 22 lines — deleted `_build_matrix`/`_build_topic_structure`/`_build_heatmap_rows`/`_build_not_yet_recommendations`/`_build_findings_detail`/`_aggregate_cell`/`_suggest_next_steps`/`_RECOMMENDATIONS`/`_ANSWER_LABEL_MAP` outright (D-01a); `generate_report_data(initiative)` now returns `{"initiative": {...}}` only, `generate_html_report(initiative, generated_at)` renders the unchanged `report.html` with literal `heatmap_rows={}`/`not_yet_recommendations=[]` (D-05, Pitfall 1). Rewrote `backend/app/api/v1/reports.py`: removed `import zen`/`score_all_answers`/`get_mami_config`/`get_zen_engine` and the entire degraded-banner mechanism (`_DEGRADED_SCORING_BANNER_HTML`/`_inject_degraded_banner`/`_degraded_scoring_inputs`, D-05a); all four routes (`/report`, `/report/data` GET+POST, `/report/pdf`, `/report/mail`) now call `assert_assessment_complete` immediately after the ownership check (T-14-01 ordering, SCOR-04); both `/report/data` handlers add `dimension_scores` via `compute_dimension_scores` (D-05); dropped async/await (mirrors Plan 14-02). Rewrote `backend/app/api/v1/admin.py`'s `/heatmap`: removed the orphaned `_build_topic_structure` import, reduced `AdminHeatmapResponse`/`get_admin_heatmap` to a fixed `{degraded: true, cells: []}` response (D-01b). Rewrote all three affected test files (`test_report_generator.py`, `test_reports.py` — rebuilt fixtures to fully answer the real 52-question config since the old n=5 partial-answers fixture now fails the SCOR-04 gate, `test_admin.py`) against the new shapes, plus new dimension_scores/422/ownership-ordering tests. App imports cleanly, ruff/mypy/format clean, full quick suite 87/91 (same 4 pre-existing local-only WeasyPrint failures recurring from Phase 13, unrelated — logged in a new phase-14 `deferred-items.md`). Did NOT regenerate `docs/api/openapi.json` per this plan's explicit prohibition (Plan 14-04 owns it once, after all Wave 2/3 response-model changes land). Ready to execute 14-04 (ZEN/MoSCoW removal + openapi regeneration, the final plan in Phase 14).
+This session (2026-07-24): Executed Plan 14-04 (ZEN/MoSCoW subsystem deletion + static regression test + openapi regeneration, SCOR-03 — the final plan in Phase 14). Removed the `zen-engine==0.51.0` dependency via `uv remove zen-engine` (pyproject.toml/uv.lock); deleted `backend/app/services/scoring_engine.py`, `config/scoring/mami-scoring.json`, `config/mami-framework.json` via `git rm`. Trimmed `main.py`'s lifespan (removed `import zen`, `app.state.mami_config`, the `scoring_dir`/`loader`/`app.state.zen_engine = zen.ZenEngine(...)` block — surviving DSSC/legacy questionnaire config loads untouched), `deps.py` (removed `get_zen_engine`/`get_mami_config` — `get_dssc_questionnaire_config` untouched), and `mami_config.py` (removed `load_mami_config`/`get_scoring_dir` — `load_dssc_questionnaire_config`/`load_questionnaire_config`/`load_questionnaire_configs` untouched); reworded `Dockerfile`'s stale zen-engine comment without touching the base image. Deleted `tests/benchmark/test_scoring_regression.py`/`tests/perf/test_scoring_perf.py` and their only fixture consumers (`mami_codes`/`make_answers` in `conftest.py`); `test_health.py` now asserts `app.state.dssc_questionnaire_config` instead of the removed `mami_config`/`zen_engine`; logged the Phase 17 (TEST-01) perf/benchmark replacement deferral in `deferred-items.md` (D-08). Added `backend/tests/test_zen_removed.py` — a new static regression test mirroring Phase 13's `test_evidence_removed.py` substring-scan + AST-walk pattern (search tokens built from parts, scan scoped to `backend/app`/`config` only, never `backend/tests`), locking SCOR-03 in place. Regenerated `docs/api/openapi.json`, capturing `ScoreResponse`/`DimensionScore` (14-02), `/report/data`'s `dimension_scores` (14-03), and the simplified `AdminHeatmapResponse` (`FindingRead`/`matrix`/`topic_structure` components gone); confirmed diff-clean on a second export run (docs-freshness gate). App imports cleanly, ruff/mypy/format clean, full staging-onward suite (`pytest tests/ -n auto -m "not perf"`) 91/95 passing (same 4 pre-existing local-only WeasyPrint failures recurring from every prior Phase 13/14 plan touching `reports.py`, unrelated). SCOR-03 marked complete. **Phase 14 is now fully executed (4/4 plans)** — awaiting the verification step before Phase 15 begins.
+
+Prior session (2026-07-24): Executed Plan 14-03 (report endpoints + admin heatmap adaptation, SCOR-04). Trimmed `backend/app/services/report_generator.py` from 313 to 22 lines — deleted `_build_matrix`/`_build_topic_structure`/`_build_heatmap_rows`/`_build_not_yet_recommendations`/`_build_findings_detail`/`_aggregate_cell`/`_suggest_next_steps`/`_RECOMMENDATIONS`/`_ANSWER_LABEL_MAP` outright (D-01a); `generate_report_data(initiative)` now returns `{"initiative": {...}}` only, `generate_html_report(initiative, generated_at)` renders the unchanged `report.html` with literal `heatmap_rows={}`/`not_yet_recommendations=[]` (D-05, Pitfall 1). Rewrote `backend/app/api/v1/reports.py`: removed `import zen`/`score_all_answers`/`get_mami_config`/`get_zen_engine` and the entire degraded-banner mechanism (`_DEGRADED_SCORING_BANNER_HTML`/`_inject_degraded_banner`/`_degraded_scoring_inputs`, D-05a); all four routes (`/report`, `/report/data` GET+POST, `/report/pdf`, `/report/mail`) now call `assert_assessment_complete` immediately after the ownership check (T-14-01 ordering, SCOR-04); both `/report/data` handlers add `dimension_scores` via `compute_dimension_scores` (D-05); dropped async/await (mirrors Plan 14-02). Rewrote `backend/app/api/v1/admin.py`'s `/heatmap`: removed the orphaned `_build_topic_structure` import, reduced `AdminHeatmapResponse`/`get_admin_heatmap` to a fixed `{degraded: true, cells: []}` response (D-01b). Rewrote all three affected test files (`test_report_generator.py`, `test_reports.py` — rebuilt fixtures to fully answer the real 52-question config since the old n=5 partial-answers fixture now fails the SCOR-04 gate, `test_admin.py`) against the new shapes, plus new dimension_scores/422/ownership-ordering tests. App imports cleanly, ruff/mypy/format clean, full quick suite 87/91 (same 4 pre-existing local-only WeasyPrint failures recurring from Phase 13, unrelated — logged in a new phase-14 `deferred-items.md`). Did NOT regenerate `docs/api/openapi.json` per this plan's explicit prohibition (Plan 14-04 owns it once, after all Wave 2/3 response-model changes land). Ready to execute 14-04 (ZEN/MoSCoW removal + openapi regeneration, the final plan in Phase 14).
 
 Prior session (2026-07-24): Executed Plan 14-02 (scoring endpoint adaptation, D-04/SCOR-04). Rewrote `backend/app/api/v1/scoring.py`: removed `import zen`, `get_mami_config`/`get_zen_engine` deps, `score_all_answers`, `FindingRead`, and all findings/critical-count aggregation; added `ScoreResponse {initiative_id, dimension_scores}`/`DimensionScore {category_id, name, score}` models and a `get_dssc_questionnaire_config` dependency. Route now calls `assert_assessment_complete` (Plan 14-01's new 422 completion gate, SCOR-04 — replaces the prior HTTP 200 all-zeros behavior) then `compute_dimension_scores`, immediately after preserving the existing ownership check (404/403) as the first gate (T-14-01 ordering). Added `backend/tests/api/test_scoring.py` — this endpoint's first-ever automated coverage (4 tests: happy-path/6-dimension-scores, 422-incomplete, 422-no-assessment, ownership-before-completion-gate matching `-k ownership`). App imports cleanly, ruff/mypy/format clean, full quick suite 80/84 (same 4 pre-existing local-only WeasyPrint failures, unrelated). Did NOT regenerate `docs/api/openapi.json` per this plan's explicit prohibition (Plan 14-04 owns it, once, after all Wave 2/3 response-model changes land). SCOR-04 marked complete. Ready to execute 14-03 (reports.py/report_generator.py/admin.py adaptation, runs in parallel with this plan's Wave 2 — disjoint files).
 
@@ -138,8 +140,8 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-07-24T08:59:40.300Z
-**Stopped at:** Completed 14-03-PLAN.md
+**Last session:** 2026-07-24T09:12:00.000Z
+**Stopped at:** Completed 14-04-PLAN.md
 **Resume file:** None
 
 ## Performance Metrics
@@ -153,6 +155,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 14 P01 | 13min | 2 tasks | 2 files |
 | Phase 14 P02 | 17min | 2 tasks | 2 files |
 | Phase 14 P03 | 22min | 3 tasks | 6 files |
+| Phase 14 P04 | 12min | 3 tasks | 11 files |
 
 ## Decisions
 
@@ -175,3 +178,6 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 14-02]: Added # type: ignore[arg-type] on assessment.id -> compute_dimension_scores, matching existing repo precedent (reports.py:39, admin.py:99/101) for the same SQLModel Optional-PK mypy limitation
 - [Phase 14-03]: Dropped async/await from all four report routes — mirrors scoring.py's Plan 14-02 precedent, nothing awaits once score_all_answers is gone
 - [Phase 14-03]: Rebuilt test_reports.py's fixtures to fully answer the real 52-question config (mirroring test_scoring.py's pattern) since the old partial-answers fixture now fails the SCOR-04 completion gate with 422
+- [Phase 14-04]: Built test_zen_removed.py's search tokens from string-concatenation parts (Phase 13 test_evidence_removed.py precedent) even though the scan never touches backend/tests — extra guard against a future refactor widening scan scope
+- [Phase 14-04]: Deliberately excluded a bare "mami_config" substring scan from the static removal test — mami_config.py survives with legitimate load_dssc_questionnaire_config/load_questionnaire_config(s) loaders; only the specific removed symbols are asserted absent
+- [Phase 14-04]: SCOR-03 marked complete — Phase 14 fully executed (4/4 plans), awaiting verification before Phase 15

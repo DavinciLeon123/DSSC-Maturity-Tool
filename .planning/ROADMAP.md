@@ -112,7 +112,7 @@ Plans:
   3. GoRules ZEN Engine, its rule configs, and MoSCoW-based findings no longer exist anywhere in the codebase or dependency manifest.
   4. A user only sees computed dimension scores/report after every question has been answered — no partial or live scoring is shown mid-questionnaire.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -126,7 +126,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 14-04-PLAN.md — Delete zen-engine package/config/wiring + legacy tests + static removal test + openapi regen (Wave 3; SCOR-03)
+- [x] 14-04-PLAN.md — Delete zen-engine package/config/wiring + legacy tests + static removal test + openapi regen (Wave 3; SCOR-03)
 
 ### Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
-| 14. Scoring Engine Replacement | v2.0 | 3/4 | In Progress|  |
+| 14. Scoring Engine Replacement | v2.0 | 4/4 | In Progress|  |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
