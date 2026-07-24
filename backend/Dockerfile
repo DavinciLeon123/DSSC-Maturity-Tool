@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Place venv outside /app so docker-compose volume mount of /app doesn't hide it
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
-# Use the container's system Python (3.13) — zen-engine has cp313 wheels
+# Use the container's system Python (3.13) — pinned for wheel-compatibility with native-extension dependencies
 ENV UV_PYTHON_PREFERENCE=only-system
 
 # Build context is the repo root.
