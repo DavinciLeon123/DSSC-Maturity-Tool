@@ -95,9 +95,52 @@ This matches SCOR-01/02 exactly and is captured as D-02. The API-surface questio
 
 - Exact module/file naming for the new dimension-scoring service.
 - Exact response field names for the new `/score` and `/report/data` shapes (category id/name/score agreed; JSON key naming is planning's call).
-- Exact wording/fate of the existing degraded-scoring banner in reports.py once real scores land in the JSON path.
+- Exact fixed shape of the simplified `/heatmap` degraded response.
 - Exact adaptation of `test_reports.py`/`test_report_generator.py` to match the new adapted endpoints.
 
 ## Deferred Ideas
 
 None — discussion stayed within phase scope. No scope-creep topics came up.
+
+---
+
+## Follow-up round: cleanup pass ("delete what we won't reuse" review)
+
+**Date:** 2026-07-24
+**Trigger:** User asked whether the initial decisions matched a "clean up everything we don't use or aren't going to re-use" philosophy. Re-review found 4 places where the original decisions kept dead code alive in a degraded state rather than deleting it.
+
+### Matrix code (report_generator.py)
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Delete outright | Remove _build_matrix/_build_topic_structure/_build_heatmap_rows/_build_not_yet_recommendations/_build_findings_detail and _RECOMMENDATIONS entirely; simplify generate_report_data/generate_html_report to what still works + dimension_scores. | ✓ |
+| Keep degraded-to-empty | Leave functions in place returning empty structures, as originally decided. | |
+
+**User's choice:** Delete outright. Supersedes D-01/D-05 as originally written; now D-01a.
+
+### Degraded-scoring banner (reports.py)
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Remove it | Its premise ("scoring not yet implemented") is false once real scores exist; JSON-only reporting needs no banner. | ✓ |
+| Keep it, reworded | Keep a banner with updated wording flagging the HTML/PDF report as incomplete pending Phase 16. | |
+
+**User's choice:** Remove it. Supersedes the original D-05 banner note; now D-05a.
+
+### Admin /heatmap endpoint
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Simplify to trivial response | Strip topic-structure-building logic entirely; return a minimal fixed degraded shape. | ✓ |
+| Keep structure-building code, feed it nothing | Keep the existing code path, adapted to run against an empty/stub config, as originally decided. | |
+
+**User's choice:** Simplify to trivial response. Supersedes the original D-01 admin.py note; now D-01b.
+
+### Old MAMI wizard/report/admin-heatmap frontend
+
+| Option | Description | Selected |
+|--------|-------------|----------|
+| Leave it untouched | Keep Phase 14 backend-only as scoped; old frontend renders against now-empty/undefined data until Phase 15/16 replace it. | ✓ |
+| Delete the now-dead frontend pieces too | Pull frontend cleanup into Phase 14, accepting no working questionnaire/report/admin-heatmap UI until Phase 15/16 land. | |
+
+**User's choice:** Leave it untouched — confirmed as-is, no change from the original decision. (Frontend fields will now be `undefined` rather than empty-but-present, since the backend fields are deleted rather than degraded — noted as an accepted consequence, not a new decision.)
