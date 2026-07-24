@@ -17,10 +17,10 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Scoring (SCOR)
 
-- [ ] **SCOR-01**: Dimension score = sum of answers in that dimension / number of questions in that dimension, range 1.0–5.0
-- [ ] **SCOR-02**: All questions are equally weighted — no question or category weighting
-- [ ] **SCOR-03**: GoRules ZEN Engine and MoSCoW scoring are fully removed, not dual-maintained
-- [ ] **SCOR-04**: Report/scores are only computed and shown once the full questionnaire is 100% answered (no partial/live scoring)
+- [x] **SCOR-01**: Dimension score = sum of answers in that dimension / number of questions in that dimension, range 1.0–5.0
+- [x] **SCOR-02**: All questions are equally weighted — no question or category weighting
+- [x] **SCOR-03**: GoRules ZEN Engine and MoSCoW scoring are fully removed, not dual-maintained
+- [x] **SCOR-04**: Report/scores are only computed and shown once the full questionnaire is 100% answered (no partial/live scoring)
 
 ### Reporting (RPRT)
 
@@ -98,10 +98,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QSTN-03 | Phase 13 | Complete |
 | QSTN-04 | Phase 13 | Complete |
 | QSTN-05 | Phase 13 | Complete |
-| SCOR-01 | Phase 14 | Pending |
-| SCOR-02 | Phase 14 | Pending |
-| SCOR-03 | Phase 14 | Pending |
-| SCOR-04 | Phase 14 | Pending |
+| SCOR-01 | Phase 14 | Complete |
+| SCOR-02 | Phase 14 | Complete |
+| SCOR-03 | Phase 14 | Complete |
+| SCOR-04 | Phase 14 | Complete |
 | RPRT-01 | Phase 16 | Pending |
 | RPRT-02 | Phase 16 | Pending |
 | RPRT-03 | Phase 16 | Pending |

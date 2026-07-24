@@ -1,68 +1,24 @@
 {
   "components": {
     "schemas": {
-      "AdminHeatmapCell": {
-        "properties": {
-          "n_a": {
-            "default": 0,
-            "title": "N A",
-            "type": "integer"
-          },
-          "not_yet": {
-            "default": 0,
-            "title": "Not Yet",
-            "type": "integer"
-          },
-          "yes": {
-            "default": 0,
-            "title": "Yes",
-            "type": "integer"
-          }
-        },
-        "title": "AdminHeatmapCell",
-        "type": "object"
-      },
       "AdminHeatmapResponse": {
+        "description": "Phase 14 (D-01b): reduced to a fixed, deliberately trivial degraded\nresponse. The MAMI-matrix aggregation this endpoint used to build is\ngone entirely \u2014 Phase 16 (ADMN-01) rebuilds this against the new\n6-category dimension-score model.",
         "properties": {
+          "cells": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
           "degraded": {
             "default": true,
             "title": "Degraded",
             "type": "boolean"
-          },
-          "matrix": {
-            "additionalProperties": {
-              "additionalProperties": {
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/AdminHeatmapCell"
-                },
-                "type": "object"
-              },
-              "type": "object"
-            },
-            "title": "Matrix",
-            "type": "object"
-          },
-          "topic_structure": {
-            "additionalProperties": {
-              "items": {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              "type": "array"
-            },
-            "title": "Topic Structure",
-            "type": "object"
-          },
-          "total_submitted": {
-            "title": "Total Submitted",
-            "type": "integer"
           }
         },
-        "required": [
-          "total_submitted",
-          "matrix",
-          "topic_structure"
-        ],
         "title": "AdminHeatmapResponse",
         "type": "object"
       },
@@ -312,27 +268,27 @@
         "title": "Body_login_api_v1_auth_login_post",
         "type": "object"
       },
-      "FindingRead": {
+      "DimensionScore": {
         "properties": {
-          "mami_code": {
-            "title": "Mami Code",
+          "category_id": {
+            "title": "Category Id",
             "type": "string"
           },
-          "severity": {
-            "title": "Severity",
+          "name": {
+            "title": "Name",
             "type": "string"
           },
-          "status": {
-            "title": "Status",
-            "type": "string"
+          "score": {
+            "title": "Score",
+            "type": "number"
           }
         },
         "required": [
-          "mami_code",
-          "severity",
-          "status"
+          "category_id",
+          "name",
+          "score"
         ],
-        "title": "FindingRead",
+        "title": "DimensionScore",
         "type": "object"
       },
       "ForgotPasswordRequest": {
@@ -674,36 +630,21 @@
       },
       "ScoreResponse": {
         "properties": {
-          "critical_count": {
-            "title": "Critical Count",
-            "type": "integer"
-          },
-          "findings": {
+          "dimension_scores": {
             "items": {
-              "$ref": "#/components/schemas/FindingRead"
+              "$ref": "#/components/schemas/DimensionScore"
             },
-            "title": "Findings",
+            "title": "Dimension Scores",
             "type": "array"
           },
           "initiative_id": {
             "title": "Initiative Id",
             "type": "integer"
-          },
-          "non_critical_count": {
-            "title": "Non Critical Count",
-            "type": "integer"
-          },
-          "total_answers": {
-            "title": "Total Answers",
-            "type": "integer"
           }
         },
         "required": [
           "initiative_id",
-          "total_answers",
-          "findings",
-          "critical_count",
-          "non_critical_count"
+          "dimension_scores"
         ],
         "title": "ScoreResponse",
         "type": "object"
@@ -885,7 +826,7 @@
     },
     "/api/v1/admin/heatmap": {
       "get": {
-        "description": "Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives.\n\nPhase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3): the\nnew-schema answer table carries category_id/score (1-5), not the legacy\nmami_code/answer_value (YES/NOT_THERE_YET/NOT_APPLICABLE) shape this\nMAMI-framework-keyed heatmap was built around. `code_lookup` below is\nbuilt from `mami_config`'s old MAMI codes, which never match a new\nconfig's category_id values \u2014 so `counts` never populates any cell for\nnew-schema answers, and this degrades to an all-zero heatmap rather than\nraising (do NOT read an all-zero heatmap as \"no findings\" / \"fully\ncompliant\" \u2014 it's an interim gap, not a real signal). Legacy (v1_legacy)\ninitiatives whose answers were migrated to questionnaire_answer_v1_archive\nare likewise excluded (D-04: archive is DB-level-only, no query path\nwired into this endpoint this phase). Real per-assessment scoring against\nthe new DSSC config is Phase 14/16's job.",
+        "description": "Fixed, deliberately trivial degraded response (D-01b).\n\nThe MAMI-matrix aggregation this endpoint used to build (keyed off the\nlegacy mami_code/answer_value shape) is deleted outright along with the\nZEN/MoSCoW subsystem it depended on \u2014 Phase 16 (ADMN-01) rebuilds this\nendpoint against the new 6-category dimension-score model.",
         "operationId": "get_admin_heatmap_api_v1_admin_heatmap_get",
         "parameters": [
           {
@@ -1482,7 +1423,7 @@
         ]
       },
       "post": {
-        "description": "Generate a compliance report for an initiative.\n\nScores all saved answers, renders a full HTML report via Jinja2, and\nupserts the result into the compliance_report table. Returns the\nrendered HTML directly.",
+        "description": "Generate a compliance report for an initiative.\n\nEnforces ownership (404) then the SCOR-04 completion gate (422) before\nrendering. Renders a full HTML report via Jinja2 and upserts the result\ninto the compliance_report table. Returns the rendered HTML directly.",
         "operationId": "generate_report_api_v1_initiatives__initiative_id__report_post",
         "parameters": [
           {
@@ -1530,7 +1471,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/report/data": {
       "get": {
-        "description": "Retrieve structured JSON report data for an initiative.\n\nRe-runs scoring on the fly from stored answers to avoid storing JSON separately.\nReturns 404 if no report has been generated yet.",
+        "description": "Retrieve structured JSON report data for an initiative.\n\nRe-computes dimension scores on the fly from stored answers to avoid\nstoring JSON separately. Returns 404 if no report has been generated yet.",
         "operationId": "get_report_data_endpoint_api_v1_initiatives__initiative_id__report_data_get",
         "parameters": [
           {
@@ -1712,7 +1653,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/score": {
       "post": {
-        "description": "Score all saved answers for an initiative. Returns CRITICAL and NON_CRITICAL findings.",
+        "description": "Score the initiative's current draft Assessment against the 6 DSSC\nmaturity dimensions (D-04, SCOR-01/02).\n\nVerifies ownership first (404 when the initiative doesn't exist, 403\nwhen it isn't the caller's), THEN enforces the SCOR-04 completion gate\n(422 \"Questionnaire not fully answered\" when no draft assessment exists\nor it isn't 100% answered) \u2014 ordering matters so a caller can never\ndistinguish \"not yours\" from \"not complete\" (T-14-01). On success,\nreturns one equal-weight per-category average per dimension, in config\ncategory order.",
         "operationId": "score_initiative_api_v1_initiatives__initiative_id__score_post",
         "parameters": [
           {

@@ -5,22 +5,21 @@ from collections.abc import Sequence
 from datetime import datetime
 
 import resend
-import zen
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, select
 
 from app.core.config import settings
-from app.core.deps import get_current_user, get_mami_config, get_zen_engine
+from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
 from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from app.models.user import User
+from app.services.dimension_scoring import assert_assessment_complete, compute_dimension_scores
 from app.services.report_generator import generate_html_report, generate_report_data
-from app.services.scoring_engine import score_all_answers
 
 router = APIRouter(tags=["reports"])
 
@@ -41,48 +40,6 @@ def _get_answers_for_initiative(
     ).all()
 
 
-def _degraded_scoring_inputs() -> tuple[list[dict], list[dict]]:
-    """Phase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3):
-    new-schema answers carry category_id/score (1-5), not the legacy
-    mami_code/answer_value shape the ZEN/MoSCoW scoring engine and
-    report_generator's matrix/recommendation builders expect. A real
-    per-assessment scoring/report rebuild is explicitly Phase 14 (scoring)
-    and Phase 16 (report contract)'s job — until then this degrades to
-    zero findings/recommendations rather than raising an AttributeError.
-
-    Do NOT read a report generated this way as a genuine "fully compliant"
-    result for a new-schema initiative — it is a known, documented interim
-    gap, not a real signal (RESEARCH Assumption A3 / plan prohibition).
-    """
-    return [], []
-
-
-# WR-01: the in-code documentation above is excellent but was previously
-# invisible over HTTP — a caller hitting these endpoints got a
-# production-looking, misleadingly "compliant" report with no signal that
-# scoring is degraded. Surface it: a visible banner in rendered HTML/PDF
-# output, and a machine-readable `degraded` flag in JSON responses.
-_DEGRADED_SCORING_BANNER_HTML = (
-    '<div style="background:#fff3cd;border:1px solid #ffe69c;color:#664d03;'
-    'padding:12px 20px;margin-bottom:16px;font-family:sans-serif;font-size:14px;">'
-    "<strong>Provisional result:</strong> Scoring for the new DSSC questionnaire "
-    "is not yet implemented (Phase 14). This report currently shows zero "
-    "findings for every answer and does not reflect a genuine compliance "
-    "assessment."
-    "</div>"
-)
-
-
-def _inject_degraded_banner(html_content: str) -> str:
-    """Insert the provisional-result banner right after <body> (or, failing
-    that, prepend it) so degraded reports are never visually indistinguishable
-    from a genuine result."""
-    marker = "<body>"
-    if marker in html_content:
-        return html_content.replace(marker, marker + "\n" + _DEGRADED_SCORING_BANNER_HTML, 1)
-    return _DEGRADED_SCORING_BANNER_HTML + html_content
-
-
 def _initiative_dict(initiative: Initiative) -> dict:
     return {
         "name": initiative.name,
@@ -93,6 +50,11 @@ def _initiative_dict(initiative: Initiative) -> dict:
             initiative.participant_type.value if initiative.participant_type else None
         ),
     }
+
+
+def _generated_at_str() -> str:
+    now = datetime.utcnow()
+    return f"{now.day} {now.strftime('%B %Y, %H:%M')} UTC"
 
 
 def _send_report_email(email: str, html_content: str, api_key: str) -> None:
@@ -136,46 +98,31 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
 
 
 @router.post("/initiatives/{initiative_id}/report", response_class=HTMLResponse)
-async def generate_report(
+def generate_report(
     initiative_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Generate a compliance report for an initiative.
 
-    Scores all saved answers, renders a full HTML report via Jinja2, and
-    upserts the result into the compliance_report table. Returns the
-    rendered HTML directly.
+    Enforces ownership (404) then the SCOR-04 completion gate (422) before
+    rendering. Renders a full HTML report via Jinja2 and upserts the result
+    into the compliance_report table. Returns the rendered HTML directly.
     """
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
+    assert_assessment_complete(session, initiative_id, config)
+
     # Load saved answers (D-06: via Assessment, not initiative_id directly)
     answers = _get_answers_for_initiative(session, initiative_id)
 
-    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
-    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
-
-    # Score answers — returns only FINDING-status entries
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    # Render the HTML report
-    html_content = _inject_degraded_banner(
-        generate_html_report(
-            initiative=_initiative_dict(initiative),
-            answers=answers_dict,
-            findings=findings_raw,
-            mami_config=mami_config,
-        )
+    html_content = generate_html_report(
+        initiative=_initiative_dict(initiative),
+        generated_at=_generated_at_str(),
     )
-
-    # Compute counts
-    critical_count = sum(1 for f in findings_raw if f.get("severity") == "CRITICAL")
-    non_critical_count = sum(1 for f in findings_raw if f.get("severity") == "NON_CRITICAL")
-    compliant_count = len(answers) - sum(1 for f in findings_raw if f.get("status") == "FINDING")
 
     # Upsert: one report per initiative — regeneration replaces previous report
     stmt = (
@@ -186,9 +133,9 @@ async def generate_report(
             generated_at=datetime.utcnow(),
             questionnaire_version="2.0",
             total_answers=len(answers),
-            critical_count=critical_count,
-            non_critical_count=non_critical_count,
-            compliant_count=compliant_count,
+            critical_count=0,
+            non_critical_count=0,
+            compliant_count=len(answers),
         )
         .on_conflict_do_update(
             index_elements=["initiative_id"],
@@ -214,11 +161,14 @@ def get_report(
     initiative_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Retrieve the stored compliance report HTML for an initiative."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
+
+    assert_assessment_complete(session, initiative_id, config)
 
     report = session.exec(
         select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
@@ -230,55 +180,41 @@ def get_report(
 
 
 @router.post("/initiatives/{initiative_id}/report/data")
-async def generate_report_data_endpoint(
+def generate_report_data_endpoint(
     initiative_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Generate and return structured JSON report data for the React /report page."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    # Load saved answers (D-06: via Assessment, not initiative_id directly)
-    _get_answers_for_initiative(session, initiative_id)
+    assessment = assert_assessment_complete(session, initiative_id, config)
 
-    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
-    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
-
-    # Score answers — returns only FINDING-status entries
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    data = generate_report_data(
-        initiative=initiative,
-        answers=answers_dict,
-        findings=findings_raw,
-        mami_config=mami_config,
-    )
-    # WR-01: see _degraded_scoring_inputs docstring — flag this response as
-    # provisional so a caller can't mistake it for a real scoring result.
-    data["degraded"] = True
+    data = generate_report_data(initiative=initiative)
+    data["dimension_scores"] = compute_dimension_scores(session, assessment.id, config)  # type: ignore[arg-type]
     return data
 
 
 @router.get("/initiatives/{initiative_id}/report/data")
-async def get_report_data_endpoint(
+def get_report_data_endpoint(
     initiative_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Retrieve structured JSON report data for an initiative.
 
-    Re-runs scoring on the fly from stored answers to avoid storing JSON separately.
-    Returns 404 if no report has been generated yet.
+    Re-computes dimension scores on the fly from stored answers to avoid
+    storing JSON separately. Returns 404 if no report has been generated yet.
     """
     initiative = session.get(Initiative, initiative_id)
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
+
+    assessment = assert_assessment_complete(session, initiative_id, config)
 
     # Check a report exists (i.e. the user has generated one before)
     report = session.exec(
@@ -287,32 +223,17 @@ async def get_report_data_endpoint(
     if not report:
         raise HTTPException(status_code=404, detail="No report generated yet")
 
-    # Regenerate from current answers (avoids schema change for JSON storage)
-    _get_answers_for_initiative(session, initiative_id)
-
-    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
-    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
-
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    data = generate_report_data(
-        initiative=initiative,
-        answers=answers_dict,
-        findings=findings_raw,
-        mami_config=mami_config,
-    )
-    # WR-01: see _degraded_scoring_inputs docstring.
-    data["degraded"] = True
+    data = generate_report_data(initiative=initiative)
+    data["dimension_scores"] = compute_dimension_scores(session, assessment.id, config)  # type: ignore[arg-type]
     return data
 
 
 @router.get("/initiatives/{initiative_id}/report/pdf")
-async def download_report_pdf(
+def download_report_pdf(
     initiative_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Generate the compliance report as a PDF and return it as a file download."""
     from fastapi.responses import Response
@@ -322,23 +243,11 @@ async def download_report_pdf(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    answers = _get_answers_for_initiative(session, initiative_id)
-    if not answers:
-        raise HTTPException(
-            status_code=422, detail="No answers found. Please complete the questionnaire first."
-        )
+    assert_assessment_complete(session, initiative_id, config)
 
-    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
-    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    html_content = _inject_degraded_banner(
-        generate_html_report(
-            initiative=_initiative_dict(initiative),
-            answers=answers_dict,
-            findings=findings_raw,
-            mami_config=mami_config,
-        )
+    html_content = generate_html_report(
+        initiative=_initiative_dict(initiative),
+        generated_at=_generated_at_str(),
     )
     pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
     return Response(
@@ -349,13 +258,12 @@ async def download_report_pdf(
 
 
 @router.post("/initiatives/{initiative_id}/report/mail", status_code=202)
-async def mail_report(
+def mail_report(
     initiative_id: int,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Email the compliance report as a PDF attachment to the authenticated user.
 
@@ -366,23 +274,11 @@ async def mail_report(
     if not initiative or initiative.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Initiative not found")
 
-    answers = _get_answers_for_initiative(session, initiative_id)
-    if not answers:
-        raise HTTPException(
-            status_code=422, detail="No answers found. Please complete the questionnaire first."
-        )
+    assert_assessment_complete(session, initiative_id, config)
 
-    # See _degraded_scoring_inputs docstring — Phase 13->14 interim gap.
-    answers_for_scoring, answers_dict = _degraded_scoring_inputs()
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    html_content = _inject_degraded_banner(
-        generate_html_report(
-            initiative=_initiative_dict(initiative),
-            answers=answers_dict,
-            findings=findings_raw,
-            mami_config=mami_config,
-        )
+    html_content = generate_html_report(
+        initiative=_initiative_dict(initiative),
+        generated_at=_generated_at_str(),
     )
 
     background_tasks.add_task(

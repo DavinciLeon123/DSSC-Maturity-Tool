@@ -28,7 +28,9 @@ The application is production-deployed on Railway and demo-ready for events with
 
 **Phase 13 complete (2026-07-23):** The data layer now serves the new universal 52-question/6-category DSSC config (`config/dssc-questionnaire.json`) with no DSI/SP participant-type split, a new `Assessment` draft/submitted lifecycle entity, and a reshaped `questionnaire_answer` (assessment_id/category_id/1-5 score). All pre-migration v1.0 answer data is preserved read-only in a new archive table via a hand-written Alembic migration; the evidence/URL-per-question subsystem is fully removed. The old MAMI/ZEN scoring path and wizard/report frontend still read the OLD answer shape and are intentionally untouched pending Phase 14 (scoring engine replacement) and Phases 15/16 (wizard + report rebuild) — new-schema initiatives currently degrade to zero-findings/all-zero results on those legacy endpoints, a documented interim gap, not a defect.
 
-**Tech stack:** Python/FastAPI + SQLModel + PostgreSQL + React/Vite + GoRules ZEN Engine + WeasyPrint + Resend SDK · Deployed: Railway
+**Phase 14 complete (2026-07-24):** GoRules ZEN Engine and MoSCoW scoring are fully deleted from the codebase (package dependency, `scoring_engine.py`, both MAMI config files, all lifespan/dependency wiring) — a static regression test (`test_zen_removed.py`) locks the removal in place. All five score/report endpoints (`/score`, `/report`, `/report/data`, `/report/pdf`, `/report/mail`) plus admin `/heatmap` now compute maturity via the new equal-weight per-dimension averaging service (`dimension_scoring.py`, sum(answers)/n) and enforce a server-side completion gate (422 on incomplete assessments) before scoring. `/admin/heatmap` is reduced to a fixed degraded response pending its Phase 16 rebuild. Frontend `scoring.ts`/`FindingsPanel.tsx` still contain orphaned MoSCoW-shaped types (unused, not imported) — a deliberate, user-approved deferral to Phases 15/16, not an oversight.
+
+**Tech stack:** Python/FastAPI + SQLModel + PostgreSQL + React/Vite + WeasyPrint + Resend SDK · Deployed: Railway
 
 ## Core Value
 
@@ -101,7 +103,8 @@ This document evolves at phase transitions and milestone boundaries.
 |----------|---------|
 | Full-stack MVP | FastAPI + React/Vite (TanStack Router, antd v6) |
 | Self-contained auth | JWT (24h), bcrypt, localStorage — no OAuth |
-| Questionnaire engine | GoRules ZEN Engine (single-answer evaluation pattern) |
+| Questionnaire engine (v1.0) | GoRules ZEN Engine (single-answer evaluation pattern) — **replaced in Phase 14** |
+| Scoring engine (v2.0, Phase 14) | Equal-weight per-dimension averaging (sum(answers)/n, no rules engine) — replaces GoRules ZEN Engine/MoSCoW entirely; server-side completion gate (422) blocks scoring on incomplete assessments |
 | Config-driven questionnaire | JSON configs per participant type — no code deploys for question changes |
 | Report delivery | HTML in-app + PDF via email (WeasyPrint + Resend) — no browser download yet |
 | URL crawling | Deferred — simple URL storage only for v1.0 |
@@ -118,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 - **Branding**: Uses coe-dsc.nl color scheme (navy #06004f, green #399e5a, Rubik font)
 
 ---
-*Last updated: 2026-07-23 — Phase 13 (new questionnaire config schema & data model migration) complete*
+*Last updated: 2026-07-24 — Phase 14 (scoring engine replacement) complete*

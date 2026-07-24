@@ -34,7 +34,7 @@ All live in `.github/workflows/`. Each bullet below maps to one job of the same 
 - `frontend-lint` / `frontend-typecheck` — `eslint` / `tsc -b --noEmit`
 - `security-audit` — `pip-audit` (3 attempts, backend) + `npm audit --audit-level=high` (frontend)
 - `test` — `pytest -n auto -m "not perf and not benchmark"` (perf/benchmark excluded to keep PR feedback fast)
-- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker)
+- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker). **Temporarily tolerant of zero perf tests (2026-07-24):** Phase 14 deleted the only `perf`-marked test (`tests/perf/test_scoring_perf.py`, benchmarked the removed ZEN engine) without a same-phase replacement — Phase 17 owns writing new dimension-scoring perf coverage (see `14-04`'s `deferred-items.md`). Bare `pytest -m perf` exits 5 ("no tests collected") on zero matches, which GitHub Actions treats as a failure, so `pr.yml`/`staging.yml`/`main.yml` all wrap the call to treat exit 5 as a pass and any other non-zero exit as a real failure. Remove this tolerance once Phase 17 adds a perf test back.
 - `docs-freshness` — regenerates `docs/api/openapi.json` from the FastAPI app and fails on any `git diff`
 
 ### 2. `staging.yml` — push to `staging` (i.e. after a PR merges)

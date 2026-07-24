@@ -20,7 +20,6 @@ from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from app.models.user import User
-from app.services.report_generator import _build_topic_structure
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -28,23 +27,14 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 # ─── Admin heatmap response models ────────────────────────────────────────────
 
 
-class AdminHeatmapCell(BaseModel):
-    yes: int = 0
-    not_yet: int = 0
-    n_a: int = 0
-
-
 class AdminHeatmapResponse(BaseModel):
-    total_submitted: int
-    matrix: dict[str, dict[str, dict[str, AdminHeatmapCell]]]
-    topic_structure: dict[str, list[dict]]
-    # WR-05: this endpoint's counts/lookup logic is keyed off the legacy
-    # mami_code/answer_value shape (see docstring below) and never matches
-    # the new-schema category_id/score data, nor does it join the v1 legacy
-    # archive — so it always returns an all-zero matrix today. Expose that
-    # machine-readably so a dashboard consumer can render a warning instead
-    # of an indistinguishable empty heatmap.
+    """Phase 14 (D-01b): reduced to a fixed, deliberately trivial degraded
+    response. The MAMI-matrix aggregation this endpoint used to build is
+    gone entirely — Phase 16 (ADMN-01) rebuilds this against the new
+    6-category dimension-score model."""
+
     degraded: bool = True
+    cells: list[dict] = []
 
 
 # ─── Response schemas ─────────────────────────────────────────────────────────
@@ -334,109 +324,15 @@ def reset_demo(
 @router.get("/heatmap", response_model=AdminHeatmapResponse)
 def get_admin_heatmap(
     request: Request,
-    type: str | None = None,  # "dsi" or "sp" — None means all types
+    type: str | None = None,
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives.
+    """Fixed, deliberately trivial degraded response (D-01b).
 
-    Phase 13->14 interim limitation (Assumption A3 / RESEARCH Pitfall 3): the
-    new-schema answer table carries category_id/score (1-5), not the legacy
-    mami_code/answer_value (YES/NOT_THERE_YET/NOT_APPLICABLE) shape this
-    MAMI-framework-keyed heatmap was built around. `code_lookup` below is
-    built from `mami_config`'s old MAMI codes, which never match a new
-    config's category_id values — so `counts` never populates any cell for
-    new-schema answers, and this degrades to an all-zero heatmap rather than
-    raising (do NOT read an all-zero heatmap as "no findings" / "fully
-    compliant" — it's an interim gap, not a real signal). Legacy (v1_legacy)
-    initiatives whose answers were migrated to questionnaire_answer_v1_archive
-    are likewise excluded (D-04: archive is DB-level-only, no query path
-    wired into this endpoint this phase). Real per-assessment scoring against
-    the new DSSC config is Phase 14/16's job.
+    The MAMI-matrix aggregation this endpoint used to build (keyed off the
+    legacy mami_code/answer_value shape) is deleted outright along with the
+    ZEN/MoSCoW subsystem it depended on — Phase 16 (ADMN-01) rebuilds this
+    endpoint against the new 6-category dimension-score model.
     """
-    type_filter = "AND LOWER(i.participant_type) = :ptype" if type else ""
-    params: dict = {"ptype": type.lower()} if type else {}
-
-    # Count submitted initiatives (alias 'i' matches type_filter which uses i.participant_type)
-    count_result = session.execute(
-        text(f"SELECT COUNT(*) FROM initiative i WHERE i.status = 'submitted' {type_filter}"),
-        params,
-    )
-    total_submitted = int(count_result.scalar() or 0)
-
-    # Aggregate answer counts per (category_id, score) for submitted initiatives only.
-    # D-06: questionnaire_answer keys off assessment_id — join through assessment.
-    agg_result = session.execute(
-        text(f"""
-        SELECT qa.category_id, qa.score, COUNT(*) as cnt
-        FROM questionnaire_answer qa
-        JOIN assessment a ON a.id = qa.assessment_id
-        JOIN initiative i ON i.id = a.initiative_id
-        WHERE i.status = 'submitted' {type_filter}
-        GROUP BY qa.category_id, qa.score
-    """),
-        params,
-    )
-
-    # Build counts dict: {category_id: {score: count}} — see docstring above;
-    # these keys never match code_lookup's legacy mami_code entries below.
-    counts: dict = {}
-    for row in agg_result.mappings():
-        code = row["category_id"]
-        val = row["score"]
-        cnt = int(row["cnt"])
-        counts.setdefault(code, {})
-        counts[code][val] = cnt
-
-    # Load mami_config and build topic structure
-    mami_config = request.app.state.mami_config
-    topic_structure = _build_topic_structure(mami_config)
-
-    # Build code lookup: {code_id: {dimension: dim_key, category: cat_key}}
-    # mami_config uses a flat codes array with category, dimension, topic fields
-    code_lookup: dict = {}
-    for code in mami_config.get("codes", []):
-        code_lookup[code["id"]] = {
-            "dimension": code.get("dimension", ""),
-            "category": code.get("category", ""),
-            "topic": code.get("topic", ""),
-        }
-
-    # Collect all unique dimension keys from the config
-    dimensions = list(
-        dict.fromkeys(
-            c.get("dimension", "") for c in mami_config.get("codes", []) if c.get("dimension")
-        )
-    )
-
-    # Build matrix: {cat: {dim: {topic_id: AdminHeatmapCell}}}
-    matrix: dict = {}
-    for cat_key, topics in topic_structure.items():
-        matrix.setdefault(cat_key, {})
-        for dim_key in dimensions:
-            matrix[cat_key].setdefault(dim_key, {})
-            for topic in topics:
-                topic_id = topic["topic_id"]
-                yes_total = not_yet_total = na_total = 0
-                for code_id in topic.get("codes", []):
-                    meta = code_lookup.get(code_id, {})
-                    if meta.get("dimension") != dim_key or meta.get("category") != cat_key:
-                        continue
-                    code_counts = counts.get(code_id, {})
-                    yes_total += code_counts.get("yes", 0)
-                    not_yet_total += code_counts.get("not_there_yet", 0)
-                    na_total += code_counts.get("not_applicable", 0)
-                matrix[cat_key][dim_key][topic_id] = AdminHeatmapCell(
-                    yes=yes_total,
-                    not_yet=not_yet_total,
-                    n_a=na_total,
-                )
-
-    return AdminHeatmapResponse(
-        total_submitted=total_submitted,
-        matrix=matrix,
-        topic_structure=topic_structure,
-        # WR-05: always degraded today — see AdminHeatmapResponse.degraded
-        # and the docstring above for why counts never populate any cell.
-        degraded=True,
-    )
+    return AdminHeatmapResponse(degraded=True, cells=[])

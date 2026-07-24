@@ -207,8 +207,10 @@ def test_export_dataset_csv_shape(admin_client, session):
 
 
 def test_admin_heatmap_reflects_submitted_initiatives(admin_client, session):
-    # Pitfall 1: this test proves the lifespan-populated app.state.mami_config
-    # path works (admin_client is built via the lifespan-aware TestClient).
+    # Phase 14 (D-01b): /admin/heatmap is now a fixed, deliberately trivial
+    # degraded response — the MAMI-matrix aggregation this endpoint used to
+    # build is deleted outright. Phase 16 (ADMN-01) rebuilds it against the
+    # new 6-category dimension-score model.
     user = make_user(session)
     initiative = make_submitted_initiative(session, user=user)
     make_answer(session, initiative=initiative)
@@ -216,6 +218,5 @@ def test_admin_heatmap_reflects_submitted_initiatives(admin_client, session):
     response = admin_client.get("/api/v1/admin/heatmap")
     assert response.status_code == 200
     body = response.json()
-    assert body["total_submitted"] >= 1
-    assert "matrix" in body
-    assert "topic_structure" in body
+    assert body["degraded"] is True
+    assert body["cells"] == []

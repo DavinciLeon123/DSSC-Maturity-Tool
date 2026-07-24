@@ -1,4 +1,3 @@
-import zen
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
@@ -37,16 +36,6 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
             detail="Admin access required",
         )
     return current_user
-
-
-def get_zen_engine(request: Request) -> zen.ZenEngine:
-    """FastAPI dependency: returns the ZEN Engine singleton from app.state."""
-    return request.app.state.zen_engine
-
-
-def get_mami_config(request: Request) -> dict:
-    """FastAPI dependency: returns the loaded mami-framework.json dict."""
-    return request.app.state.mami_config
 
 
 def get_questionnaire_config(request: Request) -> dict:
