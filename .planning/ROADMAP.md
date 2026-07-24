@@ -112,12 +112,12 @@ Plans:
   3. GoRules ZEN Engine, its rule configs, and MoSCoW-based findings no longer exist anywhere in the codebase or dependency manifest.
   4. A user only sees computed dimension scores/report after every question has been answered — no partial or live scoring is shown mid-questionnaire.
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 14-01-PLAN.md — New dimension-scoring service (equal-weight sum/n) + completion gate + unit tests (Wave 1; SCOR-01, SCOR-02, SCOR-04)
+- [x] 14-01-PLAN.md — New dimension-scoring service (equal-weight sum/n) + completion gate + unit tests (Wave 1; SCOR-01, SCOR-02, SCOR-04)
 
 **Wave 2** *(blocked on Wave 1; the two plans run in parallel — disjoint files)*
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
-| 14. Scoring Engine Replacement | v2.0 | 0/4 | Not started | - |
+| 14. Scoring Engine Replacement | v2.0 | 1/4 | In Progress|  |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
