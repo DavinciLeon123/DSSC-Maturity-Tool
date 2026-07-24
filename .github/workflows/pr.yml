@@ -152,7 +152,18 @@ jobs:
           cache-dependency-glob: "backend/uv.lock"
       - run: uv sync --locked
       # No -n auto here: pytest-benchmark's timing needs a single worker, not parallel xdist workers.
-      - run: uv run pytest tests/ -m perf -q
+      # Phase 14 deleted the ZEN-engine perf test without a replacement (Phase 17 owns writing
+      # the new dimension-scoring perf/benchmark coverage, per 14-04's deferred-items.md) — until
+      # then, "no perf tests collected" (pytest exit 5) is expected, not a failure.
+      - run: |
+          uv run pytest tests/ -m perf -q || {
+            code=$?
+            if [ "$code" -eq 5 ]; then
+              echo "::warning::No perf-marked tests currently exist (expected until Phase 17 adds dimension-scoring perf coverage) — treating as pass."
+              exit 0
+            fi
+            exit "$code"
+          }
 
   docs-freshness:
     runs-on: ubuntu-latest
