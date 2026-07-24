@@ -112,7 +112,7 @@ Plans:
   3. GoRules ZEN Engine, its rule configs, and MoSCoW-based findings no longer exist anywhere in the codebase or dependency manifest.
   4. A user only sees computed dimension scores/report after every question has been answered — no partial or live scoring is shown mid-questionnaire.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -122,7 +122,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1; the two plans run in parallel — disjoint files)*
 
 - [x] 14-02-PLAN.md — Repurpose POST /score to per-dimension shape + 422 completion gate + new test_scoring.py (Wave 2; SCOR-04)
-- [ ] 14-03-PLAN.md — Adapt report endpoints (dimension_scores field, 422 gate, banner/matrix-builder deletion) + admin /heatmap degrade + tests (Wave 2; SCOR-04)
+- [x] 14-03-PLAN.md — Adapt report endpoints (dimension_scores field, 422 gate, banner/matrix-builder deletion) + admin /heatmap degrade + tests (Wave 2; SCOR-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 1-11. MAMI Compliance Checker | v1.0 | - | Complete | 2026-03-15 |
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
-| 14. Scoring Engine Replacement | v2.0 | 2/4 | In Progress|  |
+| 14. Scoring Engine Replacement | v2.0 | 3/4 | In Progress|  |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
