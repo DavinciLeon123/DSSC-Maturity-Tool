@@ -1,4 +1,4 @@
-"""MAMI framework config loader utilities."""
+"""Questionnaire config loader utilities."""
 
 import json
 from pathlib import Path
@@ -6,12 +6,6 @@ from pathlib import Path
 # Resolve config dir relative to this file's location:
 # services/ -> app/ -> backend/ -> repo root -> config/
 CONFIG_DIR = Path(__file__).parent.parent.parent.parent / "config"
-
-
-def load_mami_config() -> dict:
-    """Load config/mami-framework.json. Returns full dict including version and codes list."""
-    path = CONFIG_DIR / "mami-framework.json"
-    return json.loads(path.read_text())
 
 
 def load_questionnaire_config() -> dict:
@@ -34,8 +28,3 @@ def load_dssc_questionnaire_config() -> dict:
     6-category config, no participant_type key (D-10, QSTN-04)."""
     path = CONFIG_DIR / "dssc-questionnaire.json"
     return json.loads(path.read_text())
-
-
-def get_scoring_dir() -> Path:
-    """Return the path to config/scoring/ directory for ZEN engine loader."""
-    return CONFIG_DIR / "scoring"
