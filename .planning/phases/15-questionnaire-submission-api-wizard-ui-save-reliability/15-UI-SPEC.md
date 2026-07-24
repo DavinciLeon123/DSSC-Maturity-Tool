@@ -54,16 +54,15 @@ Exceptions:
 
 ## Typography
 
-Scoped to this phase's new/rebuilt surfaces (radio-scale, progress indicator, autosave/retry, history page). Pre-existing page-level headings elsewhere in the app already use a 700-weight/28px convention outside this phase's scope — that convention is inherited, not reopened, here.
+Scoped strictly to this phase's new/rebuilt surfaces: radio-scale, progress indicator, autosave/retry badge, and the history list/comparison table. **Out of scope, not declared here:** any pre-existing page-level heading (history page `<h1>`/`<h2>` title chrome, submitted-confirmation heading, dashboard `h1`) — those inherit whatever weight/size the rest of the app already uses at that call site and are not part of this contract. If a page-level heading needs styling as part of this phase's build, reuse the exact class/style already applied to the equivalent heading elsewhere in the app (e.g. dashboard `h1`) rather than introducing a new size/weight pairing under this spec.
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Micro / badge / helper | 13px (0.8125rem) | 500 | 1.4 |
+| Micro / badge / helper (autosave badge text, table cell/meta text) | 13px (0.8125rem) | 600 | 1.4 |
 | Body / question text / option label | 16px (1rem) | 400 regular · 600 selected/emphasis | 1.5 |
 | Category / section heading | 20px (1.25rem) | 600 | 1.2 |
-| Page-level heading (history page title, submitted-confirmation) | 28px (1.75rem) | 700 *(existing app-wide convention, inherited — not a new weight introduced by this phase)* | 1.2 |
 
-Declared weights for **new** work this phase: **400 (regular)** and **600 (semibold)** — used for the option-label unselected/selected states, question text, category headings, and table content. The 700 weight above is pre-existing and used only for full-page headings, matching every other page in the app (dashboard `h1`, submitted-confirmation `h2`) — not introduced net-new by this rebuild.
+Total declared weights for this contract: **400 (regular)** and **600 (semibold)** — exactly 2, no exceptions. The badge/helper role, which previously used a separate 500-weight, now uses 600 (semibold) to stay within the 2-weight cap while still reading distinctly against 400-weight body copy at its smaller 13px size.
 
 ---
 
@@ -79,6 +78,13 @@ Declared weights for **new** work this phase: **400 (regular)** and **600 (semib
 | Transient warning | `#F59E0B` | Reserved for: the *in-progress auto-retry* badge state ("Save failed — retrying") and the rate-limited badge state ("Too many saves — slow down") — both **self-healing**, not yet blocking. Keep visually distinct from the destructive red above; this distinction is load-bearing for D-09 (auto-retry-then-manual-retry sequencing) so a user can tell "still trying" apart from "action needed." |
 
 Accent reserved for: primary CTA buttons, active step indicator, selected-but-unsaved radio circle, links, focused inputs — **never** the default/idle state of every button or every radio circle (that stays neutral/white with a subtle border, per the existing `AnswerButtonGroup.tsx` unselected style).
+
+---
+
+## Visual Hierarchy
+
+- **Wizard page:** the question text + radio-scale (`QuestionCard.tsx`) is the primary focal point — largest surface, centered, first thing the eye lands on. The progress panel (`StepPills.tsx` + overall counter) is secondary — smaller, positioned alongside/above the card, present for orientation but not competing for attention. The autosave badge is tertiary — smallest, quietest by default (only escalates to the amber/red states when it needs the user's attention per D-09/D-10).
+- **History page:** the assessment-history list/table is the primary focal point — it's the reason the user navigated here. The per-dimension comparison table is secondary, presented below the list as supporting detail once a user has more than one submitted version.
 
 ---
 
