@@ -1,7 +1,6 @@
 """Backend test fixtures.
 
-Two independent fixture families live here:
-- `mami_codes` / `make_answers` — synthetic scoring-engine input, no DB required.
+One fixture family lives here:
 - `postgres_container` / `engine` / `session` / `client` / `admin_client` /
   `user_client` — real-Postgres-backed fixtures added for the auth/admin/reports
   characterization suite (test-retrofit milestone). Per that plan's D-01,
@@ -11,6 +10,9 @@ Two independent fixture families live here:
   reproduce. Requires a local Docker-API-compatible daemon (Docker Desktop /
   Colima / Podman) — see tests/README.md. No fallback exists; this is
   intentional.
+
+(The former synthetic scoring-engine input fixtures were removed in Phase 14
+Plan 04 alongside the ZEN engine they fed — SCOR-03.)
 """
 
 import pytest
@@ -19,39 +21,6 @@ from sqlmodel import Session, SQLModel, create_engine
 from testcontainers.postgres import PostgresContainer
 
 from app.core.security import create_access_token, hash_password
-from app.services.mami_config import load_mami_config
-
-
-@pytest.fixture(scope="session")
-def mami_codes() -> list[str]:
-    """Real MAMI code IDs from config/mami-framework.json, for use as synthetic scoring input."""
-    return [c["id"] for c in load_mami_config()["codes"]]
-
-
-@pytest.fixture
-def make_answers(mami_codes):
-    """Build a list of synthetic answer dicts for the scoring engine.
-
-    Cycles through real MAMI codes and a fixed rotation of answer values so
-    the ZEN decision table exercises COMPLIANT / FINDING / NOT_APPLICABLE paths.
-    """
-    values = ["YES", "NOT_THERE_YET", "NOT_APPLICABLE"]
-
-    def _make(count: int) -> list[dict]:
-        answers = []
-        for i in range(count):
-            code = mami_codes[i % len(mami_codes)]
-            answers.append(
-                {
-                    "mami_code": code,
-                    "moscow_level": "MUST" if i % 2 == 0 else "SHOULD",
-                    "answer_value": values[i % len(values)],
-                    "critical_override": None,
-                }
-            )
-        return answers
-
-    return _make
 
 
 @pytest.fixture(scope="session")

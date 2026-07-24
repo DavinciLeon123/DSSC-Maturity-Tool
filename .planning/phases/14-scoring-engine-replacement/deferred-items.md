@@ -34,3 +34,31 @@ gap already tracked in Phase 13's `deferred-items.md`, now recurring a
 fifth consecutive plan touching `reports.py`). CI has the native library
 installed (per CLAUDE.md's 4 pytest-running workflow fixes) and remains the
 authoritative signal; 87/91 quick-suite tests pass locally.
+
+## Plan 14-04
+
+### Perf/benchmark scoring coverage intentionally quiet until Phase 17 (D-08)
+
+**Found during:** Task 2 (deleting the legacy scoring perf/benchmark tests
+and their `conftest.py` fixtures).
+
+**Context:** `backend/tests/perf/test_scoring_perf.py`
+(`test_score_all_answers_p95`) and
+`backend/tests/benchmark/test_scoring_regression.py`
+(`test_score_all_answers_output_distribution`) were deleted outright in this
+plan (SCOR-03) — both exercised the now-removed `scoring_engine.py`/ZEN
+engine via the `make_answers` synthetic-answer fixture, which was deleted
+alongside them since they were its only consumers. This means there is
+currently **no** `perf`- or `benchmark`-marked test covering the new
+equal-weight `compute_dimension_scores` scoring path (`dimension_scoring.py`,
+Plan 14-01) — CI's `perf-gate` job and the `staging.yml`/`main.yml`
+`benchmark`-marked test selection will simply collect zero tests for this
+area until new ones exist.
+
+**Action taken:** Not written this plan — out of scope per this plan's
+`<action>` spec, which only calls for deletion + a deferral note here. Phase
+17 (TEST-01) owns authoring the equal-weight-scoring perf (p95 latency) and
+benchmark (deterministic output-distribution regression) replacements against
+`compute_dimension_scores`, mirroring the deleted tests' shape but driven by
+`config/dssc-questionnaire.json` instead of the deleted MAMI config. This gap
+is intentional, not an oversight.
