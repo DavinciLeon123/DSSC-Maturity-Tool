@@ -1,85 +1,69 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Grid } from "antd";
-import type {
-  QuestionnaireConfig,
-  AnswerRecord,
-  LocalAnswer,
-  AnswerValue,
-} from "../../lib/questionnaire";
-import { saveAnswer } from "../../lib/questionnaire";
+import type { AnswerRead, QuestionnaireConfig } from "../../lib/questionnaire";
 import { api } from "../../lib/api";
+import { useDebouncedSave, type SaveState } from "../../hooks/useDebouncedSave";
 import { StepPills } from "./StepPills";
 import { QuestionCard } from "./QuestionCard";
-// The two explanatory-callout/multi-select-followup components previously
-// imported here were deleted in plan 15-03 (Task 3) — orphaned by the new
-// config schema (no context_text/context_image/followup fields exist
-// anymore). WizardPage.tsx's full rebuild (dropping the now-unused
-// currentCategory/currentTopic references below) is 15-04's job — see this
-// plan's objective note: project-wide tsc is not green until then.
 
 const { useBreakpoint } = Grid;
 
-type SaveBadgeState = "idle" | "saving" | "saved" | "failed" | "rate-limited";
+/**
+ * D-09/UI-SPEC: extends (does not replace) the existing badge state
+ * model. "retrying" is the transient, self-healing auto-retry sub-state
+ * (amber, unchanged copy); "failed" is the terminal, retries-exhausted
+ * state (red) that blocks Next/Submit and surfaces a manual "Retry save"
+ * button — the two are visually and semantically distinct per D-10/D-12.
+ */
+function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
+  const base = {
+    fontSize: "0.75rem",
+    fontFamily: "'Rubik', sans-serif",
+  } as const;
 
-interface AutosaveBadgeProps {
-  state: SaveBadgeState;
-}
-
-function AutosaveBadge({ state }: AutosaveBadgeProps) {
   if (state === "saving") {
-    return (
-      <span
-        style={{
-          fontSize: "0.75rem",
-          color: "rgba(6,0,79,0.5)",
-          fontFamily: "'Rubik', sans-serif",
-        }}
-      >
-        Saving...
-      </span>
-    );
+    return <span style={{ ...base, color: "rgba(6,0,79,0.5)" }}>Saving...</span>;
   }
   if (state === "saved") {
     return (
-      <span
-        style={{
-          fontSize: "0.75rem",
-          color: "#399e5a",
-          fontWeight: 500,
-          fontFamily: "'Rubik', sans-serif",
-        }}
-      >
-        Saved ✓
+      <span style={{ ...base, color: "#399e5a", fontWeight: 500 }}>Saved &#10003;</span>
+    );
+  }
+  if (state === "retrying") {
+    return (
+      <span style={{ ...base, color: "#F59E0B", fontWeight: 500 }}>Save failed — retrying</span>
+    );
+  }
+  if (state === "rate-limited") {
+    return (
+      <span style={{ ...base, color: "#F59E0B", fontWeight: 500 }}>
+        Too many saves — slow down
       </span>
     );
   }
   if (state === "failed") {
     return (
-      <span
-        style={{
-          fontSize: "0.75rem",
-          color: "#F59E0B",
-          fontWeight: 500,
-          fontFamily: "'Rubik', sans-serif",
-        }}
-      >
-        Save failed — retrying
-      </span>
-    );
-  }
-  if (state === "rate-limited") {
-    return (
-      <span
-        style={{
-          fontSize: "0.75rem",
-          color: "#F59E0B",
-          fontWeight: 500,
-          fontFamily: "'Rubik', sans-serif",
-        }}
-      >
-        Too many saves — slow down
+      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <span style={{ ...base, color: "#991B1B", fontWeight: 500 }}>Save failed</span>
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            color: "#991B1B",
+            background: "transparent",
+            border: "1px solid #991B1B",
+            borderRadius: "6px",
+            padding: "0.125rem 0.5rem",
+            cursor: "pointer",
+            fontFamily: "'Rubik', sans-serif",
+          }}
+        >
+          Retry save
+        </button>
       </span>
     );
   }
@@ -89,15 +73,13 @@ function AutosaveBadge({ state }: AutosaveBadgeProps) {
 interface Props {
   config: QuestionnaireConfig;
   initiativeId: number;
-  savedAnswers: AnswerRecord[];
+  savedAnswers: AnswerRead[];
 }
 
 export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
   const navigate = useNavigate();
   const [categoryIndex, setCategoryIndex] = useState(0);
-  const [topicIndex, setTopicIndex] = useState(0);
-  const [isSaving, setIsSaving] = useState(false);
-  const [badgeState, setBadgeState] = useState<SaveBadgeState>("idle");
+  const [isNavigating, setIsNavigating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -107,75 +89,48 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
   const screens = useBreakpoint();
   const isMobile = screens.md === false;
 
-  // Local answers state — initialized from savedAnswers on mount
-  const [localAnswers, setLocalAnswers] = useState<Record<string, LocalAnswer>>(() => {
-    const map: Record<string, LocalAnswer> = {};
+  // Local answers: question_id -> score (1-5). Initialized from savedAnswers
+  // on mount; never clobbered by a later savedAnswers refetch (local edits
+  // always win over a stale server snapshot).
+  const [localAnswers, setLocalAnswers] = useState<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
     savedAnswers.forEach((a) => {
-      map[a.question_id] = {
-        answer_value: a.answer_value as AnswerValue,
-        followup_selections: a.followup_selections ?? null,
-        followup_other: a.followup_other ?? null,
-      };
+      map[a.question_id] = a.score;
     });
     return map;
   });
 
-  // Re-initialize local answers if savedAnswers prop changes (e.g. after refetch)
-  useEffect(() => {
-    setLocalAnswers((prev) => {
-      const map: Record<string, LocalAnswer> = { ...prev };
-      savedAnswers.forEach((a) => {
-        // Only overwrite if not already in local state (don't clobber unsaved edits)
-        if (!map[a.question_id]) {
-          map[a.question_id] = {
-            answer_value: a.answer_value as AnswerValue,
-            followup_selections: a.followup_selections ?? null,
-            followup_other: a.followup_other ?? null,
-          };
-        }
-      });
-      return map;
-    });
-  }, [savedAnswers]);
+  // Per-question save state (SAVE-01/SAVE-02), keyed by question_id — each
+  // question debounces/retries independently (useDebouncedSave), so more
+  // than one can be mid-save simultaneously.
+  const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({});
 
-  const saveMutation = useMutation({
-    mutationFn: async ({
-      questionId,
-      mamiCode,
-      answer,
-    }: {
-      questionId: string;
-      mamiCode: string;
-      answer: LocalAnswer;
-    }) => {
-      setBadgeState("saving");
-      return saveAnswer(initiativeId, questionId, {
-        question_id: questionId,
-        mami_code: mamiCode,
-        questionnaire_version: config.version,
-        answer_value: answer.answer_value,
-        followup_selections: answer.followup_selections,
-        followup_other: answer.followup_other,
-      });
-    },
-    onSuccess: () => {
-      setBadgeState("saved");
-      // Auto-clear "Saved" back to idle after 2 seconds
-      setTimeout(() => setBadgeState("idle"), 2000);
-    },
-    onError: (error: unknown) => {
-      const status = (error as { response?: { status?: number } }).response?.status;
-      if (status === 429) {
-        setBadgeState("rate-limited");
-        // Auto-retry resets badge to idle after 3 seconds (per CONTEXT.md locked decision)
-        setTimeout(() => {
-          setBadgeState("idle");
-        }, 3000);
-      } else {
-        setBadgeState("failed");
-      }
-    },
-  });
+  // Tracks the latest locally-entered value for any question whose most
+  // recent save has not yet been confirmed successful — this is exactly
+  // the set beforeunload (D-07, wired in the next task) must flush.
+  // Deferred/no-op here in Task 1; populated for real once
+  // handleAnswerChange starts writing to it in Task 2's beforeunload wiring.
+
+  function handleSaveStateChange(questionId: string, state: SaveState) {
+    setSaveStates((prev) => ({ ...prev, [questionId]: state }));
+    if (state === "saved") {
+      // Auto-clear "Saved" back to idle after 2s, matching the pre-rebuild
+      // single-badge behavior, now per-question.
+      setTimeout(() => {
+        setSaveStates((prev) => (prev[questionId] === "saved" ? { ...prev, [questionId]: "idle" } : prev));
+      }, 2000);
+    } else if (state === "rate-limited") {
+      // Rate-limited is transient and self-clears (RESEARCH Pattern 3 /
+      // CONTEXT.md locked decision) — never escalates to terminal-failed.
+      setTimeout(() => {
+        setSaveStates((prev) =>
+          prev[questionId] === "rate-limited" ? { ...prev, [questionId]: "idle" } : prev
+        );
+      }, 3000);
+    }
+  }
+
+  const { schedule, flush, flushAll } = useDebouncedSave(initiativeId, handleSaveStateChange);
 
   const submitMutation = useMutation({
     mutationFn: () => api.post(`/initiatives/${initiativeId}/submit`),
@@ -184,155 +139,110 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
   });
 
   const currentCategory = config.categories[categoryIndex];
-  const currentTopic = currentCategory.topics[topicIndex];
+  const isLastCategory = categoryIndex === config.categories.length - 1;
+  const isBackDisabled = categoryIndex === 0;
 
-  // Compute completed category IDs from local answers
+  // D-02: every question on the current category page must be answered
+  // before Next unlocks.
+  const isCurrentPageComplete = useMemo(
+    () => currentCategory.questions.every((q) => localAnswers[q.id] !== undefined),
+    [currentCategory, localAnswers]
+  );
+
+  // D-10: a terminal-failed save (anywhere, not just this page — flushAll
+  // on Next/Back can surface a failure for an earlier category's answer)
+  // blocks Next/Submit until it is retried successfully. There is no
+  // dismiss/continue-anyway path (D-11/D-12).
+  const hasTerminalFailure = useMemo(
+    () => Object.values(saveStates).some((s) => s === "failed"),
+    [saveStates]
+  );
+
+  const isNextDisabled = !isCurrentPageComplete || hasTerminalFailure || isNavigating;
+
+  // D-04: overall answered-count, always derived from local answer state —
+  // never a hardcoded total.
+  const answeredCount = Object.keys(localAnswers).length;
+
+  // Completed-category set for StepPills — every question in a category answered.
   const completedCategoryIds = useMemo(() => {
     const completed = new Set<string>();
     config.categories.forEach((cat) => {
-      const requiredIds = cat.topics
-        .flatMap((t) => t.questions)
-        .filter((q) => q.required)
-        .map((q) => q.id);
-      if (requiredIds.length > 0 && requiredIds.every((id) => localAnswers[id]?.answer_value)) {
+      if (cat.questions.length > 0 && cat.questions.every((q) => localAnswers[q.id] !== undefined)) {
         completed.add(cat.id);
       }
     });
     return completed;
   }, [config, localAnswers]);
 
-  // Check if current topic has all required questions answered
-  const isCurrentTopicComplete = useMemo(() => {
-    const requiredIds = currentTopic.questions
-      .filter((q) => q.required)
-      .map((q) => q.id);
-    return requiredIds.every((id) => localAnswers[id]?.answer_value);
-  }, [currentTopic, localAnswers]);
-
-  const isLastTopic = topicIndex === currentCategory.topics.length - 1;
-  const isLastCategory = categoryIndex === config.categories.length - 1;
-  const isFinish = isLastTopic && isLastCategory;
-
-  // Forward blocking: disabled when current topic is incomplete or badge is saving
-  const isNextDisabled = !isCurrentTopicComplete || isSaving || badgeState === "saving";
-  const isBackDisabled = categoryIndex === 0 && topicIndex === 0;
-
-  async function saveCurrentTopic() {
-    const questionsToSave = currentTopic.questions.filter(
-      (q) => localAnswers[q.id]?.answer_value
-    );
-    await Promise.all(
-      questionsToSave.map((q) =>
-        saveMutation.mutateAsync({
-          questionId: q.id,
-          mamiCode: q.mami_code,
-          answer: localAnswers[q.id],
-        })
-      )
-    );
+  function handleAnswerChange(questionId: string, score: number) {
+    setLocalAnswers((prev) => ({ ...prev, [questionId]: score }));
+    // SAVE-01/D-05: schedule a ~1.5s debounced save; answering a different
+    // question never cancels this one (per-question debounce timer).
+    schedule(questionId, currentCategory.id, score);
   }
 
-  // Track latest localAnswers and currentTopic in refs for use during unmount cleanup.
-  // Cannot use saveMutation during unmount — TanStack Query tears down the observer on unmount.
-  const localAnswersRef = useRef(localAnswers);
-  const currentTopicRef = useRef(currentTopic);
-  useEffect(() => { localAnswersRef.current = localAnswers; });
-  useEffect(() => { currentTopicRef.current = currentTopic; });
+  function handleRetrySave(questionId: string) {
+    const score = localAnswers[questionId];
+    if (score === undefined) return;
+    const question = currentCategory.questions.find((q) => q.id === questionId);
+    const categoryId = question?.category_id ?? currentCategory.id;
+    // Manual retry re-enters the schedule/flush pipeline immediately
+    // (bypassing the ~1.5s debounce window) rather than reaching into
+    // useDebouncedSave's internals, which this task does not modify.
+    schedule(questionId, categoryId, score);
+    void flush(questionId);
+  }
 
-  // On unmount (nav-away), fire-and-forget save of the current topic state via raw API call.
-  useEffect(() => {
-    return () => {
-      const topic = currentTopicRef.current;
-      const answers = localAnswersRef.current;
-      const questionsToSave = topic.questions.filter((q) => answers[q.id]?.answer_value);
-      questionsToSave.forEach((q) => {
-        void saveAnswer(initiativeId, q.id, {
-          question_id: q.id,
-          mami_code: q.mami_code,
-          questionnaire_version: config.version,
-          answer_value: answers[q.id].answer_value,
-          followup_selections: answers[q.id].followup_selections,
-          followup_other: answers[q.id].followup_other,
-        });
-      });
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // A single aggregate badge for the page header — "worst" state wins so
+  // the tertiary badge (UI-SPEC Visual Hierarchy) only escalates when the
+  // user actually needs to notice it.
+  const aggregateBadgeState: SaveState = useMemo(() => {
+    const states = Object.values(saveStates);
+    if (states.includes("failed")) return "failed";
+    if (states.includes("retrying")) return "retrying";
+    if (states.includes("rate-limited")) return "rate-limited";
+    if (states.includes("saving")) return "saving";
+    if (states.includes("saved")) return "saved";
+    return "idle";
+  }, [saveStates]);
+
+  const failedQuestionIds = useMemo(
+    () => Object.entries(saveStates).filter(([, s]) => s === "failed").map(([id]) => id),
+    [saveStates]
+  );
+
+  function handleRetryAllFailed() {
+    failedQuestionIds.forEach((id) => handleRetrySave(id));
+  }
 
   async function handleNext() {
     if (isNextDisabled) return;
     window.scrollTo(0, 0);
-    setIsSaving(true);
+    setIsNavigating(true);
     try {
-      await saveCurrentTopic();
-      if (isFinish) {
-        // Call submit endpoint instead of navigating directly to dashboard
+      // D-06: flush any pending debounced saves before navigating.
+      await flushAll();
+      if (isLastCategory) {
         await submitMutation.mutateAsync();
-        // setSubmitted(true) is handled by onSuccess — component re-renders with confirmation
-      } else if (isLastTopic) {
-        setCategoryIndex((c) => c + 1);
-        setTopicIndex(0);
       } else {
-        setTopicIndex((t) => t + 1);
+        setCategoryIndex((c) => c + 1);
       }
     } finally {
-      setIsSaving(false);
+      setIsNavigating(false);
     }
   }
 
   async function handleBack() {
     if (isBackDisabled) return;
     window.scrollTo(0, 0);
-    setIsSaving(true);
+    setIsNavigating(true);
     try {
-      await saveCurrentTopic();
-      if (topicIndex > 0) {
-        setTopicIndex((t) => t - 1);
-      } else if (categoryIndex > 0) {
-        const prevCat = config.categories[categoryIndex - 1];
-        setCategoryIndex((c) => c - 1);
-        setTopicIndex(prevCat.topics.length - 1);
-      }
+      await flushAll();
+      setCategoryIndex((c) => c - 1);
     } finally {
-      setIsSaving(false);
+      setIsNavigating(false);
     }
-  }
-
-  function handleAnswerChange(questionId: string, newValue: AnswerValue) {
-    // Per Pitfall 4: compute derived values directly, don't read stale state
-    const prevAnswer = localAnswers[questionId];
-    const followupSelections =
-      newValue === "NOT_APPLICABLE" ? null : prevAnswer?.followup_selections ?? null;
-    const followupOther =
-      newValue === "NOT_APPLICABLE" ? null : prevAnswer?.followup_other ?? null;
-
-    setLocalAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        answer_value: newValue,
-        followup_selections: followupSelections,
-        followup_other: followupOther,
-      },
-    }));
-  }
-
-  function handleFollowupSelectionsChange(questionId: string, selections: string[]) {
-    setLocalAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        ...prev[questionId],
-        followup_selections: selections.length > 0 ? selections : null,
-      },
-    }));
-  }
-
-  function handleFollowupOtherChange(questionId: string, text: string) {
-    setLocalAnswers((prev) => ({
-      ...prev,
-      [questionId]: {
-        ...prev[questionId],
-        followup_other: text || null,
-      },
-    }));
   }
 
   async function handleGenerateHeatmap() {
@@ -426,21 +336,12 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
     );
   }
 
-  // Count questions across the whole questionnaire for "Question X of Y" chip
-  const allQuestionsFlat = config.categories.flatMap((cat) =>
-    cat.topics.flatMap((t) => t.questions)
-  );
-  const currentTopicQuestionsStart =
-    config.categories
-      .slice(0, categoryIndex)
-      .flatMap((cat) => cat.topics.flatMap((t) => t.questions)).length +
-    currentCategory.topics
-      .slice(0, topicIndex)
-      .flatMap((t) => t.questions).length;
-  const currentTopicQuestionCount = currentTopic.questions.length;
-  const questionFrom = currentTopicQuestionsStart + 1;
-  const questionTo = currentTopicQuestionsStart + currentTopicQuestionCount;
-  const totalQuestions = allQuestionsFlat.length;
+  const totalQuestions = config.categories.reduce((sum, cat) => sum + cat.questions.length, 0);
+  const currentCategoryQuestionsStart = config.categories
+    .slice(0, categoryIndex)
+    .reduce((sum, cat) => sum + cat.questions.length, 0);
+  const questionFrom = currentCategoryQuestionsStart + 1;
+  const questionTo = currentCategoryQuestionsStart + currentCategory.questions.length;
 
   return (
     <div
@@ -460,7 +361,7 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
           categories={config.categories}
           currentCategoryIndex={categoryIndex}
           completedCategoryIds={completedCategoryIds}
-          currentTopicIndex={topicIndex}
+          answeredCount={answeredCount}
         />
       )}
 
@@ -476,7 +377,7 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
               fontFamily: "'Rubik', sans-serif",
             }}
           >
-            {config.categories[categoryIndex]?.label ?? ""} · Topic {topicIndex + 1} of {currentCategory.topics.length}
+            {currentCategory.name} · {answeredCount} of {totalQuestions} answered
           </div>
         )}
 
@@ -495,7 +396,7 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
-              marginBottom: "0.5rem",
+              marginBottom: "1.5rem",
             }}
           >
             <h3
@@ -508,7 +409,7 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
                 flex: 1,
               }}
             >
-              {currentCategory.label}
+              {currentCategory.name}
             </h3>
             {/* Question X of Y pill — top-right of card header */}
             <span
@@ -526,33 +427,14 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
                 marginRight: "1rem",
               }}
             >
-              {currentTopicQuestionCount === 1
+              {currentCategory.questions.length === 1
                 ? `Question ${questionFrom} of ${totalQuestions}`
                 : `Questions ${questionFrom}–${questionTo} of ${totalQuestions}`}
             </span>
             {/* Autosave badge */}
             <div style={{ minHeight: "1.25rem", paddingTop: "2px" }}>
-              <AutosaveBadge state={badgeState} />
+              <AutosaveBadge state={aggregateBadgeState} onRetry={handleRetryAllFailed} />
             </div>
-          </div>
-
-          {/* Topic label */}
-          <div
-            style={{
-              marginBottom: "1.5rem",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: "1rem",
-                fontWeight: 600,
-                color: "#06004f",
-                margin: 0,
-                fontFamily: "'Rubik', sans-serif",
-              }}
-            >
-              {currentTopic.label}
-            </h4>
           </div>
 
           {/* Submit error */}
@@ -574,17 +456,34 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
 
           {/* Question cards */}
           <div>
-            {currentTopic.questions.map((question) => (
+            {currentCategory.questions.map((question) => (
               <QuestionCard
                 key={question.id}
                 question={question}
-                answer={localAnswers[question.id]}
+                defaultOptions={config.default_options}
+                value={localAnswers[question.id] ?? null}
                 onAnswerChange={handleAnswerChange}
-                onFollowupSelectionsChange={handleFollowupSelectionsChange}
-                onFollowupOtherChange={handleFollowupOtherChange}
               />
             ))}
           </div>
+
+          {/* Terminal-failure banner (D-10/D-11/D-12): appears next to the
+              blocked Next/Submit button — no dismiss/continue-anyway path. */}
+          {hasTerminalFailure && (
+            <div
+              style={{
+                background: "#FEE2E2",
+                color: "#991B1B",
+                padding: "0.75rem 1rem",
+                borderRadius: "8px",
+                marginTop: "1rem",
+                fontSize: "0.875rem",
+                fontFamily: "'Rubik', sans-serif",
+              }}
+            >
+              This answer didn't save. Retry before continuing.
+            </div>
+          )}
 
           {/* Navigation buttons */}
           <div
@@ -599,16 +498,16 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
             <button
               type="button"
               onClick={handleBack}
-              disabled={isBackDisabled || isSaving}
+              disabled={isBackDisabled || isNavigating}
               style={{
                 padding: "0.75rem 1.5rem",
-                border: `1px solid ${isBackDisabled || isSaving ? "rgba(6,0,79,0.2)" : "#06004f"}`,
+                border: `1px solid ${isBackDisabled || isNavigating ? "rgba(6,0,79,0.2)" : "#06004f"}`,
                 borderRadius: "8px",
                 background: "transparent",
-                color: isBackDisabled || isSaving ? "rgba(6,0,79,0.3)" : "#06004f",
+                color: isBackDisabled || isNavigating ? "rgba(6,0,79,0.3)" : "#06004f",
                 fontFamily: "'Rubik', sans-serif",
                 fontWeight: 500,
-                cursor: isBackDisabled || isSaving ? "not-allowed" : "pointer",
+                cursor: isBackDisabled || isNavigating ? "not-allowed" : "pointer",
                 fontSize: "1rem",
               }}
             >
@@ -631,7 +530,7 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
                 fontSize: "1rem",
               }}
             >
-              {isSaving ? "Saving..." : isFinish ? "Finish →" : "Next →"}
+              {isNavigating ? "Saving..." : isLastCategory ? "Submit assessment →" : "Next →"}
             </button>
           </div>
         </div>
