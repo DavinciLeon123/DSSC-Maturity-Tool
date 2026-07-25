@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Grid } from "antd";
 import type { AnswerRead, QuestionnaireConfig } from "../../lib/questionnaire";
+import { flushAnswerBeacon, saveLastViewedCategory } from "../../lib/questionnaire";
 import { api } from "../../lib/api";
 import { useDebouncedSave, type SaveState } from "../../hooks/useDebouncedSave";
 import { StepPills } from "./StepPills";
@@ -74,11 +75,18 @@ interface Props {
   config: QuestionnaireConfig;
   initiativeId: number;
   savedAnswers: AnswerRead[];
+  // D-08: category the user was last viewing, persisted server-side; null
+  // for a first-ever visit (resume defaults to category 0 in that case).
+  lastViewedCategoryId: string | null;
 }
 
-export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
+export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCategoryId }: Props) {
   const navigate = useNavigate();
-  const [categoryIndex, setCategoryIndex] = useState(0);
+  const [categoryIndex, setCategoryIndex] = useState(() => {
+    if (lastViewedCategoryId == null) return 0;
+    const idx = config.categories.findIndex((c) => c.id === lastViewedCategoryId);
+    return idx >= 0 ? idx : 0;
+  });
   const [isNavigating, setIsNavigating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -105,15 +113,17 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
   // than one can be mid-save simultaneously.
   const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({});
 
-  // Tracks the latest locally-entered value for any question whose most
-  // recent save has not yet been confirmed successful — this is exactly
-  // the set beforeunload (D-07, wired in the next task) must flush.
-  // Deferred/no-op here in Task 1; populated for real once
-  // handleAnswerChange starts writing to it in Task 2's beforeunload wiring.
+  // D-07/SAVE-04: tracks the latest locally-entered value for any question
+  // whose most recent save has not yet been confirmed successful — this is
+  // exactly the set the beforeunload handler below must flush. A ref (not
+  // state) since it is only ever read synchronously inside the unload
+  // handler, never rendered.
+  const pendingFlushRef = useRef<Record<string, { categoryId: string; score: number }>>({});
 
   function handleSaveStateChange(questionId: string, state: SaveState) {
     setSaveStates((prev) => ({ ...prev, [questionId]: state }));
     if (state === "saved") {
+      delete pendingFlushRef.current[questionId];
       // Auto-clear "Saved" back to idle after 2s, matching the pre-rebuild
       // single-badge behavior, now per-question.
       setTimeout(() => {
@@ -177,22 +187,50 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
 
   function handleAnswerChange(questionId: string, score: number) {
     setLocalAnswers((prev) => ({ ...prev, [questionId]: score }));
+    pendingFlushRef.current[questionId] = { categoryId: currentCategory.id, score };
     // SAVE-01/D-05: schedule a ~1.5s debounced save; answering a different
     // question never cancels this one (per-question debounce timer).
     schedule(questionId, currentCategory.id, score);
   }
 
   function handleRetrySave(questionId: string) {
-    const score = localAnswers[questionId];
-    if (score === undefined) return;
-    const question = currentCategory.questions.find((q) => q.id === questionId);
-    const categoryId = question?.category_id ?? currentCategory.id;
+    // A "failed" state can only exist for a question whose pendingFlushRef
+    // entry was set by handleAnswerChange and never cleared (clearing only
+    // happens on "saved") — so this entry is always present and carries
+    // the correct category_id even if the user has since navigated to a
+    // different category page (D-03 back-navigation can leave a failed
+    // save behind on an earlier page).
+    const pending = pendingFlushRef.current[questionId];
+    if (!pending) return;
     // Manual retry re-enters the schedule/flush pipeline immediately
     // (bypassing the ~1.5s debounce window) rather than reaching into
     // useDebouncedSave's internals, which this task does not modify.
-    schedule(questionId, categoryId, score);
+    schedule(questionId, pending.categoryId, pending.score);
     void flush(questionId);
   }
+
+  // D-07/SAVE-04/Pitfall 2/3: beforeunload cannot await an async save — it
+  // must synchronously fire one small keepalive request per still-pending
+  // answer (never batched into one payload). Registered once; reads
+  // pendingFlushRef.current at fire time, not a stale closure.
+  useEffect(() => {
+    function handleBeforeUnload() {
+      Object.entries(pendingFlushRef.current).forEach(([questionId, { categoryId, score }]) => {
+        flushAnswerBeacon(initiativeId, questionId, categoryId, score);
+      });
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [initiativeId]);
+
+  // D-08: write the currently-viewed category UNCONDITIONALLY on every
+  // categoryIndex change — this does not depend on an answer being saved
+  // on that page, so navigating to a category and refreshing without
+  // answering still resumes there. Deliberately not gated on any answer
+  // save (no piggyback, per RESEARCH Open Question 1 / plan 15-01).
+  useEffect(() => {
+    saveLastViewedCategory(initiativeId, config.categories[categoryIndex].id);
+  }, [categoryIndex, initiativeId, config]);
 
   // A single aggregate badge for the page header — "worst" state wins so
   // the tertiary badge (UI-SPEC Visual Hierarchy) only escalates when the

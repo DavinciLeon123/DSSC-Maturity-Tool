@@ -323,3 +323,54 @@ def test_last_viewed_category_rejects_non_owner(client, session):
         json={"category_id": "cat-1"},
     )
     assert response.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# [Rule 3 auto-fix — plan 15-04] GET .../last-viewed-category: read-side
+# counterpart to the PATCH endpoint above, added here since 15-04's wizard
+# mount flow needs to read this value back and no route exposed it.
+# ---------------------------------------------------------------------------
+
+
+def test_get_last_viewed_category_returns_none_when_no_assessment_exists(client, session):
+    user = make_user(session, password=VALID_PASSWORD)
+    initiative = make_initiative(session, user=user)
+    _login(client, user.email, VALID_PASSWORD)
+
+    response = client.get(
+        f"/api/v1/questionnaire/initiatives/{initiative.id}/last-viewed-category",
+    )
+    assert response.status_code == 200
+    assert response.json()["last_viewed_category_id"] is None
+
+
+def test_get_last_viewed_category_returns_previously_written_value(client, session):
+    user = make_user(session, password=VALID_PASSWORD)
+    initiative = make_initiative(session, user=user)
+    _login(client, user.email, VALID_PASSWORD)
+
+    write_response = client.patch(
+        f"/api/v1/questionnaire/initiatives/{initiative.id}/last-viewed-category",
+        json={"category_id": "cat-3"},
+    )
+    assert write_response.status_code == 200
+
+    response = client.get(
+        f"/api/v1/questionnaire/initiatives/{initiative.id}/last-viewed-category",
+    )
+    assert response.status_code == 200
+    assert response.json()["last_viewed_category_id"] == "cat-3"
+
+
+def test_get_last_viewed_category_rejects_non_owner(client, session):
+    owner = make_user(session, password=VALID_PASSWORD)
+    initiative = make_initiative(session, user=owner)
+    make_assessment(session, initiative=initiative)
+
+    other = make_user(session, password=VALID_PASSWORD)
+    _login(client, other.email, VALID_PASSWORD)
+
+    response = client.get(
+        f"/api/v1/questionnaire/initiatives/{initiative.id}/last-viewed-category",
+    )
+    assert response.status_code == 403

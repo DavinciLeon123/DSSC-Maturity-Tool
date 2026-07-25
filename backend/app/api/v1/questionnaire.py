@@ -250,6 +250,45 @@ def get_answers(
     return answers
 
 
+@router.get("/questionnaire/initiatives/{initiative_id}/last-viewed-category")
+def get_last_viewed_category(
+    initiative_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """D-08: read-side counterpart to the PATCH endpoint below, so the
+    wizard can resume at the last-viewed category on initial mount
+    (RESEARCH Open Question 1 / plan 15-04 Task 2).
+
+    [Rule 3 auto-fix — plan 15-04]: plan 15-01 shipped only the write side
+    of D-08 (the PATCH route). 15-04's mount flow needs to read this value
+    back before the wizard renders its first category, and no route
+    exposed it (`GET .../answers` returns only answer rows, `InitiativeRead`
+    has no assessment fields). This is a minimal, additive read mirroring
+    the PATCH route's own ownership checks — no new column/migration, no
+    architectural change — so it is fixed inline rather than blocking the
+    whole plan on a checkpoint.
+
+    Re-derives ownership exactly like get_answers (security V4). Returns
+    None (not a 404) when no draft assessment exists yet — a first-ever
+    visit has nothing to resume, which is not an error condition."""
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative:
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    if initiative.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your initiative")
+
+    assessment = session.exec(
+        select(Assessment)
+        .where(
+            Assessment.initiative_id == initiative_id,
+            Assessment.status == AssessmentStatus.draft,
+        )
+        .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+    ).first()
+    return {"last_viewed_category_id": assessment.last_viewed_category_id if assessment else None}
+
+
 @router.patch("/questionnaire/initiatives/{initiative_id}/last-viewed-category")
 @limiter.limit("120/minute")
 def update_last_viewed_category(
