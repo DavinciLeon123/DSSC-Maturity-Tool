@@ -31,15 +31,15 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Retake & History (HIST)
 
-- [ ] **HIST-01**: Retaking the questionnaire creates a new, dated assessment version rather than overwriting or mutating the previous submitted one
+- [x] **HIST-01**: Retaking the questionnaire creates a new, dated assessment version rather than overwriting or mutating the previous submitted one
 - [x] **HIST-02**: User can view a history of their past assessments and compare maturity scores across versions
 
 ### Save Reliability (SAVE)
 
-- [ ] **SAVE-01**: Answers are auto-saved as the user answers each question (debounced), not only on Next/Back navigation or component unmount
-- [ ] **SAVE-02**: Save failures are surfaced to the user with a clear retry path — no silent fire-and-forget saves
+- [x] **SAVE-01**: Answers are auto-saved as the user answers each question (debounced), not only on Next/Back navigation or component unmount
+- [x] **SAVE-02**: Save failures are surfaced to the user with a clear retry path — no silent fire-and-forget saves
 - [ ] **SAVE-03**: Rate limiting on answer-save requests is keyed per authenticated user, not per client IP
-- [ ] **SAVE-04**: Closing the tab or hard-refreshing mid-questionnaire does not silently lose unsaved answers
+- [x] **SAVE-04**: Closing the tab or hard-refreshing mid-questionnaire does not silently lose unsaved answers
 
 ### Data Migration (MIGR)
 
@@ -106,12 +106,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPRT-02 | Phase 16 | Pending |
 | RPRT-03 | Phase 16 | Pending |
 | RPRT-04 | Phase 16 | Pending |
-| HIST-01 | Phase 15 | Pending |
+| HIST-01 | Phase 15 | Complete |
 | HIST-02 | Phase 15 | Complete |
-| SAVE-01 | Phase 15 | Pending |
-| SAVE-02 | Phase 15 | Pending |
+| SAVE-01 | Phase 15 | Complete |
+| SAVE-02 | Phase 15 | Complete |
 | SAVE-03 | Phase 15 | Pending |
-| SAVE-04 | Phase 15 | Pending |
+| SAVE-04 | Phase 15 | Complete |
 | MIGR-01 | Phase 13 | Complete |
 | MIGR-02 | Phase 13 | Complete |
 | SECU-01 | Phase 18 | Pending |
