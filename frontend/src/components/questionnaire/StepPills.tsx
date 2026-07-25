@@ -4,15 +4,20 @@ interface Props {
   categories: Category[];
   currentCategoryIndex: number;
   completedCategoryIds: Set<string>;
-  currentTopicIndex: number;
+  // Count of distinct answered questions across the whole questionnaire —
+  // supplied by the caller (WizardPage owns answer state); the total below
+  // is always derived from config, never hardcoded (D-04).
+  answeredCount: number;
 }
 
 export function StepPills({
   categories,
   currentCategoryIndex,
   completedCategoryIds,
-  currentTopicIndex,
+  answeredCount,
 }: Props) {
+  const totalQuestions = categories.reduce((sum, cat) => sum + cat.questions.length, 0);
+
   return (
     <div
       style={{
@@ -32,7 +37,7 @@ export function StepPills({
           fontSize: "0.875rem",
           fontWeight: 600,
           color: "#06004f",
-          marginBottom: "1.25rem",
+          marginBottom: "0.5rem",
           marginTop: 0,
           textTransform: "uppercase",
           letterSpacing: "0.06em",
@@ -42,11 +47,25 @@ export function StepPills({
         Your progress
       </p>
 
+      {/* D-04: overall answered-count counter, always derived from config
+          (never a hardcoded 52). */}
+      <p
+        style={{
+          fontSize: "0.8125rem",
+          fontWeight: 600,
+          color: "rgba(6,0,79,0.6)",
+          marginBottom: "1.25rem",
+          marginTop: 0,
+          fontFamily: "'Rubik', sans-serif",
+        }}
+      >
+        {answeredCount} of {totalQuestions} answered
+      </p>
+
       <div style={{ display: "flex", flexDirection: "column" }}>
         {categories.map((cat, i) => {
           const isActive = i === currentCategoryIndex;
           const isComplete = completedCategoryIds.has(cat.id);
-          const isPending = !isActive && !isComplete;
           const isLast = i === categories.length - 1;
 
           return (
@@ -136,7 +155,7 @@ export function StepPills({
                 <span
                   style={{
                     fontSize: "0.875rem",
-                    fontWeight: isActive ? 600 : isPending ? 400 : 500,
+                    fontWeight: isActive || isComplete ? 600 : 400,
                     color: isActive
                       ? "#06004f"
                       : isComplete
@@ -146,82 +165,9 @@ export function StepPills({
                     lineHeight: 1.3,
                   }}
                 >
-                  {cat.label}
+                  {cat.name}
                 </span>
               </div>
-
-              {/* Accordion: topic list for the active category */}
-              {isActive && cat.topics.length > 0 && (
-                <div style={{ marginLeft: "36px", marginTop: "4px" }}>
-                  {cat.topics.map((topic, ti) => {
-                    const isActiveTopic = ti === currentTopicIndex;
-                    const isCompletedTopic = ti < currentTopicIndex;
-
-                    return (
-                      <div
-                        key={topic.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "4px 0",
-                          cursor: "default",
-                        }}
-                      >
-                        {/* Dot indicator */}
-                        {isActiveTopic ? (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "#06004f",
-                              flexShrink: 0,
-                            }}
-                          />
-                        ) : isCompletedTopic ? (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "#399e5a",
-                              flexShrink: 0,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "transparent",
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
-
-                        {/* Topic label */}
-                        <span
-                          style={{
-                            fontSize: "0.8rem",
-                            fontWeight: isActiveTopic ? 600 : 400,
-                            color: isActiveTopic
-                              ? "#06004f"
-                              : isCompletedTopic
-                              ? "#399e5a"
-                              : "rgba(6,0,79,0.45)",
-                            fontFamily: "'Rubik', sans-serif",
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {topic.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
 
               {/* Connector line between category items */}
               {!isLast && (
