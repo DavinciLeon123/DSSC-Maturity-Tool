@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 15 context gathered
-last_updated: "2026-07-24T13:35:55.573Z"
+stopped_at: Phase 15 UI-SPEC approved
+last_updated: "2026-07-24T17:32:59.534Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -140,9 +140,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-07-24T13:35:55.563Z
-**Stopped at:** Phase 15 context gathered
-**Resume file:** .planning/phases/15-questionnaire-submission-api-wizard-ui-save-reliability/15-CONTEXT.md
+**Last session:** 2026-07-24T17:32:59.527Z
+**Stopped at:** Phase 15 UI-SPEC approved
+**Resume file:** .planning/phases/15-questionnaire-submission-api-wizard-ui-save-reliability/15-UI-SPEC.md
 
 ## Performance Metrics
 

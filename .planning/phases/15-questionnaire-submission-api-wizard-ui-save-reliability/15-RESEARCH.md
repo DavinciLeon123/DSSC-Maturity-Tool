@@ -591,17 +591,19 @@ Verified patterns from official/existing-code sources — see individual Pattern
 
 **If this table is empty:** N/A — see entries above. All are low-blast-radius tuning/discretion parameters explicitly delegated to "Claude's discretion" in CONTEXT.md, not load-bearing facts a wrong call would be costly to reverse.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should the "last viewed category" write happen on every category-index change, or only piggyback on the next answer save?**
    - What we know: D-08 requires resuming at the last-*viewed* category, which can differ from the last-*answered* category (a user can navigate without answering).
    - What's unclear: Whether a dedicated lightweight write (e.g., a small `PATCH /questionnaire/initiatives/{id}/last-viewed-category`) is worth a new endpoint, versus piggybacking the field onto the existing answer-save payload (which would only update it when an answer is actually saved on that page — an approximation, not exact).
    - Recommendation: Add the small dedicated endpoint/field — it is a trivial write (single-column UPDATE) and gives an exact rather than approximate resume position, matching the strictness-over-convenience theme CONTEXT.md's "Specific Ideas" section identifies as the throughline of every decision in this phase.
+   - RESOLVED: Adopted the dedicated-endpoint recommendation. Backend adds `PATCH /questionnaire/initiatives/{initiative_id}/last-viewed-category` (unconditional single-column write) in plan 15-01 Task 2; the frontend calls it via a `saveLastViewedCategory` wrapper on every categoryIndex change in plan 15-04 Task 2. The answer-save piggyback approach was explicitly rejected (no last-viewed write remains in `upsert_answer`) so the resume position is exact, not an approximation.
 
 2. **Exact debounce interval within 1-2s (D-05's explicitly open range).**
    - What we know: CONTEXT.md locks the range but not the exact value.
    - What's unclear: No user testing data exists to pick 1.0s vs. 1.5s vs. 2.0s definitively.
    - Recommendation: 1.5s — splits the range, gives enough time to avoid saving on every intermediate click if a user changes their mind quickly, without feeling laggy relative to the "Saved ✓" confirmation appearing.
+   - RESOLVED: 1.5s adopted, implemented in plan 15-03 (useDebouncedSave).
 
 ## Environment Availability
 
