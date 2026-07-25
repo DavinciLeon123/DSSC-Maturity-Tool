@@ -610,6 +610,20 @@
         "title": "InitiativeUpdate",
         "type": "object"
       },
+      "LastViewedCategoryUpdate": {
+        "description": "D-08: request body for the dedicated PATCH .../last-viewed-category\nendpoint. Written unconditionally (independent of any answer save) so a\nbare navigation to a category still persists resume position.",
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id"
+        ],
+        "title": "LastViewedCategoryUpdate",
+        "type": "object"
+      },
       "ResetPasswordRequest": {
         "properties": {
           "new_password": {
@@ -1884,6 +1898,62 @@
           }
         ],
         "summary": "Upsert Answer",
+        "tags": [
+          "questionnaire"
+        ]
+      }
+    },
+    "/api/v1/questionnaire/initiatives/{initiative_id}/last-viewed-category": {
+      "patch": {
+        "description": "D-08: persist the category the user is currently VIEWING, written\nUNCONDITIONALLY \u2014 no answer required. This is the single, exact resume\nwrite path: a user who navigates to a category and looks around without\nanswering anything still resumes there on a hard refresh/new tab,\nrather than being sent back to wherever they last saved an answer\n(RESEARCH Open Question 1). Deliberately not piggybacked onto\nupsert_answer \u2014 that path stays unchanged for last-viewed purposes.\n\nRe-derives ownership exactly like get_answers (security V4).\n\nRule 2 auto-fix (not explicit in the plan text): guarded by the same\nCR-01 submitted-lock as upsert_answer. Without this, _get_or_create_\ndraft_assessment would silently start a brand-new (incremented-version)\ndraft as a side effect of merely viewing a page after submission \u2014\nbypassing D-13's requirement that a retake only ever starts via an\nexplicit \"Start new assessment\" action.",
+        "operationId": "update_last_viewed_category_api_v1_questionnaire_initiatives__initiative_id__last_viewed_category_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LastViewedCategoryUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Last Viewed Category",
         "tags": [
           "questionnaire"
         ]
