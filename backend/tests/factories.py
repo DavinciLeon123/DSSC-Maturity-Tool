@@ -11,7 +11,8 @@ graphs (e.g. an initiative with several answers) in one transaction.
 import uuid
 
 from faker import Faker
-from sqlmodel import Session
+from sqlalchemy import func
+from sqlmodel import Session, select
 
 from app.core.security import hash_password
 from app.models.assessment import Assessment, AssessmentStatus
@@ -88,10 +89,21 @@ def make_assessment(
     status: AssessmentStatus = AssessmentStatus.draft,
 ) -> Assessment:
     """Build an Assessment for `initiative` — the new join point answers key
-    off (D-06/D-07). `make_answer()` creates one lazily if the caller
-    doesn't pass one, mirroring the app's own assessment-first upsert flow
-    (questionnaire.py::_get_or_create_draft_assessment)."""
-    assessment = Assessment(initiative_id=initiative.id, status=status)
+    off (D-06/D-07). `make_answer()` reuses an existing one lazily if the
+    caller doesn't pass one, mirroring the app's own assessment-first upsert
+    flow (questionnaire.py::_get_or_create_draft_assessment).
+
+    Version is computed as max(existing versions for this initiative, or 0)
+    + 1 (D-15/HIST-01, Pitfall 4) — mirroring the real app's version-
+    increment logic — so calling this more than once for the same
+    initiative in one test never collides with the
+    uq_assessment_version_per_initiative constraint (Phase 15 plan 01)."""
+    max_version = session.exec(
+        select(func.max(Assessment.version)).where(Assessment.initiative_id == initiative.id)
+    ).one()
+    assessment = Assessment(
+        initiative_id=initiative.id, status=status, version=(max_version or 0) + 1
+    )
     session.add(assessment)
     session.commit()
     session.refresh(assessment)
