@@ -141,7 +141,7 @@ Plans:
   4. Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume.
   5. Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions.
 
-**Plans**: 3/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 **Wave 1** *(backend + frontend plumbing, disjoint file sets — run in parallel)*
@@ -152,8 +152,8 @@ Plans:
 
 **Wave 2** *(frontend, depends on Wave 1; two plans run in parallel — disjoint files)*
 
-- [ ] 15-04-PLAN.md — WizardPage rebuild: debounced autosave + retry/terminal-block (SAVE-01/02) + beforeunload keepalive flush + resume-at-last-category (SAVE-04/D-08) + category-per-page nav (Wave 2; SAVE-01, SAVE-02, SAVE-04, HIST-01)
-- [ ] 15-05-PLAN.md — History page (/assessments list + comparison table, HIST-02) + dashboard history link + confirmed retake dialog (D-13/D-17) (Wave 2; HIST-02, HIST-01)
+- [x] 15-04-PLAN.md — WizardPage rebuild: debounced autosave + retry/terminal-block (SAVE-01/02) + beforeunload keepalive flush + resume-at-last-category (SAVE-04/D-08) + category-per-page nav (Wave 2; SAVE-01, SAVE-02, SAVE-04, HIST-01)
+- [x] 15-05-PLAN.md — History page (/assessments list + comparison table, HIST-02) + dashboard history link + confirmed retake dialog (D-13/D-17) (Wave 2; HIST-02, HIST-01)
 
 **UI hint**: yes
 
@@ -212,7 +212,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 3/5 | In Progress|  |
+| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 5/5 | In Progress|  |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
