@@ -4,11 +4,11 @@ milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
 stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-07-24T17:32:59.534Z"
+last_updated: "2026-07-25T10:41:42.858Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 13
+  total_plans: 18
   completed_plans: 13
 ---
 
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 14 — scoring-engine-replacement
+**Current focus:** Phase 15 — questionnaire-submission-api-wizard-ui-save-reliability
 
 ## Milestone Status
 

@@ -141,14 +141,14 @@ Plans:
   4. Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume.
   5. Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions.
 
-**Plans**: 5 plans
+**Plans**: 3/5 plans executed
 
 Plans:
 **Wave 1** *(backend + frontend plumbing, disjoint file sets — run in parallel)*
 
-- [ ] 15-01-PLAN.md — [BLOCKING migration] Assessment version-increment (D-15/HIST-01) + per-user rate-limit key (SAVE-03) + last-viewed-category column/write (D-08) + hand-written Alembic migration ((initiative_id, version) unique constraint + last_viewed_category_id) (Wave 1; HIST-01, SAVE-03, SAVE-04)
-- [ ] 15-02-PLAN.md — Greenfield GET /initiatives/{id}/assessments history endpoint + AssessmentSummary schema + list_submitted_assessments helper (Wave 1; HIST-02)
-- [ ] 15-03-PLAN.md — Frontend plumbing rebuild: new questionnaire.ts types + flushAnswerBeacon, useDebouncedSave hook, RadioScale/QuestionCard/StepPills, delete orphaned components (Wave 1; QSTN-02, SAVE-01, SAVE-02)
+- [x] 15-01-PLAN.md — [BLOCKING migration] Assessment version-increment (D-15/HIST-01) + per-user rate-limit key (SAVE-03) + last-viewed-category column/write (D-08) + hand-written Alembic migration ((initiative_id, version) unique constraint + last_viewed_category_id) (Wave 1; HIST-01, SAVE-03, SAVE-04)
+- [x] 15-02-PLAN.md — Greenfield GET /initiatives/{id}/assessments history endpoint + AssessmentSummary schema + list_submitted_assessments helper (Wave 1; HIST-02)
+- [x] 15-03-PLAN.md — Frontend plumbing rebuild: new questionnaire.ts types + flushAnswerBeacon, useDebouncedSave hook, RadioScale/QuestionCard/StepPills, delete orphaned components (Wave 1; QSTN-02, SAVE-01, SAVE-02)
 
 **Wave 2** *(frontend, depends on Wave 1; two plans run in parallel — disjoint files)*
 
@@ -212,7 +212,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
+| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 3/5 | In Progress|  |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
