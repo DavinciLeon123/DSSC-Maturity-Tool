@@ -32,7 +32,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 ### Retake & History (HIST)
 
 - [ ] **HIST-01**: Retaking the questionnaire creates a new, dated assessment version rather than overwriting or mutating the previous submitted one
-- [ ] **HIST-02**: User can view a history of their past assessments and compare maturity scores across versions
+- [x] **HIST-02**: User can view a history of their past assessments and compare maturity scores across versions
 
 ### Save Reliability (SAVE)
 
@@ -107,7 +107,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPRT-03 | Phase 16 | Pending |
 | RPRT-04 | Phase 16 | Pending |
 | HIST-01 | Phase 15 | Pending |
-| HIST-02 | Phase 15 | Pending |
+| HIST-02 | Phase 15 | Complete |
 | SAVE-01 | Phase 15 | Pending |
 | SAVE-02 | Phase 15 | Pending |
 | SAVE-03 | Phase 15 | Pending |
