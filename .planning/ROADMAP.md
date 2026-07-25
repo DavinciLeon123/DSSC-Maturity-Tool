@@ -141,7 +141,20 @@ Plans:
   4. Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume.
   5. Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1** *(backend + frontend plumbing, disjoint file sets — run in parallel)*
+
+- [ ] 15-01-PLAN.md — [BLOCKING migration] Assessment version-increment (D-15/HIST-01) + per-user rate-limit key (SAVE-03) + last-viewed-category column/write (D-08) + hand-written Alembic migration ((initiative_id, version) unique constraint + last_viewed_category_id) (Wave 1; HIST-01, SAVE-03, SAVE-04)
+- [ ] 15-02-PLAN.md — Greenfield GET /initiatives/{id}/assessments history endpoint + AssessmentSummary schema + list_submitted_assessments helper (Wave 1; HIST-02)
+- [ ] 15-03-PLAN.md — Frontend plumbing rebuild: new questionnaire.ts types + flushAnswerBeacon, useDebouncedSave hook, RadioScale/QuestionCard/StepPills, delete orphaned components (Wave 1; QSTN-02, SAVE-01, SAVE-02)
+
+**Wave 2** *(frontend, depends on Wave 1; two plans run in parallel — disjoint files)*
+
+- [ ] 15-04-PLAN.md — WizardPage rebuild: debounced autosave + retry/terminal-block (SAVE-01/02) + beforeunload keepalive flush + resume-at-last-category (SAVE-04/D-08) + category-per-page nav (Wave 2; SAVE-01, SAVE-02, SAVE-04, HIST-01)
+- [ ] 15-05-PLAN.md — History page (/assessments list + comparison table, HIST-02) + dashboard history link + confirmed retake dialog (D-13/D-17) (Wave 2; HIST-02, HIST-01)
+
 **UI hint**: yes
 
 ### Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation
