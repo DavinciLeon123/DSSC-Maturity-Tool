@@ -18,6 +18,7 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AppReportRouteImport } from './routes/_app/report'
 import { Route as AppQuestionnaireRouteImport } from './routes/_app/questionnaire'
+import { Route as AppAssessmentsRouteImport } from './routes/_app/assessments'
 import { Route as AppInitiativeRouteImport } from './routes/_app/initiative'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
@@ -63,6 +64,11 @@ const AppReportRoute = AppReportRouteImport.update({
   path: '/report',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAssessmentsRoute = AppAssessmentsRouteImport.update({
+  id: '/assessments',
+  path: '/assessments',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppQuestionnaireRoute = AppQuestionnaireRouteImport.update({
   id: '/questionnaire',
   path: '/questionnaire',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AppAboutRoute
   '/admin': typeof AppAdminRouteWithChildren
+  '/assessments': typeof AppAssessmentsRoute
   '/dashboard': typeof AppDashboardRoute
   '/initiative': typeof AppInitiativeRoute
   '/questionnaire': typeof AppQuestionnaireRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AppAboutRoute
+  '/assessments': typeof AppAssessmentsRoute
   '/dashboard': typeof AppDashboardRoute
   '/initiative': typeof AppInitiativeRoute
   '/questionnaire': typeof AppQuestionnaireRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteWithChildren
   '/_app/about': typeof AppAboutRoute
   '/_app/admin': typeof AppAdminRouteWithChildren
+  '/_app/assessments': typeof AppAssessmentsRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/initiative': typeof AppInitiativeRoute
   '/_app/questionnaire': typeof AppQuestionnaireRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/assessments'
     | '/dashboard'
     | '/initiative'
     | '/questionnaire'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/assessments'
     | '/dashboard'
     | '/initiative'
     | '/questionnaire'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_app/about'
     | '/_app/admin'
+    | '/_app/assessments'
     | '/_app/dashboard'
     | '/_app/initiative'
     | '/_app/questionnaire'
@@ -259,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/assessments': {
+      id: '/_app/assessments'
+      path: '/assessments'
+      fullPath: '/assessments'
+      preLoaderRoute: typeof AppAssessmentsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/questionnaire': {
       id: '/_app/questionnaire'
       path: '/questionnaire'
@@ -328,6 +347,7 @@ const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
 interface AppRouteChildren {
   AppAboutRoute: typeof AppAboutRoute
   AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppAssessmentsRoute: typeof AppAssessmentsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppInitiativeRoute: typeof AppInitiativeRoute
   AppQuestionnaireRoute: typeof AppQuestionnaireRoute
@@ -337,6 +357,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAboutRoute: AppAboutRoute,
   AppAdminRoute: AppAdminRouteWithChildren,
+  AppAssessmentsRoute: AppAssessmentsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppInitiativeRoute: AppInitiativeRoute,
   AppQuestionnaireRoute: AppQuestionnaireRoute,
