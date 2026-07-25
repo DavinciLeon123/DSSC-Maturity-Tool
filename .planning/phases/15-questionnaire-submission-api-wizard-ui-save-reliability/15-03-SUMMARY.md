@@ -188,3 +188,17 @@ None - no external service configuration required.
 ---
 *Phase: 15-questionnaire-submission-api-wizard-ui-save-reliability*
 *Completed: 2026-07-25*
+
+## Self-Check: PASSED
+
+- FOUND: frontend/src/lib/questionnaire.ts
+- FOUND: frontend/src/hooks/useDebouncedSave.ts
+- FOUND: frontend/src/components/questionnaire/AnswerButtonGroup.tsx
+- FOUND: frontend/src/components/questionnaire/QuestionCard.tsx
+- FOUND: frontend/src/components/questionnaire/StepPills.tsx
+- CONFIRMED DELETED: frontend/src/components/questionnaire/ContextCallout.tsx
+- CONFIRMED DELETED: frontend/src/components/questionnaire/FollowupPanel.tsx
+- FOUND commit 494aef2 (Task 1)
+- FOUND commit dde9673 (Task 2)
+- FOUND commit 2839f88 (Task 3)
+- FOUND commit ef23460 (SUMMARY/plan-metadata)
