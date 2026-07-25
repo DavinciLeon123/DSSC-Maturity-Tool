@@ -18,9 +18,9 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AppReportRouteImport } from './routes/_app/report'
 import { Route as AppQuestionnaireRouteImport } from './routes/_app/questionnaire'
-import { Route as AppAssessmentsRouteImport } from './routes/_app/assessments'
 import { Route as AppInitiativeRouteImport } from './routes/_app/initiative'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppAssessmentsRouteImport } from './routes/_app/assessments'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppAboutRouteImport } from './routes/_app/about'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin.index'
@@ -64,11 +64,6 @@ const AppReportRoute = AppReportRouteImport.update({
   path: '/report',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAssessmentsRoute = AppAssessmentsRouteImport.update({
-  id: '/assessments',
-  path: '/assessments',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppQuestionnaireRoute = AppQuestionnaireRouteImport.update({
   id: '/questionnaire',
   path: '/questionnaire',
@@ -82,6 +77,11 @@ const AppInitiativeRoute = AppInitiativeRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssessmentsRoute = AppAssessmentsRouteImport.update({
+  id: '/assessments',
+  path: '/assessments',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminRoute = AppAdminRouteImport.update({
@@ -271,13 +271,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/assessments': {
-      id: '/_app/assessments'
-      path: '/assessments'
-      fullPath: '/assessments'
-      preLoaderRoute: typeof AppAssessmentsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/questionnaire': {
       id: '/_app/questionnaire'
       path: '/questionnaire'
@@ -297,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/assessments': {
+      id: '/_app/assessments'
+      path: '/assessments'
+      fullPath: '/assessments'
+      preLoaderRoute: typeof AppAssessmentsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin': {
