@@ -11,9 +11,9 @@ interface Props {
   onAnswerChange: (questionId: string, score: number) => void;
 }
 
-// A question is now just text + the radio scale — the followup/
-// ContextCallout branch is gone entirely (the new config schema has no
-// followup/context_text/context_image fields at all).
+// A question is now just text + the radio scale — the previous followup
+// and explanatory-callout branches are gone entirely (the new config schema
+// has no followup/context_text/context_image fields at all).
 export function QuestionCard({ question, defaultOptions, value, onAnswerChange }: Props) {
   const options = question.options ?? defaultOptions;
 

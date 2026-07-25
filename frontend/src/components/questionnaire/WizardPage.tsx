@@ -12,7 +12,12 @@ import { saveAnswer } from "../../lib/questionnaire";
 import { api } from "../../lib/api";
 import { StepPills } from "./StepPills";
 import { QuestionCard } from "./QuestionCard";
-import { ContextCallout } from "./ContextCallout";
+// The two explanatory-callout/multi-select-followup components previously
+// imported here were deleted in plan 15-03 (Task 3) — orphaned by the new
+// config schema (no context_text/context_image/followup fields exist
+// anymore). WizardPage.tsx's full rebuild (dropping the now-unused
+// currentCategory/currentTopic references below) is 15-04's job — see this
+// plan's objective note: project-wide tsc is not green until then.
 
 const { useBreakpoint } = Grid;
 
@@ -549,18 +554,6 @@ export function WizardPage({ config, initiativeId, savedAnswers }: Props) {
               {currentTopic.label}
             </h4>
           </div>
-
-          {/* Category-level explanatory callout (if present) */}
-          <ContextCallout
-            contextText={currentCategory.context_text}
-            contextImage={currentCategory.context_image}
-          />
-
-          {/* Topic-level explanatory callout (if present) */}
-          <ContextCallout
-            contextText={currentTopic.context_text}
-            contextImage={currentTopic.context_image}
-          />
 
           {/* Submit error */}
           {submitError && (
