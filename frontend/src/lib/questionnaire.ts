@@ -71,6 +71,37 @@ export async function saveAnswer(
 }
 
 /**
+ * D-08: read the category the user was last VIEWING (not necessarily the
+ * last one they answered) so the wizard can resume there on mount. Mirrors
+ * saveAnswer's thin-wrapper convention. Returns null when the initiative
+ * has no draft assessment yet (first-ever visit — nothing to resume).
+ */
+export async function fetchLastViewedCategory(initiativeId: number): Promise<string | null> {
+  const res = await api.get<{ last_viewed_category_id: string | null }>(
+    `/questionnaire/initiatives/${initiativeId}/last-viewed-category`
+  );
+  return res.data.last_viewed_category_id;
+}
+
+/**
+ * D-08: thin wrapper over the dedicated PATCH .../last-viewed-category
+ * endpoint. Written unconditionally on every categoryIndex change,
+ * independent of any answer save — this is the sole D-08 write path.
+ * Fire-and-forget: a failed resume-position write must never block
+ * navigation or surface a blocking error to the user (it's UX polish, not
+ * a correctness guarantee the user needs to see fail).
+ */
+export function saveLastViewedCategory(initiativeId: number, categoryId: string): void {
+  void api
+    .patch(`/questionnaire/initiatives/${initiativeId}/last-viewed-category`, {
+      category_id: categoryId,
+    })
+    .catch(() => {
+      // Swallowed deliberately — see doc comment above.
+    });
+}
+
+/**
  * D-07/SAVE-04: best-effort forced flush of a single pending answer on
  * `beforeunload`. Deliberately uses native `fetch` with `keepalive: true`
  * rather than `navigator.sendBeacon` — sendBeacon cannot carry an

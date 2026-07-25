@@ -209,6 +209,43 @@
         "title": "AnswerRead",
         "type": "object"
       },
+      "AssessmentSummary": {
+        "properties": {
+          "dimension_scores": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Dimension Scores",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "overall_average": {
+            "title": "Overall Average",
+            "type": "number"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "submitted_at",
+          "overall_average",
+          "dimension_scores"
+        ],
+        "title": "AssessmentSummary",
+        "type": "object"
+      },
       "Body_login_api_v1_auth_login_post": {
         "properties": {
           "client_id": {
@@ -1389,6 +1426,58 @@
         ]
       }
     },
+    "/api/v1/initiatives/{initiative_id}/assessments": {
+      "get": {
+        "description": "HIST-02: owner-scoped, version-ordered list of an initiative's\nSUBMITTED assessment versions with per-dimension scores (D-16a/D-16b\ndata source).\n\nOwnership is re-derived here exactly like every other route in this\nfile (Initiative.user_id == current_user.id, 404/403) before any\nassessment data is returned (security T-15-04). Deliberately calls\n`list_submitted_assessments` (never `get_current_assessment`, which is\ndraft-only per RESEARCH Pitfall 5) so an in-progress retake never\nleaks into the history list.",
+        "operationId": "list_assessment_history_api_v1_initiatives__initiative_id__assessments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssessmentSummary"
+                  },
+                  "title": "Response List Assessment History Api V1 Initiatives  Initiative Id  Assessments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Assessment History",
+        "tags": [
+          "initiatives"
+        ]
+      }
+    },
     "/api/v1/initiatives/{initiative_id}/report": {
       "get": {
         "description": "Retrieve the stored compliance report HTML for an initiative.",
@@ -1904,6 +1993,50 @@
       }
     },
     "/api/v1/questionnaire/initiatives/{initiative_id}/last-viewed-category": {
+      "get": {
+        "description": "D-08: read-side counterpart to the PATCH endpoint below, so the\nwizard can resume at the last-viewed category on initial mount\n(RESEARCH Open Question 1 / plan 15-04 Task 2).\n\n[Rule 3 auto-fix \u2014 plan 15-04]: plan 15-01 shipped only the write side\nof D-08 (the PATCH route). 15-04's mount flow needs to read this value\nback before the wizard renders its first category, and no route\nexposed it (`GET .../answers` returns only answer rows, `InitiativeRead`\nhas no assessment fields). This is a minimal, additive read mirroring\nthe PATCH route's own ownership checks \u2014 no new column/migration, no\narchitectural change \u2014 so it is fixed inline rather than blocking the\nwhole plan on a checkpoint.\n\nRe-derives ownership exactly like get_answers (security V4). Returns\nNone (not a 404) when no draft assessment exists yet \u2014 a first-ever\nvisit has nothing to resume, which is not an error condition.",
+        "operationId": "get_last_viewed_category_api_v1_questionnaire_initiatives__initiative_id__last_viewed_category_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Last Viewed Category",
+        "tags": [
+          "questionnaire"
+        ]
+      },
       "patch": {
         "description": "D-08: persist the category the user is currently VIEWING, written\nUNCONDITIONALLY \u2014 no answer required. This is the single, exact resume\nwrite path: a user who navigates to a category and looks around without\nanswering anything still resumes there on a hard refresh/new tab,\nrather than being sent back to wherever they last saved an answer\n(RESEARCH Open Question 1). Deliberately not piggybacked onto\nupsert_answer \u2014 that path stays unchanged for last-viewed purposes.\n\nRe-derives ownership exactly like get_answers (security V4).\n\nRule 2 auto-fix (not explicit in the plan text): guarded by the same\nCR-01 submitted-lock as upsert_answer. Without this, _get_or_create_\ndraft_assessment would silently start a brand-new (incremented-version)\ndraft as a side effect of merely viewing a page after submission \u2014\nbypassing D-13's requirement that a retake only ever starts via an\nexplicit \"Start new assessment\" action.",
         "operationId": "update_last_viewed_category_api_v1_questionnaire_initiatives__initiative_id__last_viewed_category_patch",
