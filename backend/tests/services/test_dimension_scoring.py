@@ -84,13 +84,13 @@ def test_full_assessment_all_ones_and_all_fives(session):
 
 
 def test_equal_weight_across_different_question_counts(session):
-    """SCOR-02: a 9-question category (cat-1) and an 8-question category
-    (cat-5) answered with the same per-answer value each average to the
+    """SCOR-02: an 8-question category (cat-1) and a 9-question category
+    (cat-2) answered with the same per-answer value each average to the
     same score — proving no cross-category weighting/denominator sharing."""
     config = _config()
     counts = {cat["id"]: len(cat["questions"]) for cat in config["categories"]}
-    assert counts["cat-1"] == 9
-    assert counts["cat-5"] == 8
+    assert counts["cat-1"] == 8
+    assert counts["cat-2"] == 9
 
     user = make_user(session)
     initiative = make_initiative(session, user=user)
@@ -99,7 +99,7 @@ def test_equal_weight_across_different_question_counts(session):
 
     scores = compute_dimension_scores(session, assessment.id, config)
     by_id = {s["category_id"]: s["score"] for s in scores}
-    assert by_id["cat-1"] == by_id["cat-5"] == 3.0
+    assert by_id["cat-1"] == by_id["cat-2"] == 3.0
 
 
 def test_precision_rounds_to_two_decimals(session):
@@ -107,27 +107,27 @@ def test_precision_rounds_to_two_decimals(session):
     rounded to exactly 2 decimal places via Python's round() — no
     truncation/ceil/floor."""
     config = _config()
-    cat1 = next(cat for cat in config["categories"] if cat["id"] == "cat-1")
-    assert len(cat1["questions"]) == 9
+    cat2 = next(cat for cat in config["categories"] if cat["id"] == "cat-2")
+    assert len(cat2["questions"]) == 9
 
     user = make_user(session)
     initiative = make_initiative(session, user=user)
     assessment = make_assessment(session, initiative=initiative)
 
     # 6 questions scored 3, 3 questions scored 4 -> sum 30 / 9 = 3.3333...
-    for i, question in enumerate(cat1["questions"]):
+    for i, question in enumerate(cat2["questions"]):
         make_answer(
             session,
             initiative=initiative,
             assessment=assessment,
             question_id=question["id"],
-            category_id="cat-1",
+            category_id="cat-2",
             score=4 if i < 3 else 3,
         )
 
     scores = compute_dimension_scores(session, assessment.id, config)
     by_id = {s["category_id"]: s["score"] for s in scores}
-    assert by_id["cat-1"] == 3.33
+    assert by_id["cat-2"] == 3.33
 
 
 def test_incomplete_assessment_raises_422(session):
