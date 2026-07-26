@@ -25,8 +25,9 @@ def test_all_52_questions_present():
 
 def test_config_is_pure_data_no_hardcoded_labels():
     # QSTN-03/D-09: every question resolves to exactly 5 options scored 1-5.
-    # Questions without their own `options` inherit `default_options`; the one
-    # override question returns its own 5 options instead.
+    # Real DSSC content gives every question its own maturity-level wording,
+    # so all 52 questions carry an `options` override; `default_options`
+    # remains as the shape's fallback but is not consumed by any question.
     config = load_dssc_questionnaire_config()
 
     default_options = config["default_options"]
@@ -41,11 +42,11 @@ def test_config_is_pure_data_no_hardcoded_labels():
             assert [o["score"] for o in options] == [1, 2, 3, 4, 5]
             if "options" in question:
                 override_count += 1
-                # The override question must carry its own distinct labels,
-                # not a coincidental copy of the shared defaults.
+                # Every override question must carry its own distinct
+                # labels, not a coincidental copy of the shared defaults.
                 assert options != default_options
 
-    assert override_count == 1
+    assert override_count == 52
 
 
 def test_served_content_is_byte_for_parsed_equal_to_raw_json_file():
