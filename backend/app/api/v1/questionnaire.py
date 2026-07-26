@@ -3,20 +3,41 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
+from app.core.security import decode_access_token
 from app.db.session import get_session
 from app.models.assessment import Assessment, AssessmentStatus
 from app.models.initiative import Initiative, InitiativeStatus
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.user import User
-from app.schemas.questionnaire import AnswerCreate, AnswerRead
+from app.schemas.questionnaire import AnswerCreate, AnswerRead, LastViewedCategoryUpdate
 
 router = APIRouter(tags=["questionnaire"])
-limiter = Limiter(key_func=get_remote_address)
+
+
+def get_user_or_ip_key(request: Request) -> str:
+    """SAVE-03: per-authenticated-user rate-limit key, falling back to
+    IP-keying only for unauthenticated/malformed requests.
+
+    Pitfall 1: slowapi's key_func receives only the raw Request — FastAPI's
+    Depends()-injected values (e.g. current_user) are not resolved yet at
+    this point, so the JWT is decoded directly here via the existing
+    decode_access_token (reused verbatim, not a second JWT parser).
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        sub = decode_access_token(auth_header[len("Bearer ") :])
+        if sub:
+            return f"user:{sub}"
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_user_or_ip_key)
 
 
 @router.get("/questionnaire/config")
@@ -51,6 +72,17 @@ def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Ass
     resulting IntegrityError, rolls back its own failed insert, and
     re-queries for the winner's row rather than silently creating a second,
     orphaned draft Assessment.
+
+    D-15/HIST-01: when no draft exists, the new draft's version is computed
+    as max(existing versions for this initiative, across draft AND
+    submitted rows) + 1 — never a hardcoded 1 — so a retake after a prior
+    submission is a distinguishable, permanently preserved new version.
+    Pitfall 4: two concurrent "first answer of a new retake" requests could
+    race between this SELECT and the INSERT; the new
+    uq_assessment_version_per_initiative unique constraint (migration
+    j1a2b3c4d5e6) lets Postgres reject the loser's duplicate-version
+    insert, and the existing IntegrityError-catch-and-requery below now
+    also defends this constraint, not just the draft-uniqueness one.
     """
     assessment = session.exec(
         select(Assessment)
@@ -63,7 +95,12 @@ def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Ass
     if assessment:
         return assessment
 
-    assessment = Assessment(initiative_id=initiative_id)
+    max_version = session.exec(
+        select(func.max(Assessment.version)).where(Assessment.initiative_id == initiative_id)
+    ).one()
+    next_version = (max_version or 0) + 1
+
+    assessment = Assessment(initiative_id=initiative_id, version=next_version)
     session.add(assessment)
     try:
         session.commit()
@@ -90,7 +127,7 @@ def _get_or_create_draft_assessment(session: Session, initiative_id: int) -> Ass
 @router.put(
     "/questionnaire/initiatives/{initiative_id}/answers/{question_id}", response_model=AnswerRead
 )
-@limiter.limit("60/minute")
+@limiter.limit("120/minute")  # [ASSUMED — RESEARCH A1] per-user, up from 60/minute IP-keyed
 def upsert_answer(
     request: Request,
     initiative_id: int,
@@ -211,3 +248,84 @@ def get_answers(
         select(QuestionnaireAnswer).where(QuestionnaireAnswer.assessment_id == assessment.id)
     ).all()
     return answers
+
+
+@router.get("/questionnaire/initiatives/{initiative_id}/last-viewed-category")
+def get_last_viewed_category(
+    initiative_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """D-08: read-side counterpart to the PATCH endpoint below, so the
+    wizard can resume at the last-viewed category on initial mount
+    (RESEARCH Open Question 1 / plan 15-04 Task 2).
+
+    [Rule 3 auto-fix — plan 15-04]: plan 15-01 shipped only the write side
+    of D-08 (the PATCH route). 15-04's mount flow needs to read this value
+    back before the wizard renders its first category, and no route
+    exposed it (`GET .../answers` returns only answer rows, `InitiativeRead`
+    has no assessment fields). This is a minimal, additive read mirroring
+    the PATCH route's own ownership checks — no new column/migration, no
+    architectural change — so it is fixed inline rather than blocking the
+    whole plan on a checkpoint.
+
+    Re-derives ownership exactly like get_answers (security V4). Returns
+    None (not a 404) when no draft assessment exists yet — a first-ever
+    visit has nothing to resume, which is not an error condition."""
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative:
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    if initiative.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your initiative")
+
+    assessment = session.exec(
+        select(Assessment)
+        .where(
+            Assessment.initiative_id == initiative_id,
+            Assessment.status == AssessmentStatus.draft,
+        )
+        .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
+    ).first()
+    return {"last_viewed_category_id": assessment.last_viewed_category_id if assessment else None}
+
+
+@router.patch("/questionnaire/initiatives/{initiative_id}/last-viewed-category")
+@limiter.limit("120/minute")
+def update_last_viewed_category(
+    request: Request,
+    initiative_id: int,
+    body: LastViewedCategoryUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """D-08: persist the category the user is currently VIEWING, written
+    UNCONDITIONALLY — no answer required. This is the single, exact resume
+    write path: a user who navigates to a category and looks around without
+    answering anything still resumes there on a hard refresh/new tab,
+    rather than being sent back to wherever they last saved an answer
+    (RESEARCH Open Question 1). Deliberately not piggybacked onto
+    upsert_answer — that path stays unchanged for last-viewed purposes.
+
+    Re-derives ownership exactly like get_answers (security V4).
+
+    Rule 2 auto-fix (not explicit in the plan text): guarded by the same
+    CR-01 submitted-lock as upsert_answer. Without this, _get_or_create_
+    draft_assessment would silently start a brand-new (incremented-version)
+    draft as a side effect of merely viewing a page after submission —
+    bypassing D-13's requirement that a retake only ever starts via an
+    explicit "Start new assessment" action.
+    """
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative:
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    if initiative.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your initiative")
+    if initiative.status == InitiativeStatus.submitted:
+        raise HTTPException(status_code=403, detail="Submitted assessments cannot be edited")
+
+    assessment = _get_or_create_draft_assessment(session, initiative_id)
+    assessment.last_viewed_category_id = body.category_id
+    session.add(assessment)
+    session.commit()
+    session.refresh(assessment)
+    return {"last_viewed_category_id": assessment.last_viewed_category_id}

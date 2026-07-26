@@ -427,11 +427,10 @@ function ReportPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  // Single merged effect — fires on every mount (no stale initiativeId dependency)
+  // Single merged effect — fires once on mount (no stale initiativeId dependency).
+  // loading/error already start at true/null via useState above, so no reset needed here.
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
     api.get<{ id: number; name: string; status: string }>("/initiatives/me")
       .then((res) => {

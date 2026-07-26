@@ -30,6 +30,8 @@ The application is production-deployed on Railway and demo-ready for events with
 
 **Phase 14 complete (2026-07-24):** GoRules ZEN Engine and MoSCoW scoring are fully deleted from the codebase (package dependency, `scoring_engine.py`, both MAMI config files, all lifespan/dependency wiring) — a static regression test (`test_zen_removed.py`) locks the removal in place. All five score/report endpoints (`/score`, `/report`, `/report/data`, `/report/pdf`, `/report/mail`) plus admin `/heatmap` now compute maturity via the new equal-weight per-dimension averaging service (`dimension_scoring.py`, sum(answers)/n) and enforce a server-side completion gate (422 on incomplete assessments) before scoring. `/admin/heatmap` is reduced to a fixed degraded response pending its Phase 16 rebuild. Frontend `scoring.ts`/`FindingsPanel.tsx` still contain orphaned MoSCoW-shaped types (unused, not imported) — a deliberate, user-approved deferral to Phases 15/16, not an oversight.
 
+**Phase 15 complete (2026-07-26):** The questionnaire wizard is rebuilt on the new 52-question/6-category DSSC schema — horizontal-line radio-circle answers, debounced per-user-rate-limited autosave with visible retry-on-failure (never a silent lost save), and resume-on-refresh. Submission is now a real API contract: every full completion creates a new, permanently preserved `Assessment` version (frozen `dimension_scores` snapshot, immune to later config drift) that the user can retake and compare across history; a server-side completeness gate (422) blocks an incomplete draft from ever being submitted and permanently frozen, closing a gap found during verification. Frontend `dashboard.tsx` gained a retake flow and an assessment-history view.
+
 **Tech stack:** Python/FastAPI + SQLModel + PostgreSQL + React/Vite + WeasyPrint + Resend SDK · Deployed: Railway
 
 ## Core Value
@@ -121,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 - **Branding**: Uses coe-dsc.nl color scheme (navy #06004f, green #399e5a, Rubik font)
 
 ---
-*Last updated: 2026-07-24 — Phase 14 (scoring engine replacement) complete*
+*Last updated: 2026-07-26 — Phase 15 (questionnaire submission API, wizard UI & save reliability) complete*

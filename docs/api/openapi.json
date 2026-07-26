@@ -209,6 +209,43 @@
         "title": "AnswerRead",
         "type": "object"
       },
+      "AssessmentSummary": {
+        "properties": {
+          "dimension_scores": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Dimension Scores",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "overall_average": {
+            "title": "Overall Average",
+            "type": "number"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "submitted_at",
+          "overall_average",
+          "dimension_scores"
+        ],
+        "title": "AssessmentSummary",
+        "type": "object"
+      },
       "Body_login_api_v1_auth_login_post": {
         "properties": {
           "client_id": {
@@ -608,6 +645,20 @@
           }
         },
         "title": "InitiativeUpdate",
+        "type": "object"
+      },
+      "LastViewedCategoryUpdate": {
+        "description": "D-08: request body for the dedicated PATCH .../last-viewed-category\nendpoint. Written unconditionally (independent of any answer save) so a\nbare navigation to a category still persists resume position.",
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_id"
+        ],
+        "title": "LastViewedCategoryUpdate",
         "type": "object"
       },
       "ResetPasswordRequest": {
@@ -1375,6 +1426,58 @@
         ]
       }
     },
+    "/api/v1/initiatives/{initiative_id}/assessments": {
+      "get": {
+        "description": "HIST-02: owner-scoped, version-ordered list of an initiative's\nSUBMITTED assessment versions with per-dimension scores (D-16a/D-16b\ndata source).\n\nOwnership is re-derived here exactly like every other route in this\nfile (Initiative.user_id == current_user.id, 404/403) before any\nassessment data is returned (security T-15-04). Deliberately calls\n`list_submitted_assessments` (never `get_current_assessment`, which is\ndraft-only per RESEARCH Pitfall 5) so an in-progress retake never\nleaks into the history list.",
+        "operationId": "list_assessment_history_api_v1_initiatives__initiative_id__assessments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssessmentSummary"
+                  },
+                  "title": "Response List Assessment History Api V1 Initiatives  Initiative Id  Assessments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "List Assessment History",
+        "tags": [
+          "initiatives"
+        ]
+      }
+    },
     "/api/v1/initiatives/{initiative_id}/report": {
       "get": {
         "description": "Retrieve the stored compliance report HTML for an initiative.",
@@ -1651,6 +1754,52 @@
         ]
       }
     },
+    "/api/v1/initiatives/{initiative_id}/retake": {
+      "post": {
+        "description": "HIST-01 gap closure (CR-01): the explicit, confirmed user action that\nactually unlocks a submitted initiative for a retake and creates a fresh,\nversion-incremented draft Assessment \u2014 the missing reset that made the\nversion-increment machinery in _get_or_create_draft_assessment\nunreachable through the real UI (15-VERIFICATION.md Gap 1).\n\nOwnership is re-derived here exactly like every other route in this file\n(Initiative.user_id == current_user.id, 404/403) before any state change\n\u2014 the path id is never trusted as authorization on its own (security V4,\nT-15-06-01).\n\nOnly a currently-submitted initiative can be retaken (409 otherwise) \u2014\nthis enforces D-13 (a retake is an explicit action on a completed\nassessment, never an implicit side effect) and prevents silently\nversion-bumping a draft that is still in progress (T-15-06-03).",
+        "operationId": "retake_initiative_api_v1_initiatives__initiative_id__retake_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Retake Initiative",
+        "tags": [
+          "initiatives"
+        ]
+      }
+    },
     "/api/v1/initiatives/{initiative_id}/score": {
       "post": {
         "description": "Score the initiative's current draft Assessment against the 6 DSSC\nmaturity dimensions (D-04, SCOR-01/02).\n\nVerifies ownership first (404 when the initiative doesn't exist, 403\nwhen it isn't the caller's), THEN enforces the SCOR-04 completion gate\n(422 \"Questionnaire not fully answered\" when no draft assessment exists\nor it isn't 100% answered) \u2014 ordering matters so a caller can never\ndistinguish \"not yours\" from \"not complete\" (T-14-01). On success,\nreturns one equal-weight per-category average per dimension, in config\ncategory order.",
@@ -1701,7 +1850,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/submit": {
       "post": {
-        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.\n\nCR-01: also flips the initiative's current draft Assessment (if any) to\nsubmitted and stamps submitted_at \u2014 this is what actually locks\nquestionnaire answers against further edits (enforced in\nquestionnaire.py's upsert_answer), not just the Initiative row.",
+        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.\n\nCR-01: also flips the initiative's current draft Assessment (if any) to\nsubmitted and stamps submitted_at \u2014 this is what actually locks\nquestionnaire answers against further edits (enforced in\nquestionnaire.py's upsert_answer), not just the Initiative row.\n\nHIST-02 (gap-closure plan 15-07): also computes and freezes the\nper-dimension score snapshot on `assessment.dimension_scores`, against\nthe config AS IT EXISTS RIGHT NOW (submission time). This is the one\nand only place scores are computed for a submitted assessment \u2014 later\nedits to the live config must never retroactively change what this\nalready-submitted version displays in history.\n\nSCOR-04 (gap-closure plan 15-08): before freezing that snapshot, enforces\nthe same server-side completeness gate every other scoring/reporting\nendpoint already uses (`scoring.py:50`, `reports.py`) via\n`assert_assessment_complete` \u2014 an incomplete draft can never be\npermanently locked in as a garbage submitted version. Only checked when\na draft assessment actually exists; the idempotent re-submit path (no\ndraft) correctly skips the gate and stays 200.",
         "operationId": "submit_initiative_api_v1_initiatives__initiative_id__submit_post",
         "parameters": [
           {
@@ -1884,6 +2033,106 @@
           }
         ],
         "summary": "Upsert Answer",
+        "tags": [
+          "questionnaire"
+        ]
+      }
+    },
+    "/api/v1/questionnaire/initiatives/{initiative_id}/last-viewed-category": {
+      "get": {
+        "description": "D-08: read-side counterpart to the PATCH endpoint below, so the\nwizard can resume at the last-viewed category on initial mount\n(RESEARCH Open Question 1 / plan 15-04 Task 2).\n\n[Rule 3 auto-fix \u2014 plan 15-04]: plan 15-01 shipped only the write side\nof D-08 (the PATCH route). 15-04's mount flow needs to read this value\nback before the wizard renders its first category, and no route\nexposed it (`GET .../answers` returns only answer rows, `InitiativeRead`\nhas no assessment fields). This is a minimal, additive read mirroring\nthe PATCH route's own ownership checks \u2014 no new column/migration, no\narchitectural change \u2014 so it is fixed inline rather than blocking the\nwhole plan on a checkpoint.\n\nRe-derives ownership exactly like get_answers (security V4). Returns\nNone (not a 404) when no draft assessment exists yet \u2014 a first-ever\nvisit has nothing to resume, which is not an error condition.",
+        "operationId": "get_last_viewed_category_api_v1_questionnaire_initiatives__initiative_id__last_viewed_category_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Last Viewed Category",
+        "tags": [
+          "questionnaire"
+        ]
+      },
+      "patch": {
+        "description": "D-08: persist the category the user is currently VIEWING, written\nUNCONDITIONALLY \u2014 no answer required. This is the single, exact resume\nwrite path: a user who navigates to a category and looks around without\nanswering anything still resumes there on a hard refresh/new tab,\nrather than being sent back to wherever they last saved an answer\n(RESEARCH Open Question 1). Deliberately not piggybacked onto\nupsert_answer \u2014 that path stays unchanged for last-viewed purposes.\n\nRe-derives ownership exactly like get_answers (security V4).\n\nRule 2 auto-fix (not explicit in the plan text): guarded by the same\nCR-01 submitted-lock as upsert_answer. Without this, _get_or_create_\ndraft_assessment would silently start a brand-new (incremented-version)\ndraft as a side effect of merely viewing a page after submission \u2014\nbypassing D-13's requirement that a retake only ever starts via an\nexplicit \"Start new assessment\" action.",
+        "operationId": "update_last_viewed_category_api_v1_questionnaire_initiatives__initiative_id__last_viewed_category_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LastViewedCategoryUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Last Viewed Category",
         "tags": [
           "questionnaire"
         ]

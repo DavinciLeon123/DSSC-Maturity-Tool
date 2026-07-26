@@ -32,7 +32,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 12: Test Retrofit — Stabilize Existing Flows** - Regression safety net for auth, admin, and PDF/email delivery, in place before the rebuild touches anything (Complete 2026-07-22)
 - [x] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data (Complete 2026-07-23)
 - [x] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely (completed 2026-07-24)
-- [ ] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history
+- [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
 - [ ] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
@@ -141,7 +141,26 @@ Plans:
   4. Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume.
   5. Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions.
 
-**Plans**: TBD
+**Plans**: 8/8 plans executed
+
+Plans:
+**Wave 1** *(backend + frontend plumbing, disjoint file sets — run in parallel)*
+
+- [x] 15-01-PLAN.md — [BLOCKING migration] Assessment version-increment (D-15/HIST-01) + per-user rate-limit key (SAVE-03) + last-viewed-category column/write (D-08) + hand-written Alembic migration ((initiative_id, version) unique constraint + last_viewed_category_id) (Wave 1; HIST-01, SAVE-03, SAVE-04)
+- [x] 15-02-PLAN.md — Greenfield GET /initiatives/{id}/assessments history endpoint + AssessmentSummary schema + list_submitted_assessments helper (Wave 1; HIST-02)
+- [x] 15-03-PLAN.md — Frontend plumbing rebuild: new questionnaire.ts types + flushAnswerBeacon, useDebouncedSave hook, RadioScale/QuestionCard/StepPills, delete orphaned components (Wave 1; QSTN-02, SAVE-01, SAVE-02)
+
+**Wave 2** *(frontend, depends on Wave 1; two plans run in parallel — disjoint files)*
+
+- [x] 15-04-PLAN.md — WizardPage rebuild: debounced autosave + retry/terminal-block (SAVE-01/02) + beforeunload keepalive flush + resume-at-last-category (SAVE-04/D-08) + category-per-page nav (Wave 2; SAVE-01, SAVE-02, SAVE-04, HIST-01)
+- [x] 15-05-PLAN.md — History page (/assessments list + comparison table, HIST-02) + dashboard history link + confirmed retake dialog (D-13/D-17) (Wave 2; HIST-02, HIST-01)
+
+**Gap Closure** *(from 15-VERIFICATION.md — 2 blocking gaps; plans 15-06/15-07 added 2026-07-26; plan 15-08 added 2026-07-26 for the re-verification's new blocking finding)*
+
+- [x] 15-06-PLAN.md — Retake made functional end-to-end: POST /initiatives/{id}/retake resets Initiative.status + creates version-incremented blank draft; dashboard confirm dialog wired; real submit→retake→save e2e test (Gap 1; HIST-01)
+- [x] 15-07-PLAN.md — Frozen score history: Assessment.dimension_scores JSONB snapshot column + migration, snapshot at submit, snapshot-preferring history read, zero-division guard, config-drift test, REQUIREMENTS.md traceability fix (Gap 2; HIST-02)
+- [x] 15-08-PLAN.md — Submit completeness gate: submit_initiative calls assert_assessment_complete before freezing dimension_scores (422 on incomplete draft, mirroring scoring.py/reports.py); new 422 regression test + fix pre-existing retake test to answer full config (Gap 3; HIST-02, SCOR-04)
+
 **UI hint**: yes
 
 ### Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation
@@ -199,7 +218,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 0/TBD | Not started | - |
+| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |

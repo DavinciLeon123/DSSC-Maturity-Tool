@@ -20,3 +20,11 @@ class AnswerRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LastViewedCategoryUpdate(BaseModel):
+    """D-08: request body for the dedicated PATCH .../last-viewed-category
+    endpoint. Written unconditionally (independent of any answer save) so a
+    bare navigation to a category still persists resume position."""
+
+    category_id: str

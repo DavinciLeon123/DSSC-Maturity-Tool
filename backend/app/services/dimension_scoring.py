@@ -59,6 +59,29 @@ def get_current_assessment(session: Session, initiative_id: int) -> Assessment |
     ).first()
 
 
+def list_submitted_assessments(session: Session, initiative_id: int) -> list[Assessment]:
+    """All SUBMITTED Assessments for this initiative, ordered by version
+    (HIST-02).
+
+    Deliberately a separate query from `get_current_assessment` above, per
+    RESEARCH Pitfall 5 — that function's docstring explicitly scopes itself
+    to the most-recent DRAFT assessment ("what am I filling in right now")
+    and must not be generalized/reused here. This helper answers a genuinely
+    different question ("what have I finished in the past"); conflating the
+    two risks surfacing an in-progress, not-yet-submitted retake in the
+    history list as if it were a completed version."""
+    return list(
+        session.exec(
+            select(Assessment)
+            .where(
+                Assessment.initiative_id == initiative_id,
+                Assessment.status == AssessmentStatus.submitted,
+            )
+            .order_by(Assessment.version)  # type: ignore[arg-type]
+        ).all()
+    )
+
+
 def assert_assessment_complete(session: Session, initiative_id: int, config: dict) -> Assessment:
     """Raises HTTPException(422) if no draft assessment exists, or if the
     initiative's current draft assessment has not answered every question_id
@@ -115,7 +138,12 @@ def compute_dimension_scores(session: Session, assessment_id: int, config: dict)
         {
             "category_id": cat_id,
             "name": names[cat_id],
-            "score": round(sums.get(cat_id, 0) / n_questions, 2),
+            # WR-04: a config category with zero questions yields 0.0
+            # rather than raising ZeroDivisionError. This function is now
+            # called directly on the submit path (a real, user-triggered
+            # crash surface), not just read-only history display, so the
+            # guard is load-bearing here, not cosmetic.
+            "score": round(sums.get(cat_id, 0) / n_questions, 2) if n_questions else 0.0,
         }
         for cat_id, n_questions in counts.items()
     ]

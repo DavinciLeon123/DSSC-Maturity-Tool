@@ -10,7 +10,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 ### Questionnaire (QSTN)
 
 - [x] **QSTN-01**: User answers a 52-question assessment organized into 6 categories (dimensions)
-- [ ] **QSTN-02**: Each question presents 5 answer options via a horizontal line with radio circles, each mapped to a 1-5 maturity score
+- [x] **QSTN-02**: Each question presents 5 answer options via a horizontal line with radio circles, each mapped to a 1-5 maturity score
 - [x] **QSTN-03**: Question and answer-option text (including per-question custom option labels) is fully config-driven — no code deploy required to change content
 - [x] **QSTN-04**: Questionnaire is universal — no DSI/Service-Provider (or other) participant-type split
 - [x] **QSTN-05**: Real v2.0 question and category content is loaded into config (content pending from user, tracked separately from engineering work)
@@ -31,15 +31,15 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Retake & History (HIST)
 
-- [ ] **HIST-01**: Retaking the questionnaire creates a new, dated assessment version rather than overwriting or mutating the previous submitted one
-- [ ] **HIST-02**: User can view a history of their past assessments and compare maturity scores across versions
+- [x] **HIST-01**: Retaking the questionnaire creates a new, dated assessment version rather than overwriting or mutating the previous submitted one
+- [x] **HIST-02**: User can view a history of their past assessments and compare maturity scores across versions
 
 ### Save Reliability (SAVE)
 
-- [ ] **SAVE-01**: Answers are auto-saved as the user answers each question (debounced), not only on Next/Back navigation or component unmount
-- [ ] **SAVE-02**: Save failures are surfaced to the user with a clear retry path — no silent fire-and-forget saves
-- [ ] **SAVE-03**: Rate limiting on answer-save requests is keyed per authenticated user, not per client IP
-- [ ] **SAVE-04**: Closing the tab or hard-refreshing mid-questionnaire does not silently lose unsaved answers
+- [x] **SAVE-01**: Answers are auto-saved as the user answers each question (debounced), not only on Next/Back navigation or component unmount
+- [x] **SAVE-02**: Save failures are surfaced to the user with a clear retry path — no silent fire-and-forget saves
+- [x] **SAVE-03**: Rate limiting on answer-save requests is keyed per authenticated user, not per client IP
+- [x] **SAVE-04**: Closing the tab or hard-refreshing mid-questionnaire does not silently lose unsaved answers
 
 ### Data Migration (MIGR)
 
@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | QSTN-01 | Phase 13 | Complete |
-| QSTN-02 | Phase 15 | Pending |
+| QSTN-02 | Phase 15 | Complete |
 | QSTN-03 | Phase 13 | Complete |
 | QSTN-04 | Phase 13 | Complete |
 | QSTN-05 | Phase 13 | Complete |
@@ -106,12 +106,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPRT-02 | Phase 16 | Pending |
 | RPRT-03 | Phase 16 | Pending |
 | RPRT-04 | Phase 16 | Pending |
-| HIST-01 | Phase 15 | Pending |
-| HIST-02 | Phase 15 | Pending |
-| SAVE-01 | Phase 15 | Pending |
-| SAVE-02 | Phase 15 | Pending |
-| SAVE-03 | Phase 15 | Pending |
-| SAVE-04 | Phase 15 | Pending |
+| HIST-01 | Phase 15 | Complete |
+| HIST-02 | Phase 15 | Complete |
+| SAVE-01 | Phase 15 | Complete |
+| SAVE-02 | Phase 15 | Complete |
+| SAVE-03 | Phase 15 | Complete |
+| SAVE-04 | Phase 15 | Complete |
 | MIGR-01 | Phase 13 | Complete |
 | MIGR-02 | Phase 13 | Complete |
 | SECU-01 | Phase 18 | Pending |
