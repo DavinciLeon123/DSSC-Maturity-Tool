@@ -1754,6 +1754,52 @@
         ]
       }
     },
+    "/api/v1/initiatives/{initiative_id}/retake": {
+      "post": {
+        "description": "HIST-01 gap closure (CR-01): the explicit, confirmed user action that\nactually unlocks a submitted initiative for a retake and creates a fresh,\nversion-incremented draft Assessment \u2014 the missing reset that made the\nversion-increment machinery in _get_or_create_draft_assessment\nunreachable through the real UI (15-VERIFICATION.md Gap 1).\n\nOwnership is re-derived here exactly like every other route in this file\n(Initiative.user_id == current_user.id, 404/403) before any state change\n\u2014 the path id is never trusted as authorization on its own (security V4,\nT-15-06-01).\n\nOnly a currently-submitted initiative can be retaken (409 otherwise) \u2014\nthis enforces D-13 (a retake is an explicit action on a completed\nassessment, never an implicit side effect) and prevents silently\nversion-bumping a draft that is still in progress (T-15-06-03).",
+        "operationId": "retake_initiative_api_v1_initiatives__initiative_id__retake_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "initiative_id",
+            "required": true,
+            "schema": {
+              "title": "Initiative Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Retake Initiative",
+        "tags": [
+          "initiatives"
+        ]
+      }
+    },
     "/api/v1/initiatives/{initiative_id}/score": {
       "post": {
         "description": "Score the initiative's current draft Assessment against the 6 DSSC\nmaturity dimensions (D-04, SCOR-01/02).\n\nVerifies ownership first (404 when the initiative doesn't exist, 403\nwhen it isn't the caller's), THEN enforces the SCOR-04 completion gate\n(422 \"Questionnaire not fully answered\" when no draft assessment exists\nor it isn't 100% answered) \u2014 ordering matters so a caller can never\ndistinguish \"not yours\" from \"not complete\" (T-14-01). On success,\nreturns one equal-weight per-category average per dimension, in config\ncategory order.",
