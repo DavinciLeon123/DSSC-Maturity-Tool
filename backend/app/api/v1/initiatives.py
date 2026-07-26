@@ -146,9 +146,7 @@ def retake_initiative(
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
     if initiative.status != InitiativeStatus.submitted:
-        raise HTTPException(
-            status_code=409, detail="Only a submitted initiative can be retaken"
-        )
+        raise HTTPException(status_code=409, detail="Only a submitted initiative can be retaken")
 
     initiative.status = InitiativeStatus.draft
     initiative.updated_at = datetime.utcnow()
