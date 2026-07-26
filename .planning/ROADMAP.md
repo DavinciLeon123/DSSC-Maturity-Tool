@@ -155,10 +155,11 @@ Plans:
 - [x] 15-04-PLAN.md — WizardPage rebuild: debounced autosave + retry/terminal-block (SAVE-01/02) + beforeunload keepalive flush + resume-at-last-category (SAVE-04/D-08) + category-per-page nav (Wave 2; SAVE-01, SAVE-02, SAVE-04, HIST-01)
 - [x] 15-05-PLAN.md — History page (/assessments list + comparison table, HIST-02) + dashboard history link + confirmed retake dialog (D-13/D-17) (Wave 2; HIST-02, HIST-01)
 
-**Gap Closure** *(from 15-VERIFICATION.md — 2 blocking gaps; plans 15-06/15-07 added 2026-07-26)*
+**Gap Closure** *(from 15-VERIFICATION.md — 2 blocking gaps; plans 15-06/15-07 added 2026-07-26; plan 15-08 added 2026-07-26 for the re-verification's new blocking finding)*
 
 - [x] 15-06-PLAN.md — Retake made functional end-to-end: POST /initiatives/{id}/retake resets Initiative.status + creates version-incremented blank draft; dashboard confirm dialog wired; real submit→retake→save e2e test (Gap 1; HIST-01)
 - [x] 15-07-PLAN.md — Frozen score history: Assessment.dimension_scores JSONB snapshot column + migration, snapshot at submit, snapshot-preferring history read, zero-division guard, config-drift test, REQUIREMENTS.md traceability fix (Gap 2; HIST-02)
+- [ ] 15-08-PLAN.md — Submit completeness gate: submit_initiative calls assert_assessment_complete before freezing dimension_scores (422 on incomplete draft, mirroring scoring.py/reports.py); new 422 regression test + fix pre-existing retake test to answer full config (Gap 3; HIST-02, SCOR-04)
 
 **UI hint**: yes
 
