@@ -111,8 +111,17 @@ function DashboardPage() {
           "This creates a new, permanent version in your history. Your previous submitted assessment stays unchanged, and you'll answer all 52 questions again from scratch — nothing carries over.",
         okText: "Start new assessment",
         cancelText: "Cancel",
-        onOk: () => {
-          navigate({ to: "/questionnaire" });
+        onOk: async () => {
+          try {
+            await api.post(`/initiatives/${initiative.id}/retake`);
+            navigate({ to: "/questionnaire" });
+          } catch {
+            setReportError("Could not start a new assessment. Please try again.");
+            // antd Modal.confirm keeps the dialog open when onOk's promise
+            // rejects — re-throw so a failed retake never navigates into a
+            // still-locked questionnaire.
+            throw new Error("retake failed");
+          }
         },
       });
       return;
