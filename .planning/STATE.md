@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 15 UI-SPEC approved
-last_updated: "2026-07-25T10:41:42.858Z"
+stopped_at: Completed 15-08-PLAN.md (gap-closure)
+last_updated: "2026-07-26T12:37:11.913Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 18
-  completed_plans: 13
+  completed_phases: 4
+  total_plans: 21
+  completed_plans: 21
 ---
 
 # Project State
@@ -140,9 +140,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-07-24T17:32:59.527Z
-**Stopped at:** Phase 15 UI-SPEC approved
-**Resume file:** .planning/phases/15-questionnaire-submission-api-wizard-ui-save-reliability/15-UI-SPEC.md
+**Last session:** 2026-07-26T12:37:11.908Z
+**Stopped at:** Completed 15-08-PLAN.md (gap-closure)
+**Resume file:** None
 
 ## Performance Metrics
 
@@ -156,6 +156,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 14 P02 | 17min | 2 tasks | 2 files |
 | Phase 14 P03 | 22min | 3 tasks | 6 files |
 | Phase 14 P04 | 12min | 3 tasks | 11 files |
+| Phase 15 P08 | 25min | 2 tasks | 4 files |
 
 ## Decisions
 
@@ -181,3 +182,4 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 14-04]: Built test_zen_removed.py's search tokens from string-concatenation parts (Phase 13 test_evidence_removed.py precedent) even though the scan never touches backend/tests — extra guard against a future refactor widening scan scope
 - [Phase 14-04]: Deliberately excluded a bare "mami_config" substring scan from the static removal test — mami_config.py survives with legitimate load_dssc_questionnaire_config/load_questionnaire_config(s) loaders; only the specific removed symbols are asserted absent
 - [Phase 14-04]: SCOR-03 marked complete — Phase 14 fully executed (4/4 plans), awaiting verification before Phase 15
+- [Phase ?]: [Phase 15-08 gap-closure]: Added assert_assessment_complete completeness gate to submit_initiative (SCOR-04), closing 15-VERIFICATION.md's single blocking gap; also reordered initiative.status mutation to run after the gate (Rule 1 fix) to prevent a stale in-memory identity-map mutation surviving a rejected submit
