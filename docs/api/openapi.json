@@ -1850,7 +1850,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/submit": {
       "post": {
-        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.\n\nCR-01: also flips the initiative's current draft Assessment (if any) to\nsubmitted and stamps submitted_at \u2014 this is what actually locks\nquestionnaire answers against further edits (enforced in\nquestionnaire.py's upsert_answer), not just the Initiative row.",
+        "description": "Mark initiative as submitted. Idempotent \u2014 re-submitting an already-submitted one is OK.\n\nCR-01: also flips the initiative's current draft Assessment (if any) to\nsubmitted and stamps submitted_at \u2014 this is what actually locks\nquestionnaire answers against further edits (enforced in\nquestionnaire.py's upsert_answer), not just the Initiative row.\n\nHIST-02 (gap-closure plan 15-07): also computes and freezes the\nper-dimension score snapshot on `assessment.dimension_scores`, against\nthe config AS IT EXISTS RIGHT NOW (submission time). This is the one\nand only place scores are computed for a submitted assessment \u2014 later\nedits to the live config must never retroactively change what this\nalready-submitted version displays in history.",
         "operationId": "submit_initiative_api_v1_initiatives__initiative_id__submit_post",
         "parameters": [
           {
