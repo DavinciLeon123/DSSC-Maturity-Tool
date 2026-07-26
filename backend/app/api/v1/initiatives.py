@@ -11,7 +11,11 @@ from app.models.initiative import Initiative, InitiativeStatus
 from app.models.user import User
 from app.schemas.assessment import AssessmentSummary
 from app.schemas.initiative import InitiativeCreate, InitiativeRead, InitiativeUpdate
-from app.services.dimension_scoring import compute_dimension_scores, list_submitted_assessments
+from app.services.dimension_scoring import (
+    assert_assessment_complete,
+    compute_dimension_scores,
+    list_submitted_assessments,
+)
 
 router = APIRouter(prefix="/initiatives", tags=["initiatives"])
 
@@ -99,6 +103,14 @@ def submit_initiative(
     and only place scores are computed for a submitted assessment — later
     edits to the live config must never retroactively change what this
     already-submitted version displays in history.
+
+    SCOR-04 (gap-closure plan 15-08): before freezing that snapshot, enforces
+    the same server-side completeness gate every other scoring/reporting
+    endpoint already uses (`scoring.py:50`, `reports.py`) via
+    `assert_assessment_complete` — an incomplete draft can never be
+    permanently locked in as a garbage submitted version. Only checked when
+    a draft assessment actually exists; the idempotent re-submit path (no
+    draft) correctly skips the gate and stays 200.
     """
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
@@ -118,6 +130,7 @@ def submit_initiative(
         .order_by(Assessment.created_at.desc())  # type: ignore[attr-defined]
     ).first()
     if assessment:
+        assert_assessment_complete(session, initiative_id, config)
         assessment.status = AssessmentStatus.submitted
         assessment.submitted_at = datetime.utcnow()
         assert assessment.id is not None  # already persisted (draft rows are lazily created)
