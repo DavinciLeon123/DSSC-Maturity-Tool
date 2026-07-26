@@ -176,7 +176,22 @@ Plans:
   4. The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views.
   5. An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 16-01-PLAN.md — Report-contract foundation: maturity_bands config key + get_maturity_band/build_priority_list/generate_radar_svg/build_report_contract + schemas/report.py + unit tests (Wave 1; RPRT-01/02/03)
+
+**Wave 2** *(depends on 16-01; the two plans run in parallel — disjoint files)*
+
+- [ ] 16-02-PLAN.md — reports.py rebuilt on the frozen contract: resolve_report_assessment (fix draft-scoped 422 bug), assessment_id per-version viewing, admin bypass, drop ComplianceReport, rebuild report.html + submitted-lifecycle tests (Wave 2; RPRT-04/01/02)
+- [ ] 16-03-PLAN.md — Admin aggregation: admin_aggregation.py latest-submitted-per-initiative + org-average radar + empty guard, /admin/heatmap rebuilt with real response models + tests (Wave 2; ADMN-01)
+
+**Wave 3** *(depends on 16-02 + 16-03)*
+
+- [ ] 16-04-PLAN.md — Frontend consumers: report.tsx radar SVG + priority list (per-version), admin.heatmap.tsx org radar + per-initiative table, reports.ts contract fetch, openapi.json regen (Wave 3; RPRT-01/02/04, ADMN-01)
+
 **UI hint**: yes
 
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
