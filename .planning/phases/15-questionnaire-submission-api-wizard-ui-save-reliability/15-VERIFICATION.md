@@ -1,36 +1,47 @@
 ---
 phase: 15-questionnaire-submission-api-wizard-ui-save-reliability
-verified: 2026-07-26T00:00:00Z
+verified: 2026-07-26T11:24:00Z
 status: gaps_found
-score: 4/5 must-haves verified
+score: 5/6 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 4/5
+  gaps_closed:
+    - "Gap 1 (CR-01/HIST-01): Initiative.status never reset after submit, permanently locking retakes with a 403 — CLOSED by 15-06's POST /initiatives/{id}/retake endpoint + dashboard wiring. Independently re-verified: real end-to-end test (submit -> 403 -> retake -> 200) passes; grep confirms initiative.status = InitiativeStatus.draft now exists in retake_initiative; dashboard.tsx awaits the retake call before navigating."
+    - "Gap 2 (CR-02/HIST-02): assessment history recomputed scores live against the current config instead of freezing at submission — CLOSED by 15-07's Assessment.dimension_scores JSONB snapshot column + submit-time freeze + snapshot-preferred history read. Independently re-verified: migration k2b3c4d5e6f7 chains cleanly from j1a2b3c4d5e6 (single head); test_frozen_scores.py proves history survives a live-config mutation (renamed category) served via dependency override; legacy-fallback (dimension_scores=None) path still passes test_assessment_history.py unchanged."
+  gaps_remaining: []
+  regressions:
+    - "NEW (not a regression of the original 2 gaps, but a newly-introduced defect surfaced by 15-07's own diff, confirmed independently per this re-verification's mandate): submit_initiative never calls assert_assessment_complete before computing and permanently freezing dimension_scores, unlike every other scoring/reporting endpoint (scoring.py:50, reports.py:117/171/194/217/246/277). Any authenticated user can submit and permanently lock a wildly incomplete questionnaire. See gaps below."
 gaps:
-  - truth: "Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one"
+  - truth: "Every full completion creates a new, permanently preserved assessment version the user can return to (implicit corollary: an INCOMPLETE questionnaire must not be permanently frozen as a version with no correction path short of destroying real answers)"
     status: failed
-    reason: "Nothing in the codebase ever resets Initiative.status from 'submitted' back to 'draft'. The dashboard's 'Retake Questionnaire'/'Start new assessment' flow navigates straight to /questionnaire after confirmation, but the very first answer-save (PUT /questionnaire/initiatives/{id}/answers/{question_id}) and the last-viewed-category write (PATCH .../last-viewed-category) both explicitly 403 with 'Submitted assessments cannot be edited' whenever initiative.status == submitted. The version-increment machinery in _get_or_create_draft_assessment (the actual point of migration j1a2b3c4d5e6) is therefore unreachable through the UI for any initiative that has ever submitted once. Verified independently: grep -rn 'InitiativeStatus.draft|status = InitiativeStatus' across backend/app/ shows the only assignment is the one-way flip to submitted in submit_initiative (initiatives.py:99); dashboard.tsx's handleStartOrRetake (lines 101-121) performs no API call before navigating; and no test anywhere in backend/tests calls the real POST /submit endpoint before attempting a retake answer-save — test_version_increment_on_retake_after_prior_submission explicitly flips Assessment.status directly via the DB session with an inline comment acknowledging this is 'without flipping the Initiative itself ... initiative-level submission-lock is a separate concern from this plan's scope.'"
+    reason: >
+      Independently reproduced (not just code-read): submit_initiative (backend/app/api/v1/initiatives.py:82-128)
+      never calls assert_assessment_complete before computing and persisting assessment.dimension_scores. Every
+      other scoring/reporting endpoint in this codebase (scoring.py:50, reports.py:117,171,194,217,246,277) calls
+      assert_assessment_complete(session, initiative_id, config) first; submit_initiative — the exact endpoint
+      15-07 modified to call compute_dimension_scores directly — does not, even though compute_dimension_scores's
+      own docstring (dimension_scoring.py:120-124) says completeness verification is "the caller's" obligation.
+      I wrote and ran a standalone repro test (not part of the committed suite) that: creates a user+initiative,
+      answers exactly 1 of 52 real config questions (q-1-1), and calls the real POST /initiatives/{id}/submit.
+      Result: HTTP 200 (not 422), and the frozen, permanent GET /initiatives/{id}/assessments snapshot reads
+      overall_average: 0.07 with 5 of 6 categories permanently scored 0.0 (only cat-1 scores 0.44 = round(4/9,2)).
+      This is also directly provable from the gap-closure plans' own committed test suite: 15-06's
+      test_retake_flow.py::test_submit_then_retake_unlocks_editing_and_creates_v2_draft answers only q-1-1 and
+      asserts submit_response.status_code == 200 against the real 52-question config — i.e. the test written to
+      prove the retake fix incidentally proves this submit-completeness gap is real and already shipped. Once
+      frozen, the only way to correct a garbage snapshot is a full retake, which (by design, D-14) wipes every
+      real answer — there is no "fix and resubmit" path. This also regresses SCOR-04 ("Report/scores are only
+      computed and shown once the full questionnaire is 100% answered") for the new submit-time snapshot code
+      path specifically, even though SCOR-04 continues to hold for scoring.py/reports.py.
     artifacts:
       - path: "backend/app/api/v1/initiatives.py"
-        issue: "submit_initiative (line 99) sets initiative.status = InitiativeStatus.submitted with no corresponding reset path anywhere else in the codebase"
-      - path: "frontend/src/routes/_app/dashboard.tsx"
-        issue: "handleStartOrRetake (lines 101-121) navigates to /questionnaire on confirm with no API call to unlock the initiative for editing"
-      - path: "backend/app/api/v1/questionnaire.py"
-        issue: "upsert_answer (line 158) and update_last_viewed_category (line 323) both 403 on initiative.status == submitted, which fires on the very first save attempt of a retake"
+        issue: "submit_initiative (lines 82-128) computes and freezes compute_dimension_scores(...) with no assert_assessment_complete gate beforehand, unlike scoring.py and reports.py"
     missing:
-      - "An explicit reset of Initiative.status back to draft as part of starting a retake — e.g. inside _get_or_create_draft_assessment when a genuinely new draft (version > 1) is being created, or via a dedicated POST /initiatives/{id}/retake endpoint the dashboard confirm-dialog calls before navigating to /questionnaire"
-      - "A real end-to-end test that calls POST /initiatives/{id}/submit, then attempts a subsequent answer PUT, and asserts the retake succeeds (200, not 403) with the new draft at version = 2"
-  - truth: "Retaking the questionnaire ... creates a new, dated assessment version ... the user can view and compare maturity scores across their past versions"
-    status: failed
-    reason: "Submitted assessment history is not actually frozen/immutable. compute_dimension_scores(session, assessment_id, config) (dimension_scoring.py:114-145) derives category names, per-category question counts, and score divisors entirely from the config dict injected via Depends(get_dssc_questionnaire_config) at REQUEST time — i.e. whatever config/dssc-questionnaire.json currently contains — not from the config as it existed when that assessment was submitted. list_assessment_history / _to_summary (initiatives.py:120-158) call this same live-config path for every submitted version. The module's own docstring (dimension_scoring.py:12-13) flags the config as 'an explicit placeholder pending real content (QSTN-05)' — i.e. it is expected to change soon. Once the real 52-question config replaces the current one (or any future edit adds/removes/renames questions or categories), every previously-submitted assessment's dimension_scores/overall_average returned by GET /initiatives/{id}/assessments will silently change to reflect the NEW config, not what the user actually answered against — directly contradicting the phase goal's 'permanently preserved assessment version' guarantee. Verified independently: no snapshot/frozen-scores column exists on the Assessment model (backend/app/models/assessment.py has only id/initiative_id/version/status/created_at/submitted_at/last_viewed_category_id — no dimension_scores or config_version field), and no caller of compute_dimension_scores passes anything but the current live config."
-    artifacts:
-      - path: "backend/app/services/dimension_scoring.py"
-        issue: "compute_dimension_scores has no concept of 'the config as of submission time' — always uses the live config argument"
-      - path: "backend/app/models/assessment.py"
-        issue: "Assessment has no column to snapshot computed scores or the config version/hash used at submission"
-      - path: "backend/app/api/v1/initiatives.py"
-        issue: "_to_summary (lines 148-158) recomputes scores live for every historical/submitted row on every history-list request"
-    missing:
-      - "A snapshot mechanism: persist the computed dimension_scores (and overall_average) as a JSON column on Assessment at the moment submit_initiative flips it to submitted, and have list_assessment_history/_to_summary prefer that frozen snapshot over a live recompute when present — or at minimum persist a config version/hash and reject/flag recomputation against a different version"
+      - "Call assert_assessment_complete(session, initiative_id, config) before flipping the draft assessment to submitted / computing dimension_scores in submit_initiative, returning 422 'Questionnaire not fully answered' for an incomplete draft (mirroring scoring.py/reports.py's existing pattern) — see 15-REVIEW-gaps.md's CR-01 fix suggestion, which also correctly notes an already-submitted initiative's idempotent re-submit path should stay a no-op 200 and not re-run the gate against a draft that no longer exists"
+      - "A regression test asserting POST /submit returns 422 (not 200) when fewer than all config questions are answered, mirroring the existing 422 tests for scoring.py/reports.py"
 deferred: []
 human_verification: []
 ---
@@ -38,9 +49,9 @@ human_verification: []
 # Phase 15: Questionnaire Submission API + Wizard UI + Save Reliability Verification Report
 
 **Phase Goal:** A user can take the full 52-question questionnaire through a rebuilt wizard whose answers save reliably in the background, and every full completion creates a new, permanently preserved assessment version the user can return to.
-**Verified:** 2026-07-26
+**Verified:** 2026-07-26T11:24:00Z
 **Status:** gaps_found
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after gap closure (plans 15-06, 15-07), with an additional independently-verified finding from `15-REVIEW-gaps.md` factored in
 
 ## Goal Achievement
 
@@ -48,98 +59,97 @@ human_verification: []
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Each question presents its 5 answer options as a horizontal line of radio circles (config-driven labels), each mapped to a 1-5 score | ✓ VERIFIED | `AnswerButtonGroup.tsx` renders `options.map(...)` in a `flexDirection: "row"` container, one circle+label per option, `value === opt.score` drives selection; `config/dssc-questionnaire.json` confirmed via inspection to have exactly 5 `default_options` mapped to scores 1-5, 6 categories, 52 total questions |
-| 2 | Answers auto-save in the background within a few seconds of being selected (debounced), without requiring Next/Back, and rate limiting is keyed per authenticated user | ✓ VERIFIED | `useDebouncedSave.ts` schedules a save 1500ms after each `handleAnswerChange` call (no Next/Back needed) with a per-question `useRef` timer map; `questionnaire.py`'s `get_user_or_ip_key` decodes the Bearer token via `decode_access_token` and returns `user:<sub>`, applied via `@limiter.limit("120/minute")` on `upsert_answer` and `update_last_viewed_category`; 5 dedicated unit tests (`test_rate_limit_key_*`) pass, confirming determinism/idempotency/no-collision |
-| 3 | If an autosave fails, the user sees a clear, visible error with a retry action — never a silent lost save | ✓ VERIFIED | `useDebouncedSave`'s `saveWithRetry` performs 3 auto-retries (1s/2s/4s) then sets state `"failed"`; `WizardPage`'s `AutosaveBadge` renders a red "Save failed" message + a "Retry save" button wired to `handleRetryAllFailed`/`handleRetrySave`; `hasTerminalFailure` blocks Next/Submit (no dismiss/continue-anyway path) |
-| 4 | Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume | ✓ VERIFIED | `beforeunload` handler fires `flushAnswerBeacon` (native `fetch` + `keepalive:true` + Authorization header) for every still-pending answer; on mount, `questionnaire.tsx` fetches `fetchAnswers` + `fetchLastViewedCategory` + config before rendering the wizard; `WizardPage` initializes `categoryIndex` from `lastViewedCategoryId` and `localAnswers` from `savedAnswers`; the dedicated `PATCH .../last-viewed-category` endpoint persists the viewed category unconditionally on every `categoryIndex` change (not piggybacked on answer saves), confirmed server-side in `questionnaire.py` |
-| 5 | Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions | ✗ FAILED | **CR-01 (confirmed independently):** `Initiative.status` is set to `submitted` exactly once (`initiatives.py:99`) and never reset to `draft` anywhere in the codebase (`grep -rn "InitiativeStatus.draft\|status = InitiativeStatus" backend/app/` shows only the one-way flip). Dashboard's `handleStartOrRetake` (`dashboard.tsx:101-121`) navigates straight to `/questionnaire` with no API call to unlock editing. The very first answer-save on a retake 403s (`questionnaire.py:158`/`:323`, "Submitted assessments cannot be edited"), so the version-increment code this phase's migration exists for is unreachable through the real UI. No test anywhere calls the real `POST /submit` before a retake save — `test_version_increment_on_retake_after_prior_submission` explicitly bypasses it, flipping `Assessment.status` directly in the DB session with an inline comment acknowledging the initiative-level lock is untested here. **CR-02 (confirmed independently):** historical/submitted scores are not frozen — `compute_dimension_scores` (`dimension_scoring.py:114-145`) always derives category structure and score divisors from the live config injected at request time; no snapshot column exists on `Assessment` (`assessment.py`); once the placeholder config (explicitly flagged as pending real QSTN-05 content) is replaced, every past version's displayed scores will silently drift, undermining "permanently preserved." |
+| 1 | Each question presents its 5 answer options as a horizontal line of radio circles (config-driven labels), each mapped to a 1-5 score | ✓ VERIFIED | Unchanged since initial verification; regression check: `AnswerButtonGroup.tsx` still present and unmodified by 15-06/15-07 |
+| 2 | Answers auto-save in the background within a few seconds of being selected (debounced), without requiring Next/Back, and rate limiting is keyed per authenticated user | ✓ VERIFIED | Unchanged; `useDebouncedSave.ts` untouched by gap-closure plans; regression suite (`test_questionnaire_answers.py`) still 20 passed |
+| 3 | If an autosave fails, the user sees a clear, visible error with a retry action — never a silent lost save | ✓ VERIFIED | Unchanged; `WizardPage.tsx` retry/`AutosaveBadge` logic untouched by 15-06/15-07's diff (only `submitMutation`/dashboard-adjacent code was touched) |
+| 4 | Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume | ✓ VERIFIED | Unchanged; `flushAnswerBeacon`/resume-on-mount logic untouched |
+| 5 | Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions | ✓ VERIFIED | **Gap 1 (CR-01/HIST-01) CLOSED:** `POST /initiatives/{id}/retake` (`initiatives.py:131-174`) re-derives ownership, 409-guards a non-submitted initiative, resets `Initiative.status = InitiativeStatus.draft`, and reuses `_get_or_create_draft_assessment` for the race-safe version-increment. `dashboard.tsx`'s `handleStartOrRetake` now `await`s this call before navigating, re-throwing on failure to keep the confirm dialog open. Independently re-ran `backend/tests/api/test_retake_flow.py` (3 tests, real HTTP: submit -> 403 -> retake -> 200, 409 non-submitted guard, 403 non-owner) — all pass. **Gap 2 (CR-02/HIST-02) CLOSED:** `Assessment.dimension_scores` (nullable JSONB, `assessment.py`) is now computed once at submit time (`initiatives.py:120-125`) and `_to_summary` (`initiatives.py:205-225`) prefers the frozen snapshot, falling back to live recompute only when `None` (legacy rows). Independently re-ran `test_frozen_scores.py` (2 tests: freeze-under-config-drift proof via `dependency_overrides`, legacy-fallback control) and `test_assessment_history.py` (fallback-path regression) — all pass. Migration `k2b3c4d5e6f7` confirmed single head chaining from `j1a2b3c4d5e6` via `ruff`/`mypy`/pytest all green. |
+| 6 (new, derived from phase goal's "every **full** completion ... **permanently** preserved") | Only a fully-answered questionnaire can be submitted and permanently frozen as a version — no partial/garbage submission is ever permanently preservable | ✗ FAILED | **New finding (CR-01 in `15-REVIEW-gaps.md`), independently reproduced, not merely code-read:** wrote and ran a standalone test that answers 1 of 52 real config questions, then calls the real `POST /initiatives/{id}/submit` — result: HTTP 200, and `GET /initiatives/{id}/assessments` permanently returns `overall_average: 0.07` (5 of 6 categories frozen at `0.0`). `submit_initiative` never calls `assert_assessment_complete`, unlike `scoring.py:50` and `reports.py:117,171,194,217,246,277`. Also directly provable from the committed `test_retake_flow.py::test_submit_then_retake_unlocks_editing_and_creates_v2_draft`, which answers only `q-1-1` and asserts `submit_response.status_code == 200` against the real 52-question config. See Gaps Summary. |
 
-**Score:** 4/5 truths verified (0 present, behavior-unverified)
+**Score:** 5/6 truths verified (0 present, behavior-unverified)
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `backend/app/models/assessment.py` | `last_viewed_category_id` + `(initiative_id, version)` unique constraint | ✓ VERIFIED | Both present, model-declared `__table_args__` |
-| `backend/alembic/versions/j1a2b3c4d5e6_...py` | migration for above | ✓ VERIFIED | Exists; `tests/migrations/test_assessment_version_migration.py` passes (upgrade/downgrade round-trip, duplicate-pair IntegrityError) |
-| `backend/app/api/v1/questionnaire.py` | `get_user_or_ip_key`, version-increment, PATCH last-viewed-category | ✓ VERIFIED | All three present and wired; **but** version-increment path is unreachable for retakes (see Truth 5/CR-01) |
-| `backend/app/schemas/questionnaire.py` | `LastViewedCategoryUpdate` schema | ✓ VERIFIED | Present, imported and used |
-| `backend/app/schemas/assessment.py` | `AssessmentSummary` schema | ✓ VERIFIED | Present; `dimension_scores: list[dict]` is untyped (WR-02 from code review — minor, not blocking) |
-| `backend/app/services/dimension_scoring.py` | `list_submitted_assessments` helper | ✓ VERIFIED | Present, separate query from `get_current_assessment` per plan's Pitfall-5 design |
-| `backend/app/api/v1/initiatives.py` | `GET /{id}/assessments` route | ✓ VERIFIED | Present, ownership re-derived, calls `list_submitted_assessments` + `_to_summary` |
-| `frontend/src/lib/questionnaire.ts` | rewritten types + API wrappers + `flushAnswerBeacon` | ✓ VERIFIED | Confirmed |
-| `frontend/src/hooks/useDebouncedSave.ts` | per-question debounce + retry state machine | ✓ VERIFIED | Confirmed |
-| `frontend/src/components/questionnaire/AnswerButtonGroup.tsx` | horizontal 5-circle RadioScale | ✓ VERIFIED | Confirmed |
-| `frontend/src/components/questionnaire/QuestionCard.tsx` | text + RadioScale only | ✓ VERIFIED | Confirmed; followup/context branches removed |
-| `frontend/src/components/questionnaire/StepPills.tsx` | category stepper + answered-count | ✓ VERIFIED | Confirmed, config-derived total |
-| `frontend/src/components/questionnaire/WizardPage.tsx` | rebuilt wizard w/ debounce/retry/beforeunload/resume | ✓ VERIFIED | Confirmed; `tsc -b --noEmit` clean project-wide |
-| `frontend/src/lib/assessments.ts` | `fetchAssessmentHistory` wrapper | ✓ VERIFIED | Thin wrapper over `GET /initiatives/{id}/assessments` |
-| `frontend/src/routes/_app/assessments.tsx` | history list + comparison table | ✓ VERIFIED | Both tables present, empty/loading/error states implemented |
-| `frontend/src/routes/_app/dashboard.tsx` | "View assessment history" + retake confirm dialog | ⚠️ ORPHANED (partial) | UI present and wired to navigation, but the confirm dialog's `onOk` does not perform the state transition needed for the retake to actually work (see CR-01) |
-| `ContextCallout.tsx` / `FollowupPanel.tsx` | deleted | ✓ VERIFIED | Confirmed deleted, no remaining references |
+| `backend/app/api/v1/initiatives.py :: retake_initiative` (POST /initiatives/{id}/retake) | 15-06 gap-closure endpoint | ✓ VERIFIED | Present at lines 131-174; ownership 404/403, 409 guard, status reset, reuses `_get_or_create_draft_assessment`; ruff/mypy clean |
+| `frontend/src/routes/_app/dashboard.tsx :: handleStartOrRetake` | now calls POST /retake before navigating | ✓ VERIFIED | Confirmed at lines 101-127: `await api.post(.../retake)` then `navigate`, catch re-throws to keep dialog open on failure |
+| `backend/tests/api/test_retake_flow.py` | real end-to-end retake test | ✓ VERIFIED | 3 tests, all pass; genuinely drives real HTTP `POST /submit` and `POST /retake` (no direct DB status flips) |
+| `backend/app/models/assessment.py :: Assessment.dimension_scores` | nullable JSONB snapshot column | ✓ VERIFIED | Present, mirrors `questionnaire_answer_archive.py`'s JSONB idiom |
+| `backend/alembic/versions/k2b3c4d5e6f7_...py` | frozen-scores migration, chains from j1a2b3c4d5e6 | ✓ VERIFIED | Confirmed single head; `test_frozen_scores_migration.py` (2 tests) pass |
+| `backend/app/api/v1/initiatives.py :: submit_initiative` (snapshot) + `_to_summary` (prefers snapshot) | 15-07 gap-closure | ⚠️ VERIFIED-WITH-DEFECT | Snapshot mechanism itself works exactly as designed (frozen, immune to config drift) — **but** `submit_initiative` computes/freezes the snapshot without first verifying completeness (see Truth 6 / Gaps) |
+| `backend/app/services/dimension_scoring.py :: compute_dimension_scores` zero-guard (WR-04) | division-by-zero guard | ✓ VERIFIED | `round(sums.get(cat_id, 0) / n_questions, 2) if n_questions else 0.0` present |
+| `backend/tests/api/test_frozen_scores.py` + `backend/tests/migrations/test_frozen_scores_migration.py` | new tests | ✓ VERIFIED | 2 + 2 tests, all pass |
+| `.planning/REQUIREMENTS.md` | QSTN-02/SAVE-03 doc drift correction | ✓ VERIFIED | Both now `[x]`/Complete (previously flagged `Pending` in prior verification pass) |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|-----|-----|--------|---------|
-| `WizardPage.tsx` | `useDebouncedSave` | `schedule`/`flushAll` on answer change and Next/Back | ✓ WIRED | Confirmed |
-| `WizardPage.tsx` | `flushAnswerBeacon` | `beforeunload` listener | ✓ WIRED | Confirmed, one request per pending answer (not batched) |
-| `WizardPage.tsx` | PATCH last-viewed-category | `saveLastViewedCategory` on every `categoryIndex` change | ✓ WIRED | Confirmed, unconditional (not gated on answer save) |
-| `dashboard.tsx` | `/questionnaire` | `handleStartOrRetake` → `Modal.confirm` → `navigate` | ⚠️ PARTIAL | Dialog and navigation wired correctly, but no call resets `Initiative.status`, so the destination route 403s on first save (CR-01) |
-| `assessments.tsx` | `GET /initiatives/{id}/assessments` | `fetchAssessmentHistory` | ✓ WIRED | Confirmed, response pivoted client-side into both tables |
-| `questionnaire.py upsert_answer` | rate limiter | `@limiter.limit("120/minute")` + `get_user_or_ip_key` | ✓ WIRED | Confirmed |
+| `dashboard.tsx` confirm `onOk` | `POST /initiatives/{id}/retake` | `await api.post(...)` before `navigate` | ✓ WIRED | Confirmed; failure path re-throws to keep dialog open |
+| `retake_initiative` | `_get_or_create_draft_assessment` | direct cross-module import from `questionnaire.py` | ✓ WIRED | Confirmed, no circular import (`uv run python -c "import app.main"` clean per SUMMARY, and app already imports fine here) |
+| `submit_initiative` | `Assessment.dimension_scores` | `compute_dimension_scores(...)` assigned before commit | ✓ WIRED | Confirmed — **but missing the `assert_assessment_complete` precondition every sibling caller has (Truth 6 gap)** |
+| `list_assessment_history` / `_to_summary` | `Assessment.dimension_scores` | `a.dimension_scores if not None else compute_dimension_scores(...)` | ✓ WIRED | Confirmed via `test_frozen_scores.py`'s config-drift proof and the legacy-fallback control |
 
 ### Behavioral Spot-Checks / Test Execution
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Backend answer/history/migration/rate-limit tests | `uv run pytest tests/api/test_questionnaire_answers.py tests/api/test_assessment_history.py tests/migrations/test_assessment_version_migration.py -q` | 25 passed | ✓ PASS |
-| Frontend project-wide type check | `npx tsc -b --noEmit` (frontend) | no output / exit 0 | ✓ PASS |
-| Real HTTP retake path (`POST /submit` → `PUT answer`) | grep for any test calling `POST /submit` followed by an answer save | no such test exists anywhere in `backend/tests/` | ✗ FAIL (confirms CR-01 gap) |
-| Debt-marker scan (TBD/FIXME/XXX) on phase-touched files | `grep -rn -E "TBD|FIXME|XXX"` across all phase 15 files | no matches | ✓ PASS (no unresolved debt markers) |
+| Gap-closure test suites | `uv run pytest tests/api/test_retake_flow.py tests/api/test_frozen_scores.py tests/api/test_assessment_history.py tests/migrations/test_frozen_scores_migration.py -q` | 12 passed | ✓ PASS |
+| Regression: original phase-15 test areas | `uv run pytest tests/api/test_questionnaire_answers.py tests/api/test_assessment_history.py tests/migrations/ -q` | 31 passed | ✓ PASS |
+| ruff + mypy on touched files | `uv run ruff check app/api/v1/initiatives.py app/services/dimension_scoring.py app/models/assessment.py && uv run mypy app --ignore-missing-imports` | clean | ✓ PASS |
+| **Independent repro of CR-01 (new finding)** | Standalone test: answer 1/52 questions, `POST /submit`, assert status | **200 (bug reproduced)**, `overall_average: 0.07` permanently frozen | ✗ FAIL (confirms new gap; test discarded after use, not committed) |
+| Debt-marker scan (TBD/FIXME/XXX) on 15-06/15-07-touched files | `grep -rn -E "TBD|FIXME|XXX"` | no matches | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|------------|-------------|--------|----------|
-| QSTN-02 | 15-03 | 5-option horizontal radio scale, 1-5 score | ✓ SATISFIED | `AnswerButtonGroup.tsx` + config verified; **note:** `.planning/REQUIREMENTS.md` traceability table still marks this `Pending` — documentation was not updated even though the implementation is complete and correct (process gap, not a code gap) |
-| SAVE-01 | 15-03, 15-04 | Debounced auto-save without Next/Back | ✓ SATISFIED | `useDebouncedSave` + `WizardPage.handleAnswerChange` |
-| SAVE-02 | 15-03, 15-04 | Save failures surfaced with retry, no silent loss | ✓ SATISFIED | `AutosaveBadge` + terminal-failure blocking |
-| SAVE-03 | 15-01 | Rate limiting keyed per authenticated user | ✓ SATISFIED | `get_user_or_ip_key`, 5 passing unit tests; **note:** `.planning/REQUIREMENTS.md` traceability table still marks this `Pending` — same documentation gap as QSTN-02 |
-| SAVE-04 | 15-01, 15-04 | Tab close/refresh does not lose answers | ✓ SATISFIED | `flushAnswerBeacon` + resume-at-last-viewed-category |
-| HIST-01 | 15-01, 15-04, 15-05 | Retake creates new dated version, not overwrite | ✗ BLOCKED | Version-increment code exists and is unit-tested in isolation, but is unreachable through the real UI/API path — see CR-01. `.planning/REQUIREMENTS.md` marks this `Complete`, which this verification does not confirm. |
-| HIST-02 | 15-02, 15-05 | View/compare scores across past versions | ⚠️ PARTIAL | The list/compare UI and endpoint work correctly today, but the underlying scores are not actually frozen at submission time (CR-02), so the "past versions" the user compares are not guaranteed to reflect what they originally submitted once the config changes. `.planning/REQUIREMENTS.md` marks this `Complete`. |
+| QSTN-02 | 15-03 | 5-option horizontal radio scale, 1-5 score | ✓ SATISFIED | Unchanged; REQUIREMENTS.md now correctly marks Complete (doc-drift from prior pass fixed by 15-07) |
+| SAVE-01 | 15-03, 15-04 | Debounced auto-save without Next/Back | ✓ SATISFIED | Unchanged |
+| SAVE-02 | 15-03, 15-04 | Save failures surfaced with retry, no silent loss | ✓ SATISFIED | Unchanged |
+| SAVE-03 | 15-01 | Rate limiting keyed per authenticated user | ✓ SATISFIED | Unchanged; REQUIREMENTS.md doc-drift fixed |
+| SAVE-04 | 15-01, 15-04 | Tab close/refresh does not lose answers | ✓ SATISFIED | Unchanged |
+| HIST-01 | 15-01, 15-04, 15-05, 15-06 | Retake creates new dated version, not overwrite | ✓ SATISFIED | Closed by 15-06; real end-to-end test proves submit -> 403 -> retake -> 200 with v2 draft, v1 untouched |
+| HIST-02 | 15-02, 15-05, 15-07 | View/compare scores across past versions | ✓ SATISFIED (mechanism) | Freezing mechanism itself is correct and independently verified — but see the new Truth 6 finding: a version can be frozen from an incomplete questionnaire, which undermines the practical trustworthiness of "past versions" a user compares, even though the strict requirement wording ("view a history... compare maturity scores across versions") is met |
 
-**Orphaned requirements check:** All 7 phase requirement IDs (QSTN-02, SAVE-01, SAVE-02, SAVE-03, SAVE-04, HIST-01, HIST-02) appear in at least one plan's `requirements-completed` list — no orphans found.
+**Orphaned requirements check:** All 7 phase requirement IDs (QSTN-02, SAVE-01, SAVE-02, SAVE-03, SAVE-04, HIST-01, HIST-02) appear in at least one plan's `requirements-completed` list, including the two gap-closure plans (15-06: HIST-01, 15-07: HIST-02). No orphans found.
+
+**Cross-cutting note:** The new Truth 6 finding also touches **SCOR-04** ("Report/scores are only computed and shown once the full questionnaire is 100% answered", owned by Phase 14, already marked Complete in REQUIREMENTS.md). SCOR-04 still holds for `scoring.py`/`reports.py` — this verification found no regression there — but the new submit-time snapshot code path 15-07 added to `initiatives.py` is a second, un-gated place scores are now computed, and it does not honor SCOR-04's completeness precondition. This is flagged here because the defect lives entirely inside phase 15's own diff, not because SCOR-04 itself is reopened.
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `backend/alembic/versions/j1a2b3c4d5e6_...py` | 54-58 | Unguarded unique-constraint migration (WR-01 from code review) | ⚠️ Warning | Would fail mid-deployment against any pre-existing DB with duplicate `(initiative_id, version)` rows; not exercised by any test seeding such duplicates |
-| `backend/app/api/v1/questionnaire.py` | 292-331 | `update_last_viewed_category` doesn't validate `category_id` against config (WR-02) | ⚠️ Warning | Arbitrary strings can be persisted; frontend defensively falls back to index 0, so not exploitable, but inconsistent with `upsert_answer`'s validation |
-| `frontend/src/hooks/useDebouncedSave.ts`, `WizardPage.tsx:129-139` | — | Debounce/retry/auto-clear timers never cleared on unmount (WR-03) | ⚠️ Warning | Leaks timers/state updates on unmounted component if user navigates away via non-flush path |
-| `backend/app/services/dimension_scoring.py:137-144`, `initiatives.py:148-158` | — | Division by category/score count with no zero-guard (WR-04) | ⚠️ Warning | `ZeroDivisionError` → unhandled 500 if a config category has 0 questions or 0 categories exist |
+| `backend/app/api/v1/initiatives.py` | 82-128 | `submit_initiative` computes/freezes scores with no `assert_assessment_complete` gate (CR-01, `15-REVIEW-gaps.md`) | 🛑 Blocker | Confirmed via independent repro — see Gaps |
+| `backend/app/api/v1/questionnaire.py` (`upsert_answer`) | — | Narrow race: an answer write can land after a concurrent submit has already frozen the snapshot (WR-02, `15-REVIEW-gaps.md`) | ⚠️ Warning | Pre-existing lock check, but 15-07's frozen-snapshot guarantee is the first place this race affects data integrity, not just UX; not independently reproduced under load in this pass (narrow timing window) |
+| `backend/alembic/versions/k2b3c4d5e6f7_...py` | 28-31 | Downgrade docstring overstates "not lossy" — only true before the column is ever populated (WR-01) | ⚠️ Warning | Documentation risk for a future operator rollback in production |
+| `frontend/src/routes/_app/dashboard.tsx` | 111 | Hardcoded "52 questions" in retake dialog copy, unlike sibling components that always derive the count from config (WR-03) | ⚠️ Warning | Will silently go stale once QSTN-05 replaces the placeholder config |
+| `frontend/src/routes/_app/dashboard.tsx` | 118-124 | `reportError` state reused for retake failures (IN-01) | ℹ️ Info | Maintainability only |
+| `backend/tests/migrations/test_frozen_scores_migration.py` | — | No test exercises the lossy-downgrade case (IN-02) | ℹ️ Info | Documentation/test-completeness only |
 
-None of these four are debt markers (no TBD/FIXME/XXX) and none independently rise to BLOCKER severity, but they are pre-existing findings from the same-run code review (`15-REVIEW.md`) that remain unresolved; recorded here for completeness.
+None of the warnings/info items are debt markers (no TBD/FIXME/XXX). The one Blocker (submit-completeness gate) is independently confirmed in this pass via a standalone reproduction, not merely accepted from the code review's narrative.
 
 ### Human Verification Required
 
-None. Both gaps identified (CR-01, CR-02) are confirmed directly and completely from code/grep/test evidence — no ambiguity requiring a human judgment call.
+None. The new finding is confirmed directly and completely via independent code reading, grep, and an executed reproduction test (1-of-52 submit returning 200 with a permanently frozen 0.07 average) — no ambiguity requiring human judgment.
 
 ### Gaps Summary
 
-Two Critical findings from the same-run code review (`15-REVIEW.md`) were independently re-verified against the codebase and both are real, confirmed blockers:
+Both original gaps from the prior verification pass are genuinely closed:
 
-1. **CR-01 — Retake is non-functional end-to-end.** The phase ships a full "Start new assessment" / "Retake Questionnaire" UI and a version-increment backend, but nothing ever transitions `Initiative.status` back from `submitted` to `draft`. Every write endpoint the retake flow depends on (`upsert_answer`, `update_last_viewed_category`) explicitly locks (403) once `initiative.status == submitted`. A real user who retakes today will submit → see the retake button → confirm → land on `/questionnaire` → get a 403 on the very first answer, forever. This directly fails Success Criterion 5 ("Retaking the questionnaire creates a new, dated assessment version").
+1. **Gap 1 (CR-01/HIST-01, retake non-functional) — CLOSED.** `POST /initiatives/{id}/retake` now performs the missing `Initiative.status` reset atomically with a version-incremented blank draft, wired to the dashboard's confirm dialog, proven by a real end-to-end HTTP test.
+2. **Gap 2 (CR-02/HIST-02, history not frozen) — CLOSED.** `Assessment.dimension_scores` is now a JSONB snapshot computed once at submit time and preferred over live recomputation, proven immune to live config drift by a test that mutates the config mid-test via dependency override.
 
-2. **CR-02 — Assessment history is not actually frozen.** `compute_dimension_scores` always recomputes against the live/current questionnaire config, not the config in effect when a given version was submitted. Since the config is explicitly documented as a placeholder pending real QSTN-05 content (i.e., it will change soon), every previously-submitted version's displayed scores will silently drift once that happens — contradicting the phase goal's explicit "permanently preserved assessment version" language.
+However, this re-verification independently confirms a **new blocking defect**, surfaced by the same-run code review (`15-REVIEW-gaps.md` CR-01) and directly reproduced here rather than taken on faith:
 
-Both gaps require a closure plan before this phase's goal can be considered achieved. The remaining 3 of 5 success criteria (QSTN-02 rendering, SAVE-01/02 autosave+retry, SAVE-04 resume-on-refresh) are solidly implemented, well-tested, and verified independently in this pass — this is not a wholesale rejection of the phase's work, but the retake/history versioning half of the goal (which the review correctly flagged) does not hold up.
+3. **NEW — `submit_initiative` never verifies questionnaire completeness before permanently freezing a score snapshot.** Every other scoring/reporting endpoint in this codebase (`scoring.py`, `reports.py`) calls `assert_assessment_complete` first; the exact endpoint 15-07 modified to compute and freeze `dimension_scores` does not. I independently reproduced this: a standalone test answering 1 of 52 real config questions calls the real `POST /submit` and receives `200`, after which `GET /initiatives/{id}/assessments` permanently returns `overall_average: 0.07` (5 of 6 categories frozen at `0.0`) with no correction path short of a full retake that destroys every real answer already given. This is also directly provable from the gap-closure plans' own committed test, `test_retake_flow.py::test_submit_then_retake_unlocks_editing_and_creates_v2_draft`, which answers only `q-1-1` and asserts a 200 submit against the real config.
 
-A documentation-only gap was also found: `.planning/REQUIREMENTS.md`'s traceability table still marks QSTN-02 and SAVE-03 as "Pending" despite both being fully implemented and tested — this should be corrected regardless of the gaps above, and HIST-01/HIST-02 are marked "Complete" there despite this verification finding them blocked/partial.
+This directly threatens the phase goal's own wording — "**every full completion** creates a new, **permanently preserved** assessment version" implies incomplete completions should not produce permanently preserved versions at all. A user (or an automated/malicious client bypassing the wizard's own client-side "must complete this category before Next" gating) can today create garbage history entries with no way back except discarding all real progress. The fix is small and well-scoped (add `assert_assessment_complete(session, initiative_id, config)` inside `submit_initiative`'s `if assessment:` branch, mirroring the existing pattern in `scoring.py`/`reports.py`, plus a 422 regression test) — this does not require re-opening 15-06 or 15-07's other work, both of which are independently confirmed sound.
+
+**Recommendation:** This is not a wholesale rejection — 5 of 6 truths are solidly verified, and the two originally-identified gaps are genuinely and cleanly closed. A small, targeted closure plan (15-08) adding the missing completeness gate to `submit_initiative` (plus its regression test) should close this before Phase 15 is considered done.
 
 ---
 
-_Verified: 2026-07-26_
+_Verified: 2026-07-26T11:24:00Z_
 _Verifier: Claude (gsd-verifier)_
