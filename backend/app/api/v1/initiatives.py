@@ -117,10 +117,16 @@ def submit_initiative(
         raise HTTPException(status_code=404, detail="Initiative not found")
     if initiative.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your initiative")
-    initiative.status = InitiativeStatus.submitted
-    initiative.updated_at = datetime.utcnow()
-    session.add(initiative)
 
+    # Gap-closure 15-08 (Rule 1 bug fix): the completeness gate must run,
+    # and the draft Assessment/Initiative mutations must be deferred, BEFORE
+    # `initiative.status` is ever set to submitted. The old ordering set
+    # `initiative.status` unconditionally up front — since a raised
+    # HTTPException never reaches `session.commit()`, that write was never
+    # persisted, but the in-memory ORM object stayed mutated for the rest of
+    # this session's lifetime (identity map), which would incorrectly make a
+    # follow-up request on a reused session see the initiative as already
+    # submitted even though the gate rejected this one.
     assessment = session.exec(
         select(Assessment)
         .where(
@@ -136,6 +142,10 @@ def submit_initiative(
         assert assessment.id is not None  # already persisted (draft rows are lazily created)
         assessment.dimension_scores = compute_dimension_scores(session, assessment.id, config)
         session.add(assessment)
+
+    initiative.status = InitiativeStatus.submitted
+    initiative.updated_at = datetime.utcnow()
+    session.add(initiative)
 
     session.commit()
     return {"message": "Initiative submitted successfully", "status": initiative.status.value}
