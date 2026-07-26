@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
+from app.api.v1.questionnaire import _get_or_create_draft_assessment
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
 from app.models.assessment import Assessment, AssessmentStatus
@@ -115,6 +116,54 @@ def submit_initiative(
 
     session.commit()
     return {"message": "Initiative submitted successfully", "status": initiative.status.value}
+
+
+@router.post("/{initiative_id}/retake", status_code=status.HTTP_201_CREATED)
+def retake_initiative(
+    initiative_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """HIST-01 gap closure (CR-01): the explicit, confirmed user action that
+    actually unlocks a submitted initiative for a retake and creates a fresh,
+    version-incremented draft Assessment — the missing reset that made the
+    version-increment machinery in _get_or_create_draft_assessment
+    unreachable through the real UI (15-VERIFICATION.md Gap 1).
+
+    Ownership is re-derived here exactly like every other route in this file
+    (Initiative.user_id == current_user.id, 404/403) before any state change
+    — the path id is never trusted as authorization on its own (security V4,
+    T-15-06-01).
+
+    Only a currently-submitted initiative can be retaken (409 otherwise) —
+    this enforces D-13 (a retake is an explicit action on a completed
+    assessment, never an implicit side effect) and prevents silently
+    version-bumping a draft that is still in progress (T-15-06-03).
+    """
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative:
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    if initiative.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your initiative")
+    if initiative.status != InitiativeStatus.submitted:
+        raise HTTPException(
+            status_code=409, detail="Only a submitted initiative can be retaken"
+        )
+
+    initiative.status = InitiativeStatus.draft
+    initiative.updated_at = datetime.utcnow()
+    session.add(initiative)
+
+    # Reuse the canonical, race-safe version-increment path (T-15-06-02):
+    # this commits the initiative.status reset above and the new draft
+    # Assessment atomically in the same session/transaction.
+    assessment = _get_or_create_draft_assessment(session, initiative_id)
+
+    return {
+        "message": "New assessment started",
+        "version": assessment.version,
+        "assessment_id": assessment.id,
+    }
 
 
 @router.get("/{initiative_id}/assessments", response_model=list[AssessmentSummary])
