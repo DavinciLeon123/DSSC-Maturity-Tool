@@ -32,7 +32,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 12: Test Retrofit — Stabilize Existing Flows** - Regression safety net for auth, admin, and PDF/email delivery, in place before the rebuild touches anything (Complete 2026-07-22)
 - [x] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data (Complete 2026-07-23)
 - [x] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely (completed 2026-07-24)
-- [ ] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history
+- [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
 - [ ] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
@@ -218,7 +218,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | In Progress|  |
+| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
