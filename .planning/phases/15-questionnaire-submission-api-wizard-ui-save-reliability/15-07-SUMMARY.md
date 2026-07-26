@@ -160,3 +160,7 @@ None - no external service configuration required.
 ---
 *Phase: 15-questionnaire-submission-api-wizard-ui-save-reliability*
 *Completed: 2026-07-26*
+
+## Self-Check: PASSED
+
+All 8 created/modified files confirmed present on disk (`backend/app/models/assessment.py`, `backend/alembic/versions/k2b3c4d5e6f7_assessment_frozen_dimension_scores.py`, `backend/tests/migrations/test_frozen_scores_migration.py`, `backend/app/api/v1/initiatives.py`, `backend/app/services/dimension_scoring.py`, `backend/tests/api/test_frozen_scores.py`, `.planning/REQUIREMENTS.md`, this SUMMARY.md). All 5 commit hashes (`ef7f3d0`, `04d81b0`, `a6ce9e7`, `684f7ba`, and this file's own commit `bef5738`) confirmed present in `git log --oneline`.
