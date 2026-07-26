@@ -84,6 +84,7 @@ def submit_initiative(
     initiative_id: int,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Mark initiative as submitted. Idempotent — re-submitting an already-submitted one is OK.
 
@@ -91,6 +92,13 @@ def submit_initiative(
     submitted and stamps submitted_at — this is what actually locks
     questionnaire answers against further edits (enforced in
     questionnaire.py's upsert_answer), not just the Initiative row.
+
+    HIST-02 (gap-closure plan 15-07): also computes and freezes the
+    per-dimension score snapshot on `assessment.dimension_scores`, against
+    the config AS IT EXISTS RIGHT NOW (submission time). This is the one
+    and only place scores are computed for a submitted assessment — later
+    edits to the live config must never retroactively change what this
+    already-submitted version displays in history.
     """
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
@@ -112,6 +120,8 @@ def submit_initiative(
     if assessment:
         assessment.status = AssessmentStatus.submitted
         assessment.submitted_at = datetime.utcnow()
+        assert assessment.id is not None  # already persisted (draft rows are lazily created)
+        assessment.dimension_scores = compute_dimension_scores(session, assessment.id, config)
         session.add(assessment)
 
     session.commit()
@@ -193,9 +203,19 @@ def list_assessment_history(
 
 
 def _to_summary(a: Assessment, session: Session, config: dict) -> AssessmentSummary:
+    """HIST-02 (gap-closure plan 15-07): prefer the frozen `dimension_scores`
+    snapshot written at submit time — only fall back to a live recompute for
+    legacy submitted rows that predate the snapshot column (dimension_scores
+    is None). This is what makes history immutable under later config
+    drift: once a version carries a snapshot, this function never touches
+    the live config for it again."""
     assert a.id is not None  # always called on a persisted assessment
-    scores = compute_dimension_scores(session, a.id, config)
-    overall_average = round(sum(d["score"] for d in scores) / len(scores), 2)
+    scores = (
+        a.dimension_scores
+        if a.dimension_scores is not None
+        else compute_dimension_scores(session, a.id, config)
+    )
+    overall_average = round(sum(d["score"] for d in scores) / len(scores), 2) if scores else 0.0
     return AssessmentSummary(
         id=a.id,
         version=a.version,
