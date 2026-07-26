@@ -141,7 +141,7 @@ Plans:
   4. Closing the tab or hard-refreshing mid-questionnaire does not lose previously-saved answers when the user returns to resume.
   5. Retaking the questionnaire creates a new, dated assessment version rather than overwriting the previous one, and the user can view and compare maturity scores across their past versions.
 
-**Plans**: 5/5 plans executed; 2 gap-closure plans added (15-06, 15-07 — pending)
+**Plans**: 6/7 plans executed
 
 Plans:
 **Wave 1** *(backend + frontend plumbing, disjoint file sets — run in parallel)*
@@ -157,7 +157,7 @@ Plans:
 
 **Gap Closure** *(from 15-VERIFICATION.md — 2 blocking gaps; plans 15-06/15-07 added 2026-07-26)*
 
-- [ ] 15-06-PLAN.md — Retake made functional end-to-end: POST /initiatives/{id}/retake resets Initiative.status + creates version-incremented blank draft; dashboard confirm dialog wired; real submit→retake→save e2e test (Gap 1; HIST-01)
+- [x] 15-06-PLAN.md — Retake made functional end-to-end: POST /initiatives/{id}/retake resets Initiative.status + creates version-incremented blank draft; dashboard confirm dialog wired; real submit→retake→save e2e test (Gap 1; HIST-01)
 - [ ] 15-07-PLAN.md — Frozen score history: Assessment.dimension_scores JSONB snapshot column + migration, snapshot at submit, snapshot-preferring history read, zero-division guard, config-drift test, REQUIREMENTS.md traceability fix (Gap 2; HIST-02)
 
 **UI hint**: yes
@@ -217,7 +217,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 12. Test Retrofit — Stabilize Existing Flows | v2.0 | 5/5 | Complete | 2026-07-22 |
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
-| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 5/5 | In Progress|  |
+| 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 6/7 | In Progress|  |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 0/TBD | Not started | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
