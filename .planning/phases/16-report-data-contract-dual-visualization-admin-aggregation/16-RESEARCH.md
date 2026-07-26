@@ -439,20 +439,23 @@ Hex values copied verbatim from the approved `16-UI-SPEC.md` Color section (`#d6
 | A2 | The exact per-axis "overall polygon fill color" (Pattern 2 uses the *overall average's* band to tint the whole polygon, since a radar chart typically has one fill color, not six) | Architecture Patterns Pattern 2 | If the intended visual design wants per-axis segment coloring (e.g. a red wedge next to a green wedge within one polygon), the single-fill-color approach shown needs revisiting — this is a `## Claude's Discretion` item in CONTEXT.md ("Exact SVG generation approach... is an implementation detail"), so some visual judgment call is expected at plan/implementation time regardless. |
 | A3 | Recommending the org-wide average be computed in plain Python after fetching each included initiative's frozen `dimension_scores` JSONB blob, rather than via `jsonb_array_elements` SQL aggregation | Don't Hand-Roll / Pattern 3 | Fine at today's likely initiative counts (tens, not millions); if this app scales to a very large number of initiatives, an all-Python aggregation could become a real cost, but that is explicitly out of scope for this phase's requirements. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `ComplianceReport` need to survive this phase at all, and if so, re-keyed how?**
    - What we know: its current `unique=True` on `initiative_id` cannot represent "one report per submitted version" (D-04).
    - What's unclear: whether the plan should (a) drop writes to it entirely and always compute-on-read (this research's recommendation), (b) migrate it to key off `assessment_id` with a schema change, or (c) leave it as dead/unused code for a future cleanup phase.
    - Recommendation: (a) — simplest, no migration, and consistent with D-03's "frozen scores, not frozen renders" semantics; but this should be an explicit decision recorded in the plan, not an implicit side effect of rewriting `reports.py`.
+   - **RESOLVED:** Plan 16-02 Task 2 adopts recommendation (a) verbatim — the `pg_insert(ComplianceReport)...on_conflict_do_update` upsert is deleted outright, every report endpoint recomputes the contract on read from the frozen `Assessment.dimension_scores` snapshot, and the table itself is left unused with no migration this phase (drop deferred, recorded in 16-02's SUMMARY rather than as a code comment naming the removed model).
 
 2. **Exact route/query-param shape for admin's "View report" links into a user's per-version report.**
    - What we know: CONTEXT.md leaves this to Claude's discretion; the admin per-initiative table needs a link that bypasses per-user ownership (admins can view any initiative's report).
    - What's unclear: whether the shared `/report` route/endpoint should accept an `?initiative_id=`/`?assessment_id=` pair when called by an admin (bypassing the `current_user.id == initiative.user_id` check for `require_admin`-authenticated requests), or whether a separate `admin`-prefixed report-viewing route is cleaner.
    - Recommendation: extend the existing report endpoint(s) to accept the requesting principal being either the initiative's owner OR an admin (mirrors how every other `admin.py` endpoint already re-derives its own authorization rather than reusing owner-scoped routes) — avoids building a second report-rendering code path.
+   - **RESOLVED:** Plan 16-02 Task 2 extends the existing per-endpoint ownership guard rather than building a second route: `if not initiative or (initiative.user_id != current_user.id and current_user.role != "ADMIN"): raise 404`. A new `assessment_id: int | None = None` query param (FastAPI-coerced, V5) lets any caller — owner or admin — target a specific past version; the owner check itself is never weakened, only extended (D-07, threat T-16-03).
 
 3. **Per-axis vs. overall-average band coloring for the radar chart's fill.**
    - See Assumption A2 above — this is a visual-design judgment call appropriately left to plan/implementation, not fully resolved by research.
+   - **RESOLVED:** Plan 16-01 Task 3 (`generate_radar_svg`) colors the polygon fill/stroke from `get_maturity_band(overall_average, bands)` — one color for the whole shape, derived from the overall average score, not per-axis. Per-axis coloring was not adopted.
 
 ## Environment Availability
 
