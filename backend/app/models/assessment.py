@@ -8,7 +8,7 @@ against from question 1, without Phase 13 implementing that behavior itself.
 `version`/`created_at`/`submitted_at` together satisfy Phase 15's "dated
 version" need without a redundant field (RESEARCH Open Question 1).
 
-Phase 15 (this plan) adds two things:
+Phase 15 (this plan) adds three things:
 - `last_viewed_category_id` (D-08): persists the category the user was last
   VIEWING (not merely last-answered), written unconditionally by a dedicated
   PATCH endpoint so a hard-refresh resumes at the right page even if the
@@ -22,12 +22,24 @@ Phase 15 (this plan) adds two things:
   databases enforce it too — the migration in
   `j1a2b3c4d5e6_assessment_version_lastviewed.py` applies the same
   constraint to real Postgres via Alembic.
+- `dimension_scores` (HIST-02, gap-closure plan 15-07): a nullable JSONB
+  snapshot of the per-dimension scores computed by
+  `compute_dimension_scores` at the moment `submit_initiative` flips this
+  row to `submitted`. Freezing the snapshot here — rather than always
+  recomputing from the live questionnaire config — is what makes a
+  submitted assessment's displayed history immutable: once the config
+  changes (it is explicitly a placeholder pending real QSTN-05 content),
+  every already-submitted version's history must still show what the user
+  actually answered against, not the new config. `list_assessment_history`
+  prefers this snapshot when present, falling back to a live recompute only
+  for legacy submitted rows that predate this column.
 """
 
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
 
@@ -49,3 +61,6 @@ class Assessment(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     submitted_at: datetime | None = None
     last_viewed_category_id: str | None = Field(default=None)
+    dimension_scores: list[dict] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )

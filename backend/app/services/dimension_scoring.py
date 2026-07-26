@@ -138,7 +138,12 @@ def compute_dimension_scores(session: Session, assessment_id: int, config: dict)
         {
             "category_id": cat_id,
             "name": names[cat_id],
-            "score": round(sums.get(cat_id, 0) / n_questions, 2),
+            # WR-04: a config category with zero questions yields 0.0
+            # rather than raising ZeroDivisionError. This function is now
+            # called directly on the submit path (a real, user-triggered
+            # crash surface), not just read-only history display, so the
+            # guard is load-bearing here, not cosmetic.
+            "score": round(sums.get(cat_id, 0) / n_questions, 2) if n_questions else 0.0,
         }
         for cat_id, n_questions in counts.items()
     ]
