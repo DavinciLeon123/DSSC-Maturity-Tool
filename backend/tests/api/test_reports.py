@@ -21,6 +21,8 @@ directly (the module-level target the lazy import resolves against), never
 body runs — patching it would silently no-op, per RESEARCH.md Pitfall 4).
 """
 
+from markupsafe import escape as html_escape
+
 from app.models.assessment import AssessmentStatus
 from app.services.dimension_scoring import compute_dimension_scores
 from app.services.mami_config import load_dssc_questionnaire_config
@@ -413,7 +415,11 @@ def test_report_data_and_html_share_identical_contract_values(client, session):
     assert contract["radar_chart_svg"] in html
 
     # Every priority-list row's name/band label/2dp score appears in the HTML.
+    # `row["name"]` is compared in its Jinja-autoescaped form (WR-05: the
+    # real config's "Control over Data & Trust" category proves this isn't
+    # hypothetical — `report.html` renders `{{ row.name }}` through Jinja's
+    # HTML autoescaping, same as any other plain-text context value).
     for row in contract["priority_list"]:
-        assert row["name"] in html
+        assert str(html_escape(row["name"])) in html
         assert row["band_label"] in html
         assert f"{row['score']:.2f}" in html

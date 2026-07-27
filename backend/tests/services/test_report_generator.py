@@ -21,6 +21,8 @@ test), mirroring `test_dimension_scoring.py`'s config-comprehension style.
 Broader coverage is Phase 17 (TEST-01/02)'s job.
 """
 
+from xml.sax.saxutils import escape as xml_escape
+
 from app.services.mami_config import load_dssc_questionnaire_config
 from app.services.report_generator import (
     build_priority_list,
@@ -171,6 +173,25 @@ def test_radar_svg_structure():
     assert "viewBox" in svg
     assert svg.count("<polygon") == 1
     for cat in config["categories"]:
-        assert cat["name"] in svg
+        # WR-05: category names are XML-escaped before interpolation (real
+        # config content includes "Control over Data & Trust", proving this
+        # isn't just a hypothetical) — assert against the escaped form.
+        assert xml_escape(cat["name"]) in svg
     assert svg.count("font-family") == len(config["categories"])
     assert svg.count("font-size") == len(config["categories"])
+
+
+def test_radar_svg_escapes_special_characters_in_category_name():
+    # WR-05 regression: category names must be XML-escaped before being
+    # interpolated into SVG <text> content — defense in depth even though
+    # today's config category names are server-controlled, never end-user
+    # free-text (this function's own docstring).
+    bands = _bands()
+    scores = [
+        {"category_id": "c1", "name": 'A & B <script>"quote"</script>', "score": 3.0},
+    ]
+
+    svg = generate_radar_svg(scores, bands)
+
+    assert "<script>" not in svg
+    assert "A &amp; B &lt;script&gt;" in svg

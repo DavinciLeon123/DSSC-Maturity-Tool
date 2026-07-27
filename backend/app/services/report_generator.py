@@ -15,6 +15,7 @@ directly.
 
 import math
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -158,10 +159,18 @@ def generate_radar_svg(
             f'stroke="#d9d9d9" stroke-width="1"/>'
         )
         lx, ly = point(i, 1.18)  # push labels outside the polygon
+        # WR-05: XML-escape the category name before interpolating into SVG
+        # text content. Today this is only defense-in-depth (config category
+        # names are server-controlled, never end-user free-text — see this
+        # function's own docstring), but it's cheap insurance against the
+        # invariant being broken by a future feature (e.g. an admin-editable
+        # questionnaire builder), since this string is later marked `| safe`
+        # in report.html and rendered via dangerouslySetInnerHTML on both
+        # React pages.
         labels.append(
             f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="11" '
             f'font-family="Rubik, sans-serif" fill="#06004f" '
-            f'text-anchor="middle">{s["name"]}</text>'
+            f'text-anchor="middle">{xml_escape(s["name"])}</text>'
         )
 
     overall_average = sum(s["score"] for s in scores) / n
