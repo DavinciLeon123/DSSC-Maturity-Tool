@@ -184,55 +184,68 @@ export function AdminHeatmapPage() {
         />
       )}
 
-      {!loading && !error && data && isOrgEmpty && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.08)" }}>
-          <Title
-            level={2}
-            style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "0.5rem" }}
-          >
-            No submitted assessments yet
-          </Title>
-          <Text style={{ fontFamily: "'Rubik', sans-serif", fontSize: "14px", color: "rgba(6,0,79,0.6)" }}>
-            Once an initiative fully completes and submits the questionnaire, its scores will appear here.
-          </Text>
-        </Card>
-      )}
-
-      {!loading && !error && data && !isOrgEmpty && (
+      {!loading && !error && data && (
         <>
-          {/* Org radar card — primary visual anchor (UI-SPEC Dimension 2) */}
-          <Card
-            style={{
-              borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <Title
-              level={2}
-              style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
-            >
-              Org-wide maturity radar
-            </Title>
-            <div
-              style={{ display: "flex", justifyContent: "center" }}
-              dangerouslySetInnerHTML={{ __html: data.org_radar_chart_svg ?? "" }}
-            />
-            <Text
+          {/* Org radar card (or its empty-state) — primary visual anchor
+              (UI-SPEC Dimension 2). WR-02: the "no submitted assessments
+              yet" messaging is scoped to this card only — it must not hide
+              the per-initiative table below, which the backend populates
+              (including has_data=False rows) even when the org-wide radar
+              is suppressed. */}
+          {isOrgEmpty ? (
+            <Card
               style={{
-                fontFamily: "'Rubik', sans-serif",
-                fontSize: "13px",
-                color: "rgba(6,0,79,0.6)",
-                display: "block",
-                marginTop: "1rem",
+                borderRadius: "16px",
+                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                marginBottom: "1.5rem",
               }}
             >
-              Based on <strong style={{ color: "#06004f" }}>{submittedCount}</strong> submitted
-              initiative{submittedCount !== 1 ? "s" : ""}.
-            </Text>
-          </Card>
+              <Title
+                level={2}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "0.5rem" }}
+              >
+                No submitted assessments yet
+              </Title>
+              <Text style={{ fontFamily: "'Rubik', sans-serif", fontSize: "14px", color: "rgba(6,0,79,0.6)" }}>
+                Once an initiative fully completes and submits the questionnaire, its scores will appear here.
+              </Text>
+            </Card>
+          ) : (
+            <Card
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <Title
+                level={2}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+              >
+                Org-wide maturity radar
+              </Title>
+              <div
+                style={{ display: "flex", justifyContent: "center" }}
+                dangerouslySetInnerHTML={{ __html: data.org_radar_chart_svg ?? "" }}
+              />
+              <Text
+                style={{
+                  fontFamily: "'Rubik', sans-serif",
+                  fontSize: "13px",
+                  color: "rgba(6,0,79,0.6)",
+                  display: "block",
+                  marginTop: "1rem",
+                }}
+              >
+                Based on <strong style={{ color: "#06004f" }}>{submittedCount}</strong> submitted
+                initiative{submittedCount !== 1 ? "s" : ""}.
+              </Text>
+            </Card>
+          )}
 
-          {/* Per-initiative table — secondary */}
+          {/* Per-initiative table — always rendered, regardless of
+              org-wide radar state (WR-02); handles has_data=False rows via
+              the "No data yet" tag. */}
           <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.08)" }}>
             <Title
               level={2}
