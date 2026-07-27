@@ -219,3 +219,18 @@ None - no external service configuration required.
 ---
 *Phase: 16-report-data-contract-dual-visualization-admin-aggregation*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+
+- `backend/app/services/dimension_scoring.py` — FOUND, contains `resolve_report_assessment`
+- `backend/app/api/v1/reports.py` — FOUND, rewritten (0 `ComplianceReport`/`assert_assessment_complete` references)
+- `backend/app/services/report_generator.py` — FOUND, `generate_html_report` new signature, `generate_report_data` removed
+- `backend/app/templates/report.html` — FOUND, embeds `radar_chart_svg`, no stale MAMI matrix tokens
+- `backend/tests/api/test_reports.py` — FOUND, submit-first fixtures, 14/18 passing (4 pre-existing local WeasyPrint failures)
+- `.planning/phases/16-report-data-contract-dual-visualization-admin-aggregation/16-02-SUMMARY.md` — FOUND
+- Commit `396ca46` — FOUND in git log
+- Commit `f1b1749` — FOUND in git log
+- Commit `e645efd` — FOUND in git log
+- Commit `1517159` — FOUND in git log
+- Commit `950a964` — FOUND in git log
+- Commit `b515dd4` — FOUND in git log
