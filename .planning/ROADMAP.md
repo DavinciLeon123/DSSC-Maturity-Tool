@@ -176,7 +176,7 @@ Plans:
   4. The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views.
   5. An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -190,7 +190,7 @@ Plans:
 
 **Wave 3** *(depends on 16-02 + 16-03)*
 
-- [ ] 16-04-PLAN.md — Frontend consumers: report.tsx radar SVG + priority list (per-version), admin.heatmap.tsx org radar + per-initiative table, reports.ts contract fetch, openapi.json regen (Wave 3; RPRT-01/02/04, ADMN-01)
+- [x] 16-04-PLAN.md — Frontend consumers: report.tsx radar SVG + priority list (per-version), admin.heatmap.tsx org radar + per-initiative table, reports.ts contract fetch, openapi.json regen (Wave 3; RPRT-01/02/04, ADMN-01)
 
 **UI hint**: yes
 
@@ -234,6 +234,6 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
-| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 3/4 | In Progress|  |
+| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 4/4 | In Progress|  |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
