@@ -74,3 +74,48 @@ def generate_report_data(initiative) -> dict:
             "generated_at": datetime.utcnow().isoformat() + "Z",
         },
     }
+
+
+def get_maturity_band(score: float, bands: list[dict]) -> dict:
+    """Phase 16 (RPRT-03): the SOLE band-classification function in this
+    codebase. Both `build_priority_list` and `generate_radar_svg` call this —
+    no second inequality chain may exist anywhere else, on any surface.
+
+    Bands are checked in ascending `min` order (config order — see
+    `maturity_bands` in `config/dssc-questionnaire.json`, D-05); a score
+    exactly on a shared boundary (e.g. 2.0, which is both the red band's
+    max and the orange band's min) belongs to the HIGHER band — i.e.
+    `min <= score < max` is the rule, except the top (last) band is also
+    inclusive of its own `max` (so 5.0 still resolves to green, not
+    uncovered).
+    """
+    for band in bands:
+        is_last = band is bands[-1]
+        if band["min"] <= score < band["max"] or (is_last and score == band["max"]):
+            return band
+    raise ValueError(f"score {score} not covered by any maturity_bands entry")
+
+
+def build_priority_list(scores: list[dict], bands: list[dict]) -> list[dict]:
+    """RPRT-02/D-06: always returns all 6 dimensions (never filtered to only
+    red/orange), sorted ascending by score. `sorted()` is a stable sort, so
+    dimensions with equal scores retain config category order (RPRT-02
+    ordering). Each row's band fields are sourced only from
+    `get_maturity_band` — never re-derived.
+
+    Args:
+        scores: [{category_id, name, score}, ...] — already 2dp-rounded by
+            `compute_dimension_scores`'s existing precedent.
+        bands: config["maturity_bands"].
+    """
+    return [
+        {
+            "category_id": s["category_id"],
+            "name": s["name"],
+            "score": s["score"],
+            "band_id": (band := get_maturity_band(s["score"], bands))["id"],
+            "band_label": band["label"],
+            "band_color": band["color"],
+        }
+        for s in sorted(scores, key=lambda s: s["score"])
+    ]
