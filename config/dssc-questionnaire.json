@@ -684,5 +684,10 @@
         }
       ]
     }
+  ],
+  "maturity_bands": [
+    { "id": "red", "label": "Needs attention", "min": 1.0, "max": 2.0, "color": "#d64545" },
+    { "id": "orange", "label": "Developing", "min": 2.0, "max": 3.5, "color": "#e08e2b" },
+    { "id": "green", "label": "Mature", "min": 3.5, "max": 5.0, "color": "#399e5a" }
   ]
 }
