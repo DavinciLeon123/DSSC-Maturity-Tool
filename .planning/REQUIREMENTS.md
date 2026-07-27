@@ -55,7 +55,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Admin (ADMN)
 
-- [ ] **ADMN-01**: Admin aggregated view is rebuilt for the new 6-category model (cross-initiative radar/priority visualization), replacing the old 4×3 topic heatmap
+- [x] **ADMN-01**: Admin aggregated view is rebuilt for the new 6-category model (cross-initiative radar/priority visualization), replacing the old 4×3 topic heatmap
 
 ### Testing (TEST)
 
@@ -118,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SECU-02 | Phase 18 | Pending |
 | SECU-03 | Phase 18 | Pending |
 | SECU-04 | Phase 18 | Pending |
-| ADMN-01 | Phase 16 | Pending |
+| ADMN-01 | Phase 16 | Complete |
 | TEST-01 | Phase 17 | Pending |
 | TEST-02 | Phase 17 | Pending |
 | TEST-03 | Phase 17 | Pending |
