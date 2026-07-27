@@ -31,6 +31,7 @@ from app.db.session import get_session
 from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.user import User
+from app.schemas.report import ReportContract
 from app.services.dimension_scoring import compute_dimension_scores, resolve_report_assessment
 from app.services.report_generator import build_report_contract, generate_html_report
 
@@ -176,7 +177,7 @@ def get_report(
     return HTMLResponse(content=html_content, status_code=200)
 
 
-@router.post("/initiatives/{initiative_id}/report/data")
+@router.post("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
 def generate_report_data_endpoint(
     initiative_id: int,
     assessment_id: int | None = None,
@@ -193,7 +194,7 @@ def generate_report_data_endpoint(
     return build_report_contract(scores, initiative, assessment, config)
 
 
-@router.get("/initiatives/{initiative_id}/report/data")
+@router.get("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
 def get_report_data_endpoint(
     initiative_id: int,
     assessment_id: int | None = None,

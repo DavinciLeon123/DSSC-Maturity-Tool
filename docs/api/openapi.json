@@ -742,6 +742,131 @@
         "title": "LastViewedCategoryUpdate",
         "type": "object"
       },
+      "MaturityBand": {
+        "properties": {
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "min",
+          "max",
+          "color"
+        ],
+        "title": "MaturityBand",
+        "type": "object"
+      },
+      "PriorityListItem": {
+        "properties": {
+          "band_color": {
+            "title": "Band Color",
+            "type": "string"
+          },
+          "band_id": {
+            "title": "Band Id",
+            "type": "string"
+          },
+          "band_label": {
+            "title": "Band Label",
+            "type": "string"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "category_id",
+          "name",
+          "score",
+          "band_id",
+          "band_label",
+          "band_color"
+        ],
+        "title": "PriorityListItem",
+        "type": "object"
+      },
+      "ReportContract": {
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "dimension_scores": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Dimension Scores",
+            "type": "array"
+          },
+          "initiative": {
+            "additionalProperties": true,
+            "title": "Initiative",
+            "type": "object"
+          },
+          "maturity_bands": {
+            "items": {
+              "$ref": "#/components/schemas/MaturityBand"
+            },
+            "title": "Maturity Bands",
+            "type": "array"
+          },
+          "priority_list": {
+            "items": {
+              "$ref": "#/components/schemas/PriorityListItem"
+            },
+            "title": "Priority List",
+            "type": "array"
+          },
+          "radar_chart_svg": {
+            "title": "Radar Chart Svg",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "version",
+          "initiative",
+          "dimension_scores",
+          "priority_list",
+          "radar_chart_svg",
+          "maturity_bands"
+        ],
+        "title": "ReportContract",
+        "type": "object"
+      },
       "ResetPasswordRequest": {
         "properties": {
           "new_password": {
@@ -1692,7 +1817,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ReportContract"
+                }
               }
             },
             "description": "Successful Response"
@@ -1752,7 +1879,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/ReportContract"
+                }
               }
             },
             "description": "Successful Response"
