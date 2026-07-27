@@ -1,25 +1,106 @@
 {
   "components": {
     "schemas": {
-      "AdminHeatmapResponse": {
-        "description": "Phase 14 (D-01b): reduced to a fixed, deliberately trivial degraded\nresponse. The MAMI-matrix aggregation this endpoint used to build is\ngone entirely \u2014 Phase 16 (ADMN-01) rebuilds this against the new\n6-category dimension-score model.",
+      "AdminAggregateResponse": {
+        "description": "ADMN-01: replaces the Phase 14 fixed degraded stub with the real\n6-category cross-initiative aggregation \u2014 an org-wide averaged radar\n(D-07a) plus the per-initiative breakdown (D-07b). `org_radar_chart_svg`\nis None (suppressed, RESEARCH Pitfall 5) when zero initiatives org-wide\nhave any submitted assessment.",
         "properties": {
-          "cells": {
-            "default": [],
+          "initiatives": {
+            "items": {
+              "$ref": "#/components/schemas/AdminInitiativeAggregateRow"
+            },
+            "title": "Initiatives",
+            "type": "array"
+          },
+          "org_average_scores": {
             "items": {
               "additionalProperties": true,
               "type": "object"
             },
-            "title": "Cells",
+            "title": "Org Average Scores",
             "type": "array"
           },
-          "degraded": {
-            "default": true,
-            "title": "Degraded",
-            "type": "boolean"
+          "org_radar_chart_svg": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Radar Chart Svg"
           }
         },
-        "title": "AdminHeatmapResponse",
+        "required": [
+          "org_average_scores",
+          "org_radar_chart_svg",
+          "initiatives"
+        ],
+        "title": "AdminAggregateResponse",
+        "type": "object"
+      },
+      "AdminInitiativeAggregateRow": {
+        "description": "ADMN-01/D-07/D-08: one row per initiative, sourced from that\ninitiative's latest SUBMITTED assessment only. `has_data=False` (and\nnull scores) for initiatives with zero submitted assessments \u2014 never a\ncoerced zero score.",
+        "properties": {
+          "dimension_scores": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dimension Scores"
+          },
+          "has_data": {
+            "title": "Has Data",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "overall_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Average"
+          },
+          "report_assessment_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Assessment Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "report_assessment_id",
+          "dimension_scores",
+          "overall_average",
+          "has_data"
+        ],
+        "title": "AdminInitiativeAggregateRow",
         "type": "object"
       },
       "AdminInitiativeRow": {
@@ -877,46 +958,18 @@
     },
     "/api/v1/admin/heatmap": {
       "get": {
-        "description": "Fixed, deliberately trivial degraded response (D-01b).\n\nThe MAMI-matrix aggregation this endpoint used to build (keyed off the\nlegacy mami_code/answer_value shape) is deleted outright along with the\nZEN/MoSCoW subsystem it depended on \u2014 Phase 16 (ADMN-01) rebuilds this\nendpoint against the new 6-category dimension-score model.",
+        "description": "ADMN-01: real cross-initiative 6-dimension aggregation \u2014 an org-wide\naveraged radar chart (reusing `generate_radar_svg`, D-01) plus a\nper-initiative breakdown, each initiative contributing only its latest\nSUBMITTED assessment (D-08). Replaces the Phase 14 fixed degraded stub.",
         "operationId": "get_admin_heatmap_api_v1_admin_heatmap_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "type",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Type"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminHeatmapResponse"
+                  "$ref": "#/components/schemas/AdminAggregateResponse"
                 }
               }
             },
             "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
           }
         },
         "security": [
