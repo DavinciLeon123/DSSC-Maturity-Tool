@@ -82,6 +82,43 @@ def list_submitted_assessments(session: Session, initiative_id: int) -> list[Ass
     )
 
 
+def resolve_report_assessment(
+    session: Session, initiative_id: int, assessment_id: int | None = None
+) -> Assessment:
+    """Phase 16 (D-03/D-04, RESEARCH Pitfall 1): the SOLE submitted-scoped
+    assessment resolver for report reads — every report/PDF/mail/admin
+    endpoint must go through this, never `assert_assessment_complete` or
+    `get_current_assessment` (both draft-scoped, and the exact cause of
+    Pitfall 1's post-submission 422s). This function must never be
+    generalized to draft assessments.
+
+    With `assessment_id=None`, returns the highest-version SUBMITTED
+    assessment for the initiative (D-04 default: "the current report").
+    With a specific `assessment_id`, returns that assessment only if it
+    belongs to this initiative AND is submitted (D-04 per-version viewing).
+
+    Raises HTTPException(404) — never 403, never 422 — when no match is
+    found, whether that's because no submitted assessment exists at all, the
+    given id is still a draft, or the given id belongs to a different
+    initiative (or doesn't exist). All three cases resolve identically so a
+    caller cannot distinguish "wrong owner" from "doesn't exist" (V4, no
+    enumeration leak)."""
+    query = select(Assessment).where(
+        Assessment.initiative_id == initiative_id,
+        Assessment.status == AssessmentStatus.submitted,
+    )
+    if assessment_id is not None:
+        assessment = session.exec(query.where(Assessment.id == assessment_id)).first()
+    else:
+        assessment = session.exec(
+            query.order_by(Assessment.version.desc())  # type: ignore[attr-defined]
+        ).first()
+
+    if assessment is None:
+        raise HTTPException(status_code=404, detail="Report not found")
+    return assessment
+
+
 def assert_assessment_complete(session: Session, initiative_id: int, config: dict) -> Assessment:
     """Raises HTTPException(422) if no draft assessment exists, or if the
     initiative's current draft assessment has not answered every question_id

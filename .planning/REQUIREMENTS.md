@@ -24,10 +24,10 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Reporting (RPRT)
 
-- [ ] **RPRT-01**: End-of-survey report shows a spider/radar chart visualizing all 6 dimension scores at a glance
-- [ ] **RPRT-02**: End-of-survey report shows a sorted priority list (lowest→highest maturity) with dimension name, average score, and color indicator (red 1.0-2.0, orange 2.0-3.5, green 3.5-5.0)
-- [ ] **RPRT-03**: Color-band thresholds are defined once in config and shared by both the chart and the priority list (no duplicated logic)
-- [ ] **RPRT-04**: Report is available both in-app (live view) and as a mailed PDF (WeasyPrint + Resend), each rendering the same score data via one shared JSON contract
+- [x] **RPRT-01**: End-of-survey report shows a spider/radar chart visualizing all 6 dimension scores at a glance
+- [x] **RPRT-02**: End-of-survey report shows a sorted priority list (lowest→highest maturity) with dimension name, average score, and color indicator (red 1.0-2.0, orange 2.0-3.5, green 3.5-5.0)
+- [x] **RPRT-03**: Color-band thresholds are defined once in config and shared by both the chart and the priority list (no duplicated logic)
+- [x] **RPRT-04**: Report is available both in-app (live view) and as a mailed PDF (WeasyPrint + Resend), each rendering the same score data via one shared JSON contract
 
 ### Retake & History (HIST)
 
@@ -55,7 +55,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Admin (ADMN)
 
-- [ ] **ADMN-01**: Admin aggregated view is rebuilt for the new 6-category model (cross-initiative radar/priority visualization), replacing the old 4×3 topic heatmap
+- [x] **ADMN-01**: Admin aggregated view is rebuilt for the new 6-category model (cross-initiative radar/priority visualization), replacing the old 4×3 topic heatmap
 
 ### Testing (TEST)
 
@@ -102,10 +102,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOR-02 | Phase 14 | Complete |
 | SCOR-03 | Phase 14 | Complete |
 | SCOR-04 | Phase 14 | Complete |
-| RPRT-01 | Phase 16 | Pending |
-| RPRT-02 | Phase 16 | Pending |
-| RPRT-03 | Phase 16 | Pending |
-| RPRT-04 | Phase 16 | Pending |
+| RPRT-01 | Phase 16 | Complete |
+| RPRT-02 | Phase 16 | Complete |
+| RPRT-03 | Phase 16 | Complete |
+| RPRT-04 | Phase 16 | Complete |
 | HIST-01 | Phase 15 | Complete |
 | HIST-02 | Phase 15 | Complete |
 | SAVE-01 | Phase 15 | Complete |
@@ -118,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SECU-02 | Phase 18 | Pending |
 | SECU-03 | Phase 18 | Pending |
 | SECU-04 | Phase 18 | Pending |
-| ADMN-01 | Phase 16 | Pending |
+| ADMN-01 | Phase 16 | Complete |
 | TEST-01 | Phase 17 | Pending |
 | TEST-02 | Phase 17 | Pending |
 | TEST-03 | Phase 17 | Pending |

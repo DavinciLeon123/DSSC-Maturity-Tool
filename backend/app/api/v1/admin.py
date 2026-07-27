@@ -6,35 +6,65 @@ All endpoints require ADMIN role. Available via GET/DELETE/POST on /api/v1/admin
 import csv
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlmodel import Session, select
 from sqlmodel import delete as sql_delete
 
-from app.core.deps import require_admin
+from app.core.deps import get_dssc_questionnaire_config, require_admin
 from app.db.session import get_session
 from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from app.models.user import User
+from app.services.admin_aggregation import build_admin_aggregate
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+def _csv_safe(value: str) -> str:
+    """Neutralize CSV/formula injection (CWE-1236) in free-text cell values.
+
+    Any cell whose value starts with `=`, `+`, `-`, `@`, tab, or CR can be
+    interpreted as a formula by Excel/Sheets/LibreOffice when the exported
+    CSV is opened — prefixing with a single quote forces the cell to be
+    read as literal text instead.
+    """
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
 
 
 # ─── Admin heatmap response models ────────────────────────────────────────────
 
 
-class AdminHeatmapResponse(BaseModel):
-    """Phase 14 (D-01b): reduced to a fixed, deliberately trivial degraded
-    response. The MAMI-matrix aggregation this endpoint used to build is
-    gone entirely — Phase 16 (ADMN-01) rebuilds this against the new
-    6-category dimension-score model."""
+class AdminInitiativeAggregateRow(BaseModel):
+    """ADMN-01/D-07/D-08: one row per initiative, sourced from that
+    initiative's latest SUBMITTED assessment only. `has_data=False` (and
+    null scores) for initiatives with zero submitted assessments — never a
+    coerced zero score."""
 
-    degraded: bool = True
-    cells: list[dict] = []
+    id: int
+    name: str
+    report_assessment_id: int | None
+    dimension_scores: list[dict] | None
+    overall_average: float | None
+    has_data: bool
+
+
+class AdminAggregateResponse(BaseModel):
+    """ADMN-01: replaces the Phase 14 fixed degraded stub with the real
+    6-category cross-initiative aggregation — an org-wide averaged radar
+    (D-07a) plus the per-initiative breakdown (D-07b). `org_radar_chart_svg`
+    is None (suppressed, RESEARCH Pitfall 5) when zero initiatives org-wide
+    have any submitted assessment."""
+
+    org_average_scores: list[dict]
+    org_radar_chart_svg: str | None
+    initiatives: list[AdminInitiativeAggregateRow]
 
 
 # ─── Response schemas ─────────────────────────────────────────────────────────
@@ -279,7 +309,7 @@ def export_dataset(
             writer.writerow(
                 [
                     row["email"],
-                    row["initiative_name"],
+                    _csv_safe(row["initiative_name"]),
                     row["participant_type"],
                     row["status"],
                     row["question_id"],
@@ -321,18 +351,20 @@ def reset_demo(
     }
 
 
-@router.get("/heatmap", response_model=AdminHeatmapResponse)
+@router.get("/heatmap", response_model=AdminAggregateResponse)
 def get_admin_heatmap(
-    request: Request,
-    type: str | None = None,
     session: Session = Depends(get_session),
+    config: dict = Depends(get_dssc_questionnaire_config),
     _admin: User = Depends(require_admin),
 ):
-    """Fixed, deliberately trivial degraded response (D-01b).
-
-    The MAMI-matrix aggregation this endpoint used to build (keyed off the
-    legacy mami_code/answer_value shape) is deleted outright along with the
-    ZEN/MoSCoW subsystem it depended on — Phase 16 (ADMN-01) rebuilds this
-    endpoint against the new 6-category dimension-score model.
+    """ADMN-01: real cross-initiative 6-dimension aggregation — an org-wide
+    averaged radar chart (reusing `generate_radar_svg`, D-01) plus a
+    per-initiative breakdown, each initiative contributing only its latest
+    SUBMITTED assessment (D-08). Replaces the Phase 14 fixed degraded stub.
     """
-    return AdminHeatmapResponse(degraded=True, cells=[])
+    aggregate = build_admin_aggregate(session, config)
+    return AdminAggregateResponse(
+        org_average_scores=aggregate["org_average_scores"],
+        org_radar_chart_svg=aggregate["org_radar_chart_svg"],
+        initiatives=[AdminInitiativeAggregateRow(**row) for row in aggregate["initiatives"]],
+    )

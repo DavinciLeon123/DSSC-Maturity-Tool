@@ -12,10 +12,12 @@ content (QSTN-05).
 import pytest
 from fastapi import HTTPException
 
+from app.models.assessment import AssessmentStatus
 from app.services.dimension_scoring import (
     assert_assessment_complete,
     compute_dimension_scores,
     get_current_assessment,
+    resolve_report_assessment,
 )
 from app.services.mami_config import load_dssc_questionnaire_config
 from tests.factories import make_answer, make_assessment, make_initiative, make_user
@@ -175,3 +177,94 @@ def test_complete_assessment_returns_assessment(session):
     result = assert_assessment_complete(session, initiative.id, config)
 
     assert result.id == assessment.id
+
+
+# ---------------------------------------------------------------------------
+# resolve_report_assessment (Phase 16 Plan 02, Task 1 — D-03/D-04, RESEARCH
+# Pitfall 1). Submitted-scoped only — must never call the draft-scoped
+# assert_assessment_complete/get_current_assessment.
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_report_assessment_no_id_returns_latest_submitted(session):
+    """With no assessment_id given, returns the highest-version SUBMITTED
+    assessment for the initiative (D-04 default)."""
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    make_assessment(session, initiative=initiative, status=AssessmentStatus.submitted)
+    latest = make_assessment(session, initiative=initiative, status=AssessmentStatus.submitted)
+
+    result = resolve_report_assessment(session, initiative.id)
+
+    assert result.id == latest.id
+    assert result.version == latest.version
+
+
+def test_resolve_report_assessment_specific_id_returns_that_one(session):
+    """With a valid assessment_id belonging to the initiative and submitted,
+    returns exactly that assessment (D-04 per-version viewing) — not
+    necessarily the latest."""
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    older = make_assessment(session, initiative=initiative, status=AssessmentStatus.submitted)
+    make_assessment(session, initiative=initiative, status=AssessmentStatus.submitted)
+
+    result = resolve_report_assessment(session, initiative.id, assessment_id=older.id)
+
+    assert result.id == older.id
+
+
+def test_resolve_report_assessment_draft_raises_404(session):
+    """An assessment_id that points to a DRAFT (not submitted) assessment
+    raises HTTPException(404) — never 422, never the draft-scoped path."""
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    draft = make_assessment(session, initiative=initiative, status=AssessmentStatus.draft)
+
+    with pytest.raises(HTTPException) as exc_info:
+        resolve_report_assessment(session, initiative.id, assessment_id=draft.id)
+
+    assert exc_info.value.status_code == 404
+
+
+def test_resolve_report_assessment_wrong_initiative_raises_404(session):
+    """An assessment_id belonging to a DIFFERENT initiative raises
+    HTTPException(404) — no existence leak (security V4)."""
+    user_a = make_user(session)
+    initiative_a = make_initiative(session, user=user_a)
+    foreign_assessment = make_assessment(
+        session, initiative=initiative_a, status=AssessmentStatus.submitted
+    )
+
+    user_b = make_user(session)
+    initiative_b = make_initiative(session, user=user_b)
+
+    with pytest.raises(HTTPException) as exc_info:
+        resolve_report_assessment(session, initiative_b.id, assessment_id=foreign_assessment.id)
+
+    assert exc_info.value.status_code == 404
+
+
+def test_resolve_report_assessment_no_submitted_at_all_raises_404(session):
+    """No submitted assessment exists at all (only a draft, or nothing) —
+    raises HTTPException(404), never 422."""
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    make_assessment(session, initiative=initiative, status=AssessmentStatus.draft)
+
+    with pytest.raises(HTTPException) as exc_info:
+        resolve_report_assessment(session, initiative.id)
+
+    assert exc_info.value.status_code == 404
+
+
+def test_resolve_report_assessment_nonexistent_id_raises_404(session):
+    """A completely nonexistent assessment_id raises HTTPException(404),
+    indistinguishable from the wrong-initiative case (no enumeration)."""
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+
+    with pytest.raises(HTTPException) as exc_info:
+        resolve_report_assessment(session, initiative.id, assessment_id=999999)
+
+    assert exc_info.value.status_code == 404

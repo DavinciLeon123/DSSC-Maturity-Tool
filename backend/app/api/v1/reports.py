@@ -1,25 +1,39 @@
-"""Report API endpoints — generate and retrieve MAMI compliance reports."""
+"""Report API endpoints — generate and retrieve DSSC maturity reports.
+
+Phase 16 (D-03/D-04, RESEARCH Pitfall 1): every endpoint now resolves its
+assessment via the submitted-scoped `resolve_report_assessment` (never a
+draft-scoped lookup) — this is what makes a real post-submission report
+reachable at all; previously every endpoint 422'd unconditionally the
+moment an assessment was actually submitted. An optional `assessment_id`
+query param lets any endpoint target a specific past submitted version
+(D-04).
+
+Phase 16 (RESEARCH Pitfall 2, decision A1 — see 16-RESEARCH.md Open
+Question 1, and this plan's SUMMARY for the removed-storage decision):
+every read recomputes the report contract fresh from the frozen
+`Assessment.dimension_scores` snapshot (falling back to a live recompute
+only for legacy submitted rows whose snapshot is null, D-03) — there is no
+correctness or performance reason to persist a second copy of a rendered
+report.
+"""
 
 import logging
-from collections.abc import Sequence
 from datetime import datetime
 
 import resend
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import HTMLResponse
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
 from app.models.assessment import Assessment
 from app.models.initiative import Initiative
-from app.models.questionnaire import QuestionnaireAnswer
-from app.models.report import ComplianceReport
 from app.models.user import User
-from app.services.dimension_scoring import assert_assessment_complete, compute_dimension_scores
-from app.services.report_generator import generate_html_report, generate_report_data
+from app.schemas.report import ReportContract
+from app.services.dimension_scoring import compute_dimension_scores, resolve_report_assessment
+from app.services.report_generator import build_report_contract, generate_html_report
 
 router = APIRouter(tags=["reports"])
 
@@ -27,17 +41,31 @@ router = APIRouter(tags=["reports"])
 logger = logging.getLogger(__name__)
 
 
-def _get_answers_for_initiative(
-    session: Session, initiative_id: int
-) -> Sequence[QuestionnaireAnswer]:
-    """Fetch all new-schema answers for an initiative via its Assessment(s)
-    (D-06: questionnaire_answer is keyed by assessment_id, not
-    initiative_id directly)."""
-    return session.exec(
-        select(QuestionnaireAnswer)
-        .join(Assessment, QuestionnaireAnswer.assessment_id == Assessment.id)  # type: ignore[arg-type]
-        .where(Assessment.initiative_id == initiative_id)
-    ).all()
+def _get_authorized_initiative(
+    session: Session, initiative_id: int, current_user: User
+) -> Initiative:
+    """Ownership check extended for the D-07 admin bypass: an ADMIN may view
+    any initiative's report; a non-admin non-owner (or a nonexistent
+    initiative) gets 404 — never 403, matching every other ownership check
+    in this file (no existence leak). The owner-scoped check itself is not
+    weakened for non-admins — admin access is granted only via the extra
+    `current_user.role == "ADMIN"` branch (T-16-03)."""
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative or (initiative.user_id != current_user.id and current_user.role != "ADMIN"):
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    return initiative
+
+
+def _resolve_scores(session: Session, assessment: Assessment, config: dict) -> list[dict]:
+    """Prefer the frozen `Assessment.dimension_scores` snapshot (D-03); fall
+    back to a live recompute only for legacy submitted rows whose snapshot
+    is null — mirrors initiatives.py's `_to_summary` idiom exactly."""
+    assert assessment.id is not None  # always a persisted, submitted row
+    return (
+        assessment.dimension_scores
+        if assessment.dimension_scores is not None
+        else compute_dimension_scores(session, assessment.id, config)
+    )
 
 
 def _initiative_dict(initiative: Initiative) -> dict:
@@ -55,6 +83,24 @@ def _initiative_dict(initiative: Initiative) -> dict:
 def _generated_at_str() -> str:
     now = datetime.utcnow()
     return f"{now.day} {now.strftime('%B %Y, %H:%M')} UTC"
+
+
+def _render_html_for(
+    session: Session, initiative: Initiative, assessment: Assessment, config: dict
+) -> str:
+    """RPRT-04: builds the shared contract once, then feeds its keys into
+    the Jinja2 template — the same contract dict `/report/data` returns
+    verbatim as JSON (one payload, two renderings)."""
+    scores = _resolve_scores(session, assessment, config)
+    contract = build_report_contract(scores, initiative, assessment, config)
+    return generate_html_report(
+        initiative=_initiative_dict(initiative),
+        generated_at=_generated_at_str(),
+        dimension_scores=contract["dimension_scores"],
+        priority_list=contract["priority_list"],
+        radar_chart_svg=contract["radar_chart_svg"],
+        maturity_bands=contract["maturity_bands"],
+    )
 
 
 def _send_report_email(email: str, html_content: str, api_key: str) -> None:
@@ -100,137 +146,76 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
 @router.post("/initiatives/{initiative_id}/report", response_class=HTMLResponse)
 def generate_report(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Generate a compliance report for an initiative.
-
-    Enforces ownership (404) then the SCOR-04 completion gate (422) before
-    rendering. Renders a full HTML report via Jinja2 and upserts the result
-    into the compliance_report table. Returns the rendered HTML directly.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assert_assessment_complete(session, initiative_id, config)
-
-    # Load saved answers (D-06: via Assessment, not initiative_id directly)
-    answers = _get_answers_for_initiative(session, initiative_id)
-
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        generated_at=_generated_at_str(),
-    )
-
-    # Upsert: one report per initiative — regeneration replaces previous report
-    stmt = (
-        pg_insert(ComplianceReport)
-        .values(
-            initiative_id=initiative_id,
-            html_content=html_content,
-            generated_at=datetime.utcnow(),
-            questionnaire_version="2.0",
-            total_answers=len(answers),
-            critical_count=0,
-            non_critical_count=0,
-            compliant_count=len(answers),
-        )
-        .on_conflict_do_update(
-            index_elements=["initiative_id"],
-            set_={
-                "html_content": pg_insert(ComplianceReport).excluded.html_content,
-                "generated_at": pg_insert(ComplianceReport).excluded.generated_at,
-                "questionnaire_version": pg_insert(ComplianceReport).excluded.questionnaire_version,
-                "total_answers": pg_insert(ComplianceReport).excluded.total_answers,
-                "critical_count": pg_insert(ComplianceReport).excluded.critical_count,
-                "non_critical_count": pg_insert(ComplianceReport).excluded.non_critical_count,
-                "compliant_count": pg_insert(ComplianceReport).excluded.compliant_count,
-            },
-        )
-    )
-    session.exec(stmt)
-    session.commit()
-
+    """Render the compliance report as HTML on the fly from the shared
+    report contract and return it directly — no persistence (RESEARCH
+    Pitfall 2, decision A1)."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
     return HTMLResponse(content=html_content, status_code=200)
 
 
 @router.get("/initiatives/{initiative_id}/report", response_class=HTMLResponse)
 def get_report(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Retrieve the stored compliance report HTML for an initiative."""
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assert_assessment_complete(session, initiative_id, config)
-
-    report = session.exec(
-        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
-    ).first()
-    if not report:
-        raise HTTPException(status_code=404, detail="No report generated yet")
-
-    return HTMLResponse(content=report.html_content, status_code=200)
+    """Identical rendering path to POST /report — there is no stored report
+    to look up anymore (RESEARCH Pitfall 2), so this always renders fresh
+    from the resolved assessment's frozen contract."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
+    return HTMLResponse(content=html_content, status_code=200)
 
 
-@router.post("/initiatives/{initiative_id}/report/data")
+@router.post("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
 def generate_report_data_endpoint(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Generate and return structured JSON report data for the React /report page."""
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assessment = assert_assessment_complete(session, initiative_id, config)
-
-    data = generate_report_data(initiative=initiative)
-    data["dimension_scores"] = compute_dimension_scores(session, assessment.id, config)  # type: ignore[arg-type]
-    return data
+    """Return the shared ReportContract dict (RPRT-04) for a submitted
+    assessment — the same payload the in-app report page and the PDF/mail
+    paths render from."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    scores = _resolve_scores(session, assessment, config)
+    return build_report_contract(scores, initiative, assessment, config)
 
 
-@router.get("/initiatives/{initiative_id}/report/data")
+@router.get("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
 def get_report_data_endpoint(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Retrieve structured JSON report data for an initiative.
-
-    Re-computes dimension scores on the fly from stored answers to avoid
-    storing JSON separately. Returns 404 if no report has been generated yet.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assessment = assert_assessment_complete(session, initiative_id, config)
-
-    # Check a report exists (i.e. the user has generated one before)
-    report = session.exec(
-        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
-    ).first()
-    if not report:
-        raise HTTPException(status_code=404, detail="No report generated yet")
-
-    data = generate_report_data(initiative=initiative)
-    data["dimension_scores"] = compute_dimension_scores(session, assessment.id, config)  # type: ignore[arg-type]
-    return data
+    """Retrieve the shared ReportContract dict for an initiative's submitted
+    assessment (default: the latest; or a specific past version via
+    `?assessment_id=`, D-04) — the primary read path for the in-app React
+    report page."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    scores = _resolve_scores(session, assessment, config)
+    return build_report_contract(scores, initiative, assessment, config)
 
 
 @router.get("/initiatives/{initiative_id}/report/pdf")
 def download_report_pdf(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
@@ -239,16 +224,9 @@ def download_report_pdf(
     from fastapi.responses import Response
     from weasyprint import HTML as WeasyHTML
 
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assert_assessment_complete(session, initiative_id, config)
-
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        generated_at=_generated_at_str(),
-    )
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
     pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
     return Response(
         content=pdf_bytes,
@@ -261,25 +239,15 @@ def download_report_pdf(
 def mail_report(
     initiative_id: int,
     background_tasks: BackgroundTasks,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
     config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Email the compliance report as a PDF attachment to the authenticated user.
-
-    Generates HTML on the fly from current answers so it always works,
-    regardless of whether the old /report endpoint has been called.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    assert_assessment_complete(session, initiative_id, config)
-
-    html_content = generate_html_report(
-        initiative=_initiative_dict(initiative),
-        generated_at=_generated_at_str(),
-    )
+    """Email the compliance report as a PDF attachment to the authenticated user."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
 
     background_tasks.add_task(
         _send_report_email,

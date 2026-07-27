@@ -9,6 +9,8 @@ file-I/O read, so tests call it directly.
 import json
 from pathlib import Path
 
+import pytest
+
 from app.services.mami_config import CONFIG_DIR, load_dssc_questionnaire_config
 
 CONFIG_PATH = Path(CONFIG_DIR) / "dssc-questionnaire.json"
@@ -57,3 +59,26 @@ def test_served_content_is_byte_for_parsed_equal_to_raw_json_file():
     served = load_dssc_questionnaire_config()
 
     assert served == raw
+
+
+def test_load_raises_fast_on_zero_question_category(tmp_path, monkeypatch):
+    # WR-04 regression: a zero-question category must fail loudly at
+    # config-load time (startup), not surface as a downstream 500 from
+    # `compute_dimension_scores`/`get_maturity_band` on the report path.
+    bad_config = {
+        "default_options": [{"label": "x", "score": s} for s in range(1, 6)],
+        "maturity_bands": [],
+        "categories": [
+            {"id": "empty-cat", "name": "Empty Category", "questions": []},
+            {
+                "id": "normal-cat",
+                "name": "Normal Category",
+                "questions": [{"id": "q1", "text": "Q1"}],
+            },
+        ],
+    }
+    (tmp_path / "dssc-questionnaire.json").write_text(json.dumps(bad_config))
+    monkeypatch.setattr("app.services.mami_config.CONFIG_DIR", tmp_path)
+
+    with pytest.raises(ValueError, match="empty-cat"):
+        load_dssc_questionnaire_config()

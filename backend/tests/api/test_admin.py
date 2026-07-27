@@ -15,16 +15,37 @@ import io
 import pytest
 from sqlmodel import select
 
-from app.models.assessment import Assessment
+from app.models.assessment import Assessment, AssessmentStatus
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
+from app.services.mami_config import load_dssc_questionnaire_config
 from tests.factories import (
     make_answer,
+    make_assessment,
     make_initiative,
     make_report,
-    make_submitted_initiative,
     make_user,
 )
+
+
+def _config() -> dict:
+    return load_dssc_questionnaire_config()
+
+
+def _six_scores(value: float) -> list[dict]:
+    return [
+        {"category_id": cat["id"], "name": cat["name"], "score": value}
+        for cat in _config()["categories"]
+    ]
+
+
+def _submit_with_scores(session, *, initiative, scores: list[dict]):
+    assessment = make_assessment(session, initiative=initiative, status=AssessmentStatus.submitted)
+    assessment.dimension_scores = scores
+    session.add(assessment)
+    session.commit()
+    session.refresh(assessment)
+    return assessment
 
 
 def _answers_for_initiative(session, initiative_id: int) -> list[QuestionnaireAnswer]:
@@ -206,17 +227,87 @@ def test_export_dataset_csv_shape(admin_client, session):
     assert len(rows) == 3
 
 
-def test_admin_heatmap_reflects_submitted_initiatives(admin_client, session):
-    # Phase 14 (D-01b): /admin/heatmap is now a fixed, deliberately trivial
-    # degraded response — the MAMI-matrix aggregation this endpoint used to
-    # build is deleted outright. Phase 16 (ADMN-01) rebuilds it against the
-    # new 6-category dimension-score model.
+def test_export_dataset_csv_sanitizes_formula_injection_in_initiative_name(admin_client, session):
+    # CR-02 regression: Initiative.name is free-text and fully user-
+    # controlled. A cell value starting with =, +, -, @, tab, or CR must be
+    # neutralized (prefixed with a leading quote) before being written to
+    # the exported CSV, so Excel/Sheets/LibreOffice never interpret it as a
+    # formula (CWE-1236).
     user = make_user(session)
-    initiative = make_submitted_initiative(session, user=user)
+    initiative = make_initiative(session, user=user)
+    initiative.name = '=cmd|"/c calc.exe"!A1'
+    session.add(initiative)
+    session.commit()
     make_answer(session, initiative=initiative)
+
+    response = admin_client.get("/api/v1/admin/export")
+    assert response.status_code == 200
+
+    reader = csv.reader(io.StringIO(response.text))
+    next(reader)  # header
+    row = next(reader)
+    initiative_name_cell = row[1]
+
+    assert initiative_name_cell.startswith("'")
+    assert initiative_name_cell == "'" + '=cmd|"/c calc.exe"!A1'
+
+
+def test_admin_heatmap_returns_org_aggregate_and_per_initiative_rows(admin_client, session):
+    # ADMN-01/D-07/D-08: real 6-dimension aggregation replaces the Phase 14
+    # fixed degraded stub. Two submitted initiatives (all-2 / all-4) plus a
+    # draft-only initiative that must appear with has_data=False and never
+    # drag the org average toward zero.
+    user_a = make_user(session)
+    initiative_a = make_initiative(session, user=user_a)
+    assessment_a = _submit_with_scores(session, initiative=initiative_a, scores=_six_scores(2.0))
+
+    user_b = make_user(session)
+    initiative_b = make_initiative(session, user=user_b)
+    assessment_b = _submit_with_scores(session, initiative=initiative_b, scores=_six_scores(4.0))
+
+    user_c = make_user(session)
+    initiative_c = make_initiative(session, user=user_c)
+    make_assessment(session, initiative=initiative_c, status=AssessmentStatus.draft)
 
     response = admin_client.get("/api/v1/admin/heatmap")
     assert response.status_code == 200
     body = response.json()
-    assert body["degraded"] is True
-    assert body["cells"] == []
+
+    assert body["org_average_scores"] != []
+    for entry in body["org_average_scores"]:
+        assert entry["score"] == 3.0
+    assert body["org_radar_chart_svg"] is not None
+    assert "<svg" in body["org_radar_chart_svg"]
+
+    rows_by_id = {row["id"]: row for row in body["initiatives"]}
+
+    row_a = rows_by_id[initiative_a.id]
+    assert row_a["has_data"] is True
+    assert row_a["report_assessment_id"] == assessment_a.id
+    assert row_a["overall_average"] == 2.0
+    assert row_a["dimension_scores"] is not None
+
+    row_b = rows_by_id[initiative_b.id]
+    assert row_b["has_data"] is True
+    assert row_b["report_assessment_id"] == assessment_b.id
+    assert row_b["overall_average"] == 4.0
+
+    row_c = rows_by_id[initiative_c.id]
+    assert row_c["has_data"] is False
+    assert row_c["dimension_scores"] is None
+    assert row_c["overall_average"] is None
+    assert row_c["report_assessment_id"] is None
+
+
+def test_admin_heatmap_empty_org_suppresses_radar_and_average(admin_client, session):
+    # RESEARCH Pitfall 5: zero submitted assessments org-wide must suppress
+    # the radar (None), never render an all-zero degenerate hexagon.
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    make_assessment(session, initiative=initiative, status=AssessmentStatus.draft)
+
+    response = admin_client.get("/api/v1/admin/heatmap")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["org_radar_chart_svg"] is None
+    assert body["org_average_scores"] == []

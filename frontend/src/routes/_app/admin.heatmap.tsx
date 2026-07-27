@@ -1,7 +1,7 @@
-import React from "react";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Card, Spin, Alert, Button, Typography, Tabs } from "antd";
+import { Card, Spin, Alert, Button, Table, Tag, Typography } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import { api } from "../../lib/api";
 
 const { Title, Text } = Typography;
@@ -22,275 +22,118 @@ export const Route = createFileRoute("/_app/admin/heatmap")({
   component: AdminHeatmapPage,
 });
 
-// ---- Types ----------------------------------------------------------------
+// ---- Types ------------------------------------------------------------------
+// Mirrors backend/app/api/v1/admin.py's AdminAggregateResponse/
+// AdminInitiativeAggregateRow verbatim (ADMN-01).
 
-interface AdminHeatmapCell {
-  yes: number;
-  not_yet: number;
-  n_a: number;
+interface DimensionScore {
+  category_id: string;
+  name: string;
+  score: number;
 }
 
-interface AdminHeatmapResponse {
-  total_submitted: number;
-  matrix: Record<string, Record<string, Record<string, AdminHeatmapCell>>>;
-  topic_structure: Record<string, Array<{ topic_id: string; topic_label: string; codes: string[] }>>;
+interface AdminInitiativeAggregateRow {
+  id: number;
+  name: string;
+  report_assessment_id: number | null;
+  dimension_scores: DimensionScore[] | null;
+  overall_average: number | null;
+  has_data: boolean;
 }
 
-// ---- Labels ----------------------------------------------------------------
-
-const CATEGORY_LABELS: Record<string, string> = {
-  scheme: "Scheme",
-  participants: "Participants",
-  data: "Data",
-  services: "Services",
-};
-
-const DIMENSION_LABELS = [
-  { key: "human_readable", label: "Human readability" },
-  { key: "machine_readable", label: "Machine readability" },
-  { key: "trust_anchors", label: "Trust anchors" },
-];
-
-// ---- CountPill component ---------------------------------------------------
-
-function CountPill({ count, color }: { count: number; color: "green" | "blue" | "grey" }) {
-  const cfg = {
-    green: { bg: "rgba(57,158,90,0.2)", color: "#399e5a" },
-    blue:  { bg: "rgba(61,82,213,0.2)", color: "#3d52d5" },
-    grey:  { bg: "rgba(204,204,204,0.8)", color: "#666" },
-  }[color];
-  return (
-    <span
-      style={{
-        background: cfg.bg,
-        color: cfg.color,
-        borderRadius: "100px",
-        padding: "4px 12px",
-        fontSize: "0.85rem",
-        fontFamily: "'Rubik', sans-serif",
-        fontWeight: 600,
-        minWidth: "36px",
-        textAlign: "center",
-        display: "inline-block",
-      }}
-    >
-      {count}
-    </span>
-  );
+interface AdminAggregateResponse {
+  org_average_scores: DimensionScore[];
+  org_radar_chart_svg: string | null;
+  initiatives: AdminInitiativeAggregateRow[];
 }
 
-// ---- HeatmapGrid component -------------------------------------------------
-
-interface HeatmapGridProps {
-  data: AdminHeatmapResponse | null;
-  loading: boolean;
-  error: string | null;
-  typeLabel: string; // "DSI initiative" or "Service Provider initiative"
-}
-
-function HeatmapGrid({ data, loading, error, typeLabel }: HeatmapGridProps) {
-  const categories = Object.keys(CATEGORY_LABELS);
-  const gridCols = "200px repeat(3, 1fr)";
-
-  if (loading) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", paddingTop: "4rem" }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <Alert type="error" message={error} showIcon style={{ maxWidth: "600px" }} />;
-  }
-
-  if (!data) return null;
-
-  return (
-    <Card
-      style={{
-        borderRadius: "16px",
-        boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
-        overflow: "hidden",
-      }}
-      styles={{ body: { padding: "1.5rem" } }}
-    >
-      <div style={{ overflowX: "auto" }}>
-        {/* Header row */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: gridCols,
-            background: "#06004f",
-            borderRadius: "10px 10px 0 0",
-            padding: "12px 16px",
-            gap: "8px",
-          }}
-        >
-          <div />
-          {DIMENSION_LABELS.map((dim) => (
-            <div
-              key={dim.key}
-              style={{
-                color: "white",
-                fontFamily: "'Rubik', sans-serif",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                textAlign: "center",
-              }}
-            >
-              {dim.label}
-            </div>
-          ))}
-        </div>
-
-        {/* Category group headers + topic rows */}
-        <div style={{ display: "grid", gridTemplateColumns: gridCols }}>
-          {categories.map((cat) => (
-            <React.Fragment key={cat}>
-              <div
-                style={{
-                  gridColumn: "1 / -1",
-                  background: "#06004f",
-                  padding: "10px 16px",
-                  fontFamily: "'Rubik', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "0.9rem",
-                  color: "white",
-                  borderBottom: "1px solid rgba(255,255,255,0.15)",
-                }}
-              >
-                {CATEGORY_LABELS[cat]}
-              </div>
-
-              {(data.topic_structure[cat] ?? []).map((topic) => (
-                <React.Fragment key={topic.topic_id}>
-                  <div
-                    style={{
-                      padding: "10px 16px 10px 2rem",
-                      fontFamily: "'Rubik', sans-serif",
-                      fontSize: "0.875rem",
-                      color: "#333",
-                      borderBottom: "1px solid #f0f0f0",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {topic.topic_label}
-                  </div>
-
-                  {DIMENSION_LABELS.map((dim) => {
-                    const cell: AdminHeatmapCell =
-                      data.matrix[cat]?.[dim.key]?.[topic.topic_id] ?? {
-                        yes: 0,
-                        not_yet: 0,
-                        n_a: 0,
-                      };
-                    return (
-                      <div
-                        key={dim.key}
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          gap: "4px",
-                          padding: "8px",
-                          borderBottom: "1px solid #f0f0f0",
-                        }}
-                      >
-                        <CountPill count={cell.yes} color="green" />
-                        <CountPill count={cell.not_yet} color="blue" />
-                        <CountPill count={cell.n_a} color="grey" />
-                      </div>
-                    );
-                  })}
-                </React.Fragment>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      <Text
-        style={{
-          fontFamily: "'Rubik', sans-serif",
-          fontSize: "0.875rem",
-          color: "rgba(6,0,79,0.6)",
-          display: "block",
-          marginTop: "1.5rem",
-        }}
-      >
-        Based on{" "}
-        <strong style={{ color: "#06004f" }}>{data.total_submitted}</strong>{" "}
-        submitted {typeLabel}{data.total_submitted !== 1 ? "s" : ""}. Each cell shows:{" "}
-        <CountPill count={0} color="green" /> Yes &nbsp;
-        <CountPill count={0} color="blue" /> Not yet &nbsp;
-        <CountPill count={0} color="grey" /> N/A
-      </Text>
-    </Card>
-  );
-}
-
-// ---- AdminHeatmapPage component --------------------------------------------
+// ---- AdminHeatmapPage component -----------------------------------------------
 
 export function AdminHeatmapPage() {
-  // DSI state — fetched on mount
-  const [dsiData, setDsiData] = useState<AdminHeatmapResponse | null>(null);
-  const [dsiLoading, setDsiLoading] = useState(true);
-  const [dsiError, setDsiError] = useState<string | null>(null);
+  const [data, setData] = useState<AdminAggregateResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
-  // SP state — fetched lazily on first tab activation
-  const [spData, setSpData] = useState<AdminHeatmapResponse | null>(null);
-  const [spLoading, setSpLoading] = useState(false);
-  const [spError, setSpError] = useState<string | null>(null);
-  const [spFetched, setSpFetched] = useState(false);
-
-  // Fetch DSI on mount (dsiLoading already starts true — no need to set it again here)
   useEffect(() => {
+    let cancelled = false;
     api
-      .get<AdminHeatmapResponse>("/admin/heatmap?type=dsi")
-      .then((res) => setDsiData(res.data))
-      .catch(() => setDsiError("Failed to load DSI heatmap data."))
-      .finally(() => setDsiLoading(false));
-  }, []);
+      .get<AdminAggregateResponse>("/admin/heatmap")
+      .then((res) => {
+        if (!cancelled) setData(res.data);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Couldn't load the aggregated maturity data.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [retryToken]);
 
-  // Lazy fetch SP on first tab activation
-  function handleTabChange(key: string) {
-    if (key === "sp" && !spFetched) {
-      setSpFetched(true);
-      setSpLoading(true);
-      api
-        .get<AdminHeatmapResponse>("/admin/heatmap?type=sp")
-        .then((res) => setSpData(res.data))
-        .catch(() => setSpError("Failed to load SP heatmap data."))
-        .finally(() => setSpLoading(false));
-    }
-  }
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    setRetryToken((t) => t + 1);
+  };
 
-  const tabItems = [
+  // D-08: never re-derive band color/label from a raw score client-side —
+  // this page only ever displays the raw dimension_scores/overall_average
+  // numbers the backend computed; no maturity-band rendering happens here
+  // (that is report.tsx's job, per-initiative, not the admin aggregate).
+
+  const submittedCount = data ? data.initiatives.filter((i) => i.has_data).length : 0;
+  const isOrgEmpty = !!data && data.org_radar_chart_svg === null;
+
+  const dimensionColumns: { category_id: string; name: string }[] = data
+    ? data.org_average_scores.map((d) => ({ category_id: d.category_id, name: d.name }))
+    : [];
+
+  const columns: ColumnsType<AdminInitiativeAggregateRow> = [
     {
-      key: "dsi",
-      label: "Aggregated Interoperability Heatmap for DSI's",
-      children: (
-        <HeatmapGrid
-          data={dsiData}
-          loading={dsiLoading}
-          error={dsiError}
-          typeLabel="DSI initiative"
-        />
-      ),
+      title: "Initiative",
+      dataIndex: "name",
+      key: "name",
+      ellipsis: true,
+      width: 220,
+    },
+    ...dimensionColumns.map(({ category_id, name }) => ({
+      title: name,
+      key: `dim-${category_id}`,
+      width: 140,
+      render: (_: unknown, record: AdminInitiativeAggregateRow) => {
+        // Match on the stable `category_id`, not the mutable display
+        // `name` (WR-01) — `record.dimension_scores` is a per-initiative
+        // frozen snapshot (per CR-01) that may use a different name for the
+        // same category id than the current live config does.
+        const match = record.dimension_scores?.find((d) => d.category_id === category_id);
+        return match ? match.score.toFixed(2) : "—";
+      },
+    })),
+    {
+      title: "Overall average",
+      dataIndex: "overall_average",
+      key: "overall_average",
+      width: 140,
+      render: (v: number | null) => (v != null ? v.toFixed(2) : "—"),
     },
     {
-      key: "sp",
-      label: "Aggregated Interoperability Heatmap for SP's",
-      children: (
-        <HeatmapGrid
-          data={spData}
-          loading={spLoading}
-          error={spError}
-          typeLabel="Service Provider initiative"
-        />
-      ),
+      title: "Report",
+      key: "report",
+      width: 140,
+      render: (_: unknown, record: AdminInitiativeAggregateRow) =>
+        record.has_data && record.report_assessment_id != null ? (
+          <Link
+            to="/report"
+            search={{ initiative_id: record.id, assessment_id: record.report_assessment_id }}
+          >
+            View report
+          </Link>
+        ) : (
+          <Tag color="default">No data yet</Tag>
+        ),
     },
   ];
 
@@ -312,20 +155,116 @@ export function AdminHeatmapPage() {
         level={1}
         style={{
           fontFamily: "'Rubik', sans-serif",
-          fontWeight: 700,
+          fontWeight: 600,
           color: "#06004f",
           marginBottom: "1.5rem",
-          fontSize: "1.75rem",
+          fontSize: "28px",
         }}
       >
-        Aggregated Interoperability Heatmap
+        Aggregated Maturity Overview
       </Title>
 
-      <Tabs
-        defaultActiveKey="dsi"
-        items={tabItems}
-        onChange={handleTabChange}
-      />
+      {loading && (
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "4rem" }}>
+          <Spin size="large" />
+        </div>
+      )}
+
+      {!loading && error && (
+        <Alert
+          type="error"
+          message={error}
+          showIcon
+          action={
+            <Button size="small" onClick={handleRetry}>
+              Retry
+            </Button>
+          }
+          style={{ maxWidth: "600px" }}
+        />
+      )}
+
+      {!loading && !error && data && (
+        <>
+          {/* Org radar card (or its empty-state) — primary visual anchor
+              (UI-SPEC Dimension 2). WR-02: the "no submitted assessments
+              yet" messaging is scoped to this card only — it must not hide
+              the per-initiative table below, which the backend populates
+              (including has_data=False rows) even when the org-wide radar
+              is suppressed. */}
+          {isOrgEmpty ? (
+            <Card
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <Title
+                level={2}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "0.5rem" }}
+              >
+                No submitted assessments yet
+              </Title>
+              <Text style={{ fontFamily: "'Rubik', sans-serif", fontSize: "14px", color: "rgba(6,0,79,0.6)" }}>
+                Once an initiative fully completes and submits the questionnaire, its scores will appear here.
+              </Text>
+            </Card>
+          ) : (
+            <Card
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <Title
+                level={2}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+              >
+                Org-wide maturity radar
+              </Title>
+              <div
+                style={{ display: "flex", justifyContent: "center" }}
+                dangerouslySetInnerHTML={{ __html: data.org_radar_chart_svg ?? "" }}
+              />
+              <Text
+                style={{
+                  fontFamily: "'Rubik', sans-serif",
+                  fontSize: "13px",
+                  color: "rgba(6,0,79,0.6)",
+                  display: "block",
+                  marginTop: "1rem",
+                }}
+              >
+                Based on <strong style={{ color: "#06004f" }}>{submittedCount}</strong> submitted
+                initiative{submittedCount !== 1 ? "s" : ""}.
+              </Text>
+            </Card>
+          )}
+
+          {/* Per-initiative table — always rendered, regardless of
+              org-wide radar state (WR-02); handles has_data=False rows via
+              the "No data yet" tag. */}
+          <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.08)" }}>
+            <Title
+              level={2}
+              style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+            >
+              Per-initiative breakdown
+            </Title>
+            <Table
+              dataSource={data.initiatives}
+              columns={columns}
+              rowKey="id"
+              pagination={{ pageSize: 10, showSizeChanger: false }}
+              size="small"
+              scroll={{ x: "max-content" }}
+              style={{ borderRadius: "8px", overflow: "hidden" }}
+            />
+          </Card>
+        </>
+      )}
     </div>
   );
 }
