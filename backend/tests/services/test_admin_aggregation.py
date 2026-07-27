@@ -56,11 +56,15 @@ def test_latest_submitted_query_includes_draft_only_initiative_with_null_latest(
 def test_org_average_is_mean_across_two_submitted_initiatives(session):
     user_a = make_user(session)
     initiative_a = make_initiative(session, user=user_a)
-    _make_submitted_assessment_with_scores(session, initiative=initiative_a, scores=_six_scores(2.0))
+    _make_submitted_assessment_with_scores(
+        session, initiative=initiative_a, scores=_six_scores(2.0)
+    )
 
     user_b = make_user(session)
     initiative_b = make_initiative(session, user=user_b)
-    _make_submitted_assessment_with_scores(session, initiative=initiative_b, scores=_six_scores(4.0))
+    _make_submitted_assessment_with_scores(
+        session, initiative=initiative_b, scores=_six_scores(4.0)
+    )
 
     result = build_admin_aggregate(session, _config())
 
@@ -73,7 +77,9 @@ def test_org_average_is_mean_across_two_submitted_initiatives(session):
 def test_org_average_excludes_draft_only_initiative_no_zero_coercion(session):
     user_a = make_user(session)
     initiative_a = make_initiative(session, user=user_a)
-    _make_submitted_assessment_with_scores(session, initiative=initiative_a, scores=_six_scores(4.0))
+    _make_submitted_assessment_with_scores(
+        session, initiative=initiative_a, scores=_six_scores(4.0)
+    )
 
     # A draft-only initiative must NOT drag the average toward 0.
     user_b = make_user(session)
