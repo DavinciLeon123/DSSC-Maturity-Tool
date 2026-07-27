@@ -87,7 +87,9 @@ export function AdminHeatmapPage() {
   const submittedCount = data ? data.initiatives.filter((i) => i.has_data).length : 0;
   const isOrgEmpty = !!data && data.org_radar_chart_svg === null;
 
-  const dimensionNames: string[] = data ? data.org_average_scores.map((d) => d.name) : [];
+  const dimensionColumns: { category_id: string; name: string }[] = data
+    ? data.org_average_scores.map((d) => ({ category_id: d.category_id, name: d.name }))
+    : [];
 
   const columns: ColumnsType<AdminInitiativeAggregateRow> = [
     {
@@ -97,12 +99,16 @@ export function AdminHeatmapPage() {
       ellipsis: true,
       width: 220,
     },
-    ...dimensionNames.map((name) => ({
+    ...dimensionColumns.map(({ category_id, name }) => ({
       title: name,
-      key: `dim-${name}`,
+      key: `dim-${category_id}`,
       width: 140,
       render: (_: unknown, record: AdminInitiativeAggregateRow) => {
-        const match = record.dimension_scores?.find((d) => d.name === name);
+        // Match on the stable `category_id`, not the mutable display
+        // `name` (WR-01) — `record.dimension_scores` is a per-initiative
+        // frozen snapshot (per CR-01) that may use a different name for the
+        // same category id than the current live config does.
+        const match = record.dimension_scores?.find((d) => d.category_id === category_id);
         return match ? match.score.toFixed(2) : "—";
       },
     })),
