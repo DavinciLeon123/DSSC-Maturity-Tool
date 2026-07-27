@@ -1533,7 +1533,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/report": {
       "get": {
-        "description": "Retrieve the stored compliance report HTML for an initiative.",
+        "description": "Identical rendering path to POST /report \u2014 there is no stored report\nto look up anymore (RESEARCH Pitfall 2), so this always renders fresh\nfrom the resolved assessment's frozen contract.",
         "operationId": "get_report_api_v1_initiatives__initiative_id__report_get",
         "parameters": [
           {
@@ -1543,6 +1543,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],
@@ -1579,7 +1595,7 @@
         ]
       },
       "post": {
-        "description": "Generate a compliance report for an initiative.\n\nEnforces ownership (404) then the SCOR-04 completion gate (422) before\nrendering. Renders a full HTML report via Jinja2 and upserts the result\ninto the compliance_report table. Returns the rendered HTML directly.",
+        "description": "Render the compliance report as HTML on the fly from the shared\nreport contract and return it directly \u2014 no persistence (RESEARCH\nPitfall 2, decision A1).",
         "operationId": "generate_report_api_v1_initiatives__initiative_id__report_post",
         "parameters": [
           {
@@ -1589,6 +1605,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],
@@ -1627,7 +1659,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/report/data": {
       "get": {
-        "description": "Retrieve structured JSON report data for an initiative.\n\nRe-computes dimension scores on the fly from stored answers to avoid\nstoring JSON separately. Returns 404 if no report has been generated yet.",
+        "description": "Retrieve the shared ReportContract dict for an initiative's submitted\nassessment (default: the latest; or a specific past version via\n`?assessment_id=`, D-04) \u2014 the primary read path for the in-app React\nreport page.",
         "operationId": "get_report_data_endpoint_api_v1_initiatives__initiative_id__report_data_get",
         "parameters": [
           {
@@ -1637,6 +1669,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],
@@ -1671,7 +1719,7 @@
         ]
       },
       "post": {
-        "description": "Generate and return structured JSON report data for the React /report page.",
+        "description": "Return the shared ReportContract dict (RPRT-04) for a submitted\nassessment \u2014 the same payload the in-app report page and the PDF/mail\npaths render from.",
         "operationId": "generate_report_data_endpoint_api_v1_initiatives__initiative_id__report_data_post",
         "parameters": [
           {
@@ -1681,6 +1729,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],
@@ -1717,7 +1781,7 @@
     },
     "/api/v1/initiatives/{initiative_id}/report/mail": {
       "post": {
-        "description": "Email the compliance report as a PDF attachment to the authenticated user.\n\nGenerates HTML on the fly from current answers so it always works,\nregardless of whether the old /report endpoint has been called.",
+        "description": "Email the compliance report as a PDF attachment to the authenticated user.",
         "operationId": "mail_report_api_v1_initiatives__initiative_id__report_mail_post",
         "parameters": [
           {
@@ -1727,6 +1791,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],
@@ -1773,6 +1853,22 @@
             "schema": {
               "title": "Initiative Id",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assessment_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assessment Id"
             }
           }
         ],

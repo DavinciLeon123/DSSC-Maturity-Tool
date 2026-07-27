@@ -1,17 +1,19 @@
-"""Jinja2-based HTML report generator for MAMI compliance reports.
+"""Jinja2-based HTML report generator for DSSC maturity reports.
 
-Phase 14 (D-01a/D-05): all MAMI-matrix/heatmap/recommendation builders are
+Phase 14 (D-01a/D-05): all MAMI-matrix/heatmap/recommendation builders were
 deleted outright — the ZEN/MoSCoW subsystem this module rendered is gone.
-`generate_html_report` still renders the unchanged `report.html` template
-(Phase 16's job to redesign), passing literal-empty `heatmap_rows`/
-`not_yet_recommendations` so Jinja2 doesn't raise `UndefinedError` on the
-template's existing `.get(...)`/`{% for %}` references. `generate_report_data`
-returns initiative info only — callers (reports.py) add `dimension_scores`
-on top from the new dimension-scoring service.
+
+Phase 16 (RPRT-01..04, D-02/D-03): `generate_html_report` now renders the
+rebuilt 6-dimension `report.html` template from the same
+`dimension_scores`/`priority_list`/`radar_chart_svg`/`maturity_bands` keys
+that `build_report_contract` returns for the JSON response — one shared
+contract, two renderings (RPRT-04). The old `generate_report_data` helper
+(initiative-info-only JSON assembly) is removed outright: it is fully
+superseded by `build_report_contract`, which callers (reports.py) now call
+directly.
 """
 
 import math
-from datetime import datetime
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -26,17 +28,26 @@ def _get_jinja_env() -> Environment:
     )
 
 
-def generate_html_report(initiative: dict, generated_at: str) -> str:
-    """Render the compliance report HTML from the unchanged Jinja2 template.
+def generate_html_report(
+    *,
+    initiative: dict,
+    generated_at: str,
+    dimension_scores: list[dict],
+    priority_list: list[dict],
+    radar_chart_svg: str,
+    maturity_bands: list[dict],
+) -> str:
+    """Render the 6-dimension compliance report HTML (RPRT-01/02/04) from the
+    rebuilt `report.html` template.
 
     Args:
-        initiative: dict with name, organization, contact_name
-        generated_at: pre-formatted generated-at string for the template
-
-    Returns:
-        Rendered HTML string. `heatmap_rows`/`not_yet_recommendations` are
-        passed as literal empties (D-05, RESEARCH Pitfall 1) — no builder
-        function computes them anymore.
+        initiative: dict with name, organization, contact_name.
+        generated_at: pre-formatted generated-at string for the template.
+        dimension_scores, priority_list, radar_chart_svg, maturity_bands:
+            the same 4 keys `build_report_contract()` returns for the JSON
+            response — passed through unmodified so the in-app view and the
+            mailed PDF render from one shared payload (RPRT-04), never a
+            second independently-built context.
     """
     env = _get_jinja_env()
     template = env.get_template("report.html")
@@ -44,37 +55,12 @@ def generate_html_report(initiative: dict, generated_at: str) -> str:
     context = {
         "initiative": initiative,
         "generated_at": generated_at,
-        "heatmap_rows": {},
-        "not_yet_recommendations": [],
+        "dimension_scores": dimension_scores,
+        "priority_list": priority_list,
+        "radar_chart_svg": radar_chart_svg,
+        "maturity_bands": maturity_bands,
     }
     return template.render(**context)
-
-
-def generate_report_data(initiative) -> dict:
-    """Return structured JSON-serialisable report data for the React /report page.
-
-    Args:
-        initiative: Initiative ORM object (or dict) with id, name attributes
-
-    Returns:
-        Dict with only an `initiative` key (D-01a/D-05) — the caller adds
-        `dimension_scores` on top via the new dimension-scoring service.
-    """
-    # Resolve initiative id and name (supports ORM object or dict)
-    if hasattr(initiative, "id"):
-        initiative_id = str(initiative.id)
-        initiative_name = initiative.name
-    else:
-        initiative_id = str(initiative.get("id", ""))
-        initiative_name = initiative.get("name", "")
-
-    return {
-        "initiative": {
-            "id": initiative_id,
-            "name": initiative_name,
-            "generated_at": datetime.utcnow().isoformat() + "Z",
-        },
-    }
 
 
 def get_maturity_band(score: float, bands: list[dict]) -> dict:
@@ -212,7 +198,7 @@ def build_report_contract(
     """
     bands = config["maturity_bands"]
 
-    # ORM-or-dict flexibility idiom (mirrors generate_report_data above)
+    # ORM-or-dict flexibility idiom
     if hasattr(initiative, "id"):
         initiative_id = str(initiative.id)
         initiative_name = initiative.name
