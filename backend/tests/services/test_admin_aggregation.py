@@ -103,6 +103,46 @@ def test_zero_submitted_org_wide_suppresses_radar_and_average(session):
     assert result["org_average_scores"] == []
 
 
+def test_org_average_excludes_stale_snapshot_category_mismatch_no_crash(session):
+    """CR-01 regression: a frozen `dimension_scores` snapshot taken under an
+    older config version may not cover every category id in the *current*
+    live config (config churn, e.g. 7ede5e2). `build_admin_aggregate` must
+    exclude the mismatched initiative from the affected category's average
+    instead of raising an unhandled StopIteration."""
+    current_config = _config()
+    current_category_ids = {cat["id"] for cat in current_config["categories"]}
+    stale_category_id = "stale-category-not-in-current-config"
+    assert stale_category_id not in current_category_ids
+
+    user_a = make_user(session)
+    initiative_a = make_initiative(session, user=user_a)
+    _make_submitted_assessment_with_scores(
+        session, initiative=initiative_a, scores=_six_scores(4.0)
+    )
+
+    # Simulate a frozen snapshot from an old config version whose category
+    # ids no longer exist in the current live config.
+    user_b = make_user(session)
+    initiative_b = make_initiative(session, user=user_b)
+    stale_scores = [{"category_id": stale_category_id, "name": "Stale Category", "score": 2.0}]
+    _make_submitted_assessment_with_scores(session, initiative=initiative_b, scores=stale_scores)
+
+    result = build_admin_aggregate(session, current_config)
+
+    # Must not crash, and every current category's average must be computed
+    # only from initiatives whose snapshot actually covers it (here, just
+    # initiative_a's 4.0 — initiative_b contributes nothing to any current
+    # category).
+    assert result["org_average_scores"] != []
+    for entry in result["org_average_scores"]:
+        assert entry["score"] == 4.0
+    assert result["org_radar_chart_svg"] is not None
+
+    row_b = next(r for r in result["initiatives"] if r["id"] == initiative_b.id)
+    assert row_b["has_data"] is True
+    assert row_b["dimension_scores"] == stale_scores
+
+
 def test_build_admin_aggregate_reuses_generate_radar_svg_not_reimplemented(session):
     # RPRT-01/D-01: same SVG-generating function used by individual reports —
     # confirmed by module-level import, not a second implementation.

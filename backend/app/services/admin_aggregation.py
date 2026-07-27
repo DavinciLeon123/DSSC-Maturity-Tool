@@ -94,26 +94,43 @@ def build_admin_aggregate(session: Session, config: dict) -> dict:
         org_average_scores: list[dict] = []
         org_radar_chart_svg = None
     else:
-        org_average_scores = [
-            {
-                "category_id": cat["id"],
-                "name": cat["name"],
-                "score": round(
-                    sum(
-                        next(
+        org_average_scores = []
+        for cat in categories:
+            # A frozen `dimension_scores` snapshot is taken at submission time
+            # against whatever config version was live then (see
+            # `Assessment.dimension_scores` docstring) — it is NOT guaranteed
+            # to cover every category in the *current* live config (CR-01:
+            # config churn, e.g. category ids/count changing between an old
+            # submission and today). Any initiative whose snapshot lacks the
+            # current category is simply excluded from that category's
+            # average, rather than crashing the whole endpoint.
+            cat_scores = [
+                score
+                for r in included
+                if (
+                    score := next(
+                        (
                             s["score"]
                             for s in r["dimension_scores"]
                             if s["category_id"] == cat["id"]
-                        )
-                        for r in included
+                        ),
+                        None,
                     )
-                    / len(included),
-                    2,
-                ),
-            }
-            for cat in categories
-        ]
-        org_radar_chart_svg = generate_radar_svg(org_average_scores, bands)
+                )
+                is not None
+            ]
+            if not cat_scores:
+                continue
+            org_average_scores.append(
+                {
+                    "category_id": cat["id"],
+                    "name": cat["name"],
+                    "score": round(sum(cat_scores) / len(cat_scores), 2),
+                }
+            )
+        org_radar_chart_svg = (
+            generate_radar_svg(org_average_scores, bands) if org_average_scores else None
+        )
 
     return {
         "org_average_scores": org_average_scores,
