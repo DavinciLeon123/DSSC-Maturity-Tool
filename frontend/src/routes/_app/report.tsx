@@ -153,7 +153,7 @@ function ReportPage() {
     try {
       const token = localStorage.getItem("mami_access_token");
       const url = new URL(
-        `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/initiatives/${resolvedInitiativeId}/report/pdf`,
+        `${api.defaults.baseURL}/initiatives/${resolvedInitiativeId}/report/pdf`,
       );
       if (assessmentId) url.searchParams.set("assessment_id", String(assessmentId));
       const res = await fetch(url.toString(), {
