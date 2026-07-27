@@ -176,7 +176,7 @@ Plans:
   4. The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views.
   5. An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap.
 
-**Plans**: 1/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -185,8 +185,8 @@ Plans:
 
 **Wave 2** *(depends on 16-01; the two plans run in parallel — disjoint files)*
 
-- [ ] 16-02-PLAN.md — reports.py rebuilt on the frozen contract: resolve_report_assessment (fix draft-scoped 422 bug), assessment_id per-version viewing, admin bypass, drop ComplianceReport, rebuild report.html + submitted-lifecycle tests (Wave 2; RPRT-04/01/02)
-- [ ] 16-03-PLAN.md — Admin aggregation: admin_aggregation.py latest-submitted-per-initiative + org-average radar + empty guard, /admin/heatmap rebuilt with real response models + tests (Wave 2; ADMN-01)
+- [x] 16-02-PLAN.md — reports.py rebuilt on the frozen contract: resolve_report_assessment (fix draft-scoped 422 bug), assessment_id per-version viewing, admin bypass, drop ComplianceReport, rebuild report.html + submitted-lifecycle tests (Wave 2; RPRT-04/01/02)
+- [x] 16-03-PLAN.md — Admin aggregation: admin_aggregation.py latest-submitted-per-initiative + org-average radar + empty guard, /admin/heatmap rebuilt with real response models + tests (Wave 2; ADMN-01)
 
 **Wave 3** *(depends on 16-02 + 16-03)*
 
@@ -234,6 +234,6 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
-| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 1/4 | In Progress|  |
+| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 3/4 | In Progress|  |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
