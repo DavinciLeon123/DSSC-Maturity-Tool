@@ -25,6 +25,19 @@ from app.services.admin_aggregation import build_admin_aggregate
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
+def _csv_safe(value: str) -> str:
+    """Neutralize CSV/formula injection (CWE-1236) in free-text cell values.
+
+    Any cell whose value starts with `=`, `+`, `-`, `@`, tab, or CR can be
+    interpreted as a formula by Excel/Sheets/LibreOffice when the exported
+    CSV is opened — prefixing with a single quote forces the cell to be
+    read as literal text instead.
+    """
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 # ─── Admin heatmap response models ────────────────────────────────────────────
 
 
@@ -296,7 +309,7 @@ def export_dataset(
             writer.writerow(
                 [
                     row["email"],
-                    row["initiative_name"],
+                    _csv_safe(row["initiative_name"]),
                     row["participant_type"],
                     row["status"],
                     row["question_id"],

@@ -227,6 +227,33 @@ def test_export_dataset_csv_shape(admin_client, session):
     assert len(rows) == 3
 
 
+def test_export_dataset_csv_sanitizes_formula_injection_in_initiative_name(
+    admin_client, session
+):
+    # CR-02 regression: Initiative.name is free-text and fully user-
+    # controlled. A cell value starting with =, +, -, @, tab, or CR must be
+    # neutralized (prefixed with a leading quote) before being written to
+    # the exported CSV, so Excel/Sheets/LibreOffice never interpret it as a
+    # formula (CWE-1236).
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    initiative.name = '=cmd|"/c calc.exe"!A1'
+    session.add(initiative)
+    session.commit()
+    make_answer(session, initiative=initiative)
+
+    response = admin_client.get("/api/v1/admin/export")
+    assert response.status_code == 200
+
+    reader = csv.reader(io.StringIO(response.text))
+    next(reader)  # header
+    row = next(reader)
+    initiative_name_cell = row[1]
+
+    assert initiative_name_cell.startswith("'")
+    assert initiative_name_cell == "'" + '=cmd|"/c calc.exe"!A1'
+
+
 def test_admin_heatmap_returns_org_aggregate_and_per_initiative_rows(admin_client, session):
     # ADMN-01/D-07/D-08: real 6-dimension aggregation replaces the Phase 14
     # fixed degraded stub. Two submitted initiatives (all-2 / all-4) plus a
