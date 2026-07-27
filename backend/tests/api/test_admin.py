@@ -227,9 +227,7 @@ def test_export_dataset_csv_shape(admin_client, session):
     assert len(rows) == 3
 
 
-def test_export_dataset_csv_sanitizes_formula_injection_in_initiative_name(
-    admin_client, session
-):
+def test_export_dataset_csv_sanitizes_formula_injection_in_initiative_name(admin_client, session):
     # CR-02 regression: Initiative.name is free-text and fully user-
     # controlled. A cell value starting with =, +, -, @, tab, or CR must be
     # neutralized (prefixed with a leading quote) before being written to
