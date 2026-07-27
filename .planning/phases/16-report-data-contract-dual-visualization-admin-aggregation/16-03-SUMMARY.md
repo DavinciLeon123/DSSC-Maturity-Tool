@@ -125,3 +125,7 @@ Both tasks (`tdd="true"`) followed the RED → GREEN gate sequence, verified in 
 - Task 2: `test(16-03)` at `f62836a` (RED, confirmed 2/2 new tests failing against the old stub) → `feat(16-03)` at `411fc19` (GREEN, confirmed all 16 `test_admin.py` tests passing).
 
 No REFACTOR-phase commit was needed for either task — no post-GREEN cleanup was required beyond what was already written during GREEN.
+
+## Self-Check Verification: PASSED
+
+Re-verified independently after commit: all 3 created/modified files (`admin_aggregation.py`, `test_admin_aggregation.py`, `16-03-SUMMARY.md`) found on disk; all 6 commit hashes (`83da98b`, `cb350e8`, `f62836a`, `411fc19`, `e38fdfa`, `61969f7`) found in `git log --oneline --all`.
