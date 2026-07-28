@@ -21,7 +21,10 @@ test), mirroring `test_dimension_scoring.py`'s config-comprehension style.
 Broader coverage is Phase 17 (TEST-01/02)'s job.
 """
 
+import re
 from xml.sax.saxutils import escape as xml_escape
+
+from markupsafe import escape as html_escape
 
 from app.services.mami_config import load_dssc_questionnaire_config
 from app.services.report_generator import (
@@ -88,6 +91,92 @@ def test_generate_html_report_renders_non_empty_html_with_initiative_name():
     assert len(html) > 0
     assert "Acme Dataspace" in html
     assert "24 July 2026, 12:00 UTC" in html
+
+
+def test_priority_score_column_css_has_fixed_width_and_right_align():
+    """G-16-2: the .priority-score CSS rule carries both a fixed min-width
+    and right text-alignment — the flush-right column that makes scores
+    align independent of the preceding dimension-name's width, regardless
+    of WeasyPrint's justify-content free-space distribution."""
+    initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
+    bands = _bands()
+    scores = _six_scores(value=3.0)
+    priority_list = build_priority_list(scores, bands)
+    radar_chart_svg = generate_radar_svg(scores, bands)
+
+    html = generate_html_report(
+        initiative=initiative,
+        generated_at="24 July 2026, 12:00 UTC",
+        dimension_scores=scores,
+        priority_list=priority_list,
+        radar_chart_svg=radar_chart_svg,
+        maturity_bands=bands,
+    )
+
+    rule_match = re.search(r"\.priority-score\s*\{([^}]*)\}", html)
+    assert rule_match is not None, "expected a .priority-score CSS rule in the rendered HTML"
+    rule_body = rule_match.group(1)
+    assert re.search(r"min-width\s*:\s*\d+px", rule_body)
+    assert re.search(r"text-align\s*:\s*right", rule_body)
+
+
+def test_priority_row_flattened_no_inner_name_wrapper():
+    """G-16-2: the priority-row's band dot, name, score, and band label are
+    flat siblings — the old inner wrapper span that nested the band-dot
+    inside .priority-name is gone (the flatten that fixes WeasyPrint's
+    nested-flex justify-content/intrinsic-width bugs), while each
+    dimension's name and 2-decimal score still render."""
+    initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
+    bands = _bands()
+    scores = _six_scores(
+        values={cat["id"]: round(1.0 + i * 0.6, 2) for i, cat in enumerate(_config()["categories"])}
+    )
+    priority_list = build_priority_list(scores, bands)
+    radar_chart_svg = generate_radar_svg(scores, bands)
+
+    html = generate_html_report(
+        initiative=initiative,
+        generated_at="24 July 2026, 12:00 UTC",
+        dimension_scores=scores,
+        priority_list=priority_list,
+        radar_chart_svg=radar_chart_svg,
+        maturity_bands=bands,
+    )
+
+    name_span_matches = re.findall(r'<span class="priority-name">(.*?)</span>', html, re.DOTALL)
+    assert len(name_span_matches) == len(priority_list)
+    for inner in name_span_matches:
+        # The old wrapper nested a <span class="band-dot"> here — flattened
+        # now, so .priority-name's own content must contain no nested span.
+        assert "<span" not in inner
+
+    for row in priority_list:
+        assert str(html_escape(row["name"])) in html
+        assert f"{row['score']:.2f}" in html
+
+
+def test_legend_renders_one_entry_per_band_with_labels():
+    """G-16-2: the legend still renders exactly one entry per maturity
+    band, with each band's label text present, after flattening
+    .legend-item out of the nested-flex structure."""
+    initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
+    bands = _bands()
+    scores = _six_scores(value=3.0)
+    priority_list = build_priority_list(scores, bands)
+    radar_chart_svg = generate_radar_svg(scores, bands)
+
+    html = generate_html_report(
+        initiative=initiative,
+        generated_at="24 July 2026, 12:00 UTC",
+        dimension_scores=scores,
+        priority_list=priority_list,
+        radar_chart_svg=radar_chart_svg,
+        maturity_bands=bands,
+    )
+
+    assert html.count('class="legend-item"') == len(bands)
+    for band in bands:
+        assert band["label"] in html
 
 
 def test_maturity_band_boundaries():
