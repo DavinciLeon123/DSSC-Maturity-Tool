@@ -33,7 +33,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 13: New Questionnaire Config Schema & Data Model Migration** - 52-question/6-category universal config plus a hand-reviewed migration that preserves v1.0 data (Complete 2026-07-23)
 - [x] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely (completed 2026-07-24)
 - [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
-- [ ] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view
+- [x] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view (completed 2026-07-28)
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
@@ -176,7 +176,8 @@ Plans:
   4. The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views.
   5. An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap.
 
-**Plans**: 4/4 core plans executed; 1 gap-closure plan (16-05) pending from 16-UAT.md
+**Plans**: 5/5 plans executed (4 core + 1 gap-closure)
+**Status**: Complete — 16-05 closed both G-16-1/G-16-2 gaps from 16-UAT.md, human-confirmed on a real WeasyPrint render via the Railway Integration deployment
 
 Plans:
 **Wave 1**
@@ -194,7 +195,7 @@ Plans:
 
 **Gap Closure** *(from 16-UAT.md — 2 major visual gaps found in human verification; plan 16-05 added 2026-07-28)*
 
-- [ ] 16-05-PLAN.md — Report-rendering fixes: position-aware radar axis text-anchor + widened viewBox (G-16-1, clipped labels in browser + PDF) and flattened single-level flex priority-row/legend with fixed-width right-aligned score column (G-16-2, PDF score misalignment + legend wrap) + backend regression tests + human WeasyPrint visual confirmation (RPRT-01/02/04)
+- [x] 16-05-PLAN.md — Report-rendering fixes: position-aware radar axis text-anchor + widened viewBox (G-16-1, clipped labels in browser + PDF) and flattened single-level flex priority-row/legend with fixed-width right-aligned score column (G-16-2, PDF score misalignment + legend wrap) + backend regression tests + human WeasyPrint visual confirmation (RPRT-01/02/04)
 
 **UI hint**: yes
 
@@ -238,6 +239,6 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 13. New Questionnaire Config Schema & Data Model Migration | v2.0 | 4/4 | Complete    | 2026-07-23 |
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
-| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 4/4 | In Progress|  |
+| 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 5/5 | Complete    | 2026-07-28 |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
