@@ -58,27 +58,22 @@
     .radar-wrap { display: flex; justify-content: center; }
     .radar-wrap svg { width: 100%; max-width: 360px; height: auto; }
 
-    /* ── Priority list ── */
+    /* ── Priority list ──
+       Single-level flex only: .priority-row is the sole flex container in
+       this row (band dot / name / score / band label are direct flex
+       children). Phase 16 gap-closure (G-16-2): a nested flex-inside-flex
+       here previously triggered WeasyPrint 69.0 bugs in justify-content
+       free-space distribution and intrinsic-width calculation, breaking
+       the score column alignment in the PDF only. */
     .priority-list { list-style: none; }
     .priority-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 16px 0; /* md */
       border-bottom: 1px solid #f0f0f0;
       gap: 16px;
     }
     .priority-row:last-child { border-bottom: none; }
-    .priority-name {
-      display: flex;
-      align-items: center;
-      gap: 4px; /* xs */
-      font-size: 14px; /* Body */
-      color: #06004f;
-      flex: 1;
-      min-width: 0;
-      white-space: normal; /* long dimension names wrap, never truncate */
-    }
     .band-dot {
       width: 10px;
       height: 10px;
@@ -86,10 +81,19 @@
       flex-shrink: 0;
       display: inline-block;
     }
+    .priority-name {
+      font-size: 14px; /* Body */
+      color: #06004f;
+      flex: 1;
+      min-width: 0;
+      white-space: normal; /* long dimension names wrap, never truncate */
+    }
     .priority-score {
       font-size: 14px;
       font-weight: 600;
       color: #06004f;
+      min-width: 48px; /* fixed-width flush-right column, independent of name width */
+      text-align: right;
       white-space: nowrap;
     }
     .priority-band-label {
@@ -98,7 +102,12 @@
       white-space: nowrap;
     }
 
-    /* ── Legend ── */
+    /* ── Legend ──
+       .legend is the only flex/wrap container; each .legend-item is a
+       plain (non-flex) inline entry — its dot is a positioned inline
+       element beside the label text, not a nested flex child — so
+       WeasyPrint computes each entry's intrinsic width correctly and fits
+       all bands on one line at full page width (G-16-2). */
     .legend {
       display: flex;
       gap: 20px;
@@ -106,7 +115,12 @@
       padding: 16px 24px;
       border-top: 1px solid #f0f0f0;
     }
-    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(6,0,79,0.6); }
+    .legend-item {
+      font-size: 13px;
+      color: rgba(6,0,79,0.6);
+      white-space: nowrap;
+    }
+    .legend-item .band-dot { margin-right: 8px; vertical-align: middle; }
 
     /* ── Expert help box ── */
     .expert-help {
@@ -156,10 +170,8 @@
       <ul class="priority-list">
         {% for row in priority_list %}
         <li class="priority-row">
-          <span class="priority-name">
-            <span class="band-dot" style="background: {{ row.band_color }};"></span>
-            {{ row.name }}
-          </span>
+          <span class="band-dot" style="background: {{ row.band_color }};"></span>
+          <span class="priority-name">{{ row.name }}</span>
           <span class="priority-score">{{ "%.2f"|format(row.score) }}</span>
           <span class="priority-band-label">{{ row.band_label }}</span>
         </li>
