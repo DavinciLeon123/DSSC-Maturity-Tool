@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 16 complete (16-05 gap closure — G-16-1/G-16-2 human-verified)
-last_updated: "2026-07-28T06:00:00.000Z"
+stopped_at: Completed 16-05-PLAN.md — Phase 16 complete (5/5 plans)
+last_updated: "2026-07-28T15:10:36.465Z"
 progress:
   total_phases: 5
   completed_phases: 5
