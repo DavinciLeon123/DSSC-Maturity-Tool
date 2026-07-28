@@ -176,7 +176,7 @@ Plans:
   4. The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views.
   5. An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap.
 
-**Plans**: 4/4 plans executed
+**Plans**: 4/4 core plans executed; 1 gap-closure plan (16-05) pending from 16-UAT.md
 
 Plans:
 **Wave 1**
@@ -191,6 +191,10 @@ Plans:
 **Wave 3** *(depends on 16-02 + 16-03)*
 
 - [x] 16-04-PLAN.md — Frontend consumers: report.tsx radar SVG + priority list (per-version), admin.heatmap.tsx org radar + per-initiative table, reports.ts contract fetch, openapi.json regen (Wave 3; RPRT-01/02/04, ADMN-01)
+
+**Gap Closure** *(from 16-UAT.md — 2 major visual gaps found in human verification; plan 16-05 added 2026-07-28)*
+
+- [ ] 16-05-PLAN.md — Report-rendering fixes: position-aware radar axis text-anchor + widened viewBox (G-16-1, clipped labels in browser + PDF) and flattened single-level flex priority-row/legend with fixed-width right-aligned score column (G-16-2, PDF score misalignment + legend wrap) + backend regression tests + human WeasyPrint visual confirmation (RPRT-01/02/04)
 
 **UI hint**: yes
 
