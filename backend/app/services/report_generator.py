@@ -132,6 +132,19 @@ def generate_radar_svg(
     Only server-controlled config category names and computed numeric
     scores flow into this string — never end-user free-text (e.g.
     initiative.name) is ever interpolated here (threat T-16-02).
+
+    Phase 16 gap-closure (G-16-1, 16-05): `text-anchor` is no longer a
+    uniform "middle" for every label — a centered anchor point close to the
+    viewBox's left edge clips long left-side labels (e.g. "Control over
+    Data & Trust"). Each label's anchor is now derived from the horizontal
+    component (cos) of its own axis angle: top/bottom axes (cos ~ 0) stay
+    "middle", right-side axes (cos > 0) become "start" so the label grows
+    rightward away from the chart, and left-side axes (cos < 0) become
+    "end" so the label grows leftward into the widened viewBox margin
+    instead of overflowing it. The viewBox itself is widened horizontally
+    (negative min-x, width > height) to give those outward-growing labels
+    room, sized from the longest category name rather than a hardcoded
+    axis-count assumption.
     """
     n = len(scores)
     cx = cy = size / 2
@@ -141,6 +154,14 @@ def generate_radar_svg(
         angle = (2 * math.pi * i / n) - (math.pi / 2)
         r = radius * value_fraction
         return (cx + r * math.cos(angle), cy + r * math.sin(angle))
+
+    def anchor_for(i: int) -> str:
+        angle = (2 * math.pi * i / n) - (math.pi / 2)
+        cos_angle = math.cos(angle)
+        epsilon = 1e-6
+        if abs(cos_angle) < epsilon:
+            return "middle"
+        return "start" if cos_angle > 0 else "end"
 
     # Data polygon
     data_points = " ".join(
@@ -152,6 +173,8 @@ def generate_radar_svg(
     # Axis spokes (full-radius lines) + labels
     spokes = []
     labels = []
+    label_font_size = 11
+    longest_name_len = max((len(s["name"]) for s in scores), default=0)
     for i, s in enumerate(scores):
         x, y = point(i, 1.0)
         spokes.append(
@@ -168,16 +191,27 @@ def generate_radar_svg(
         # in report.html and rendered via dangerouslySetInnerHTML on both
         # React pages.
         labels.append(
-            f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="11" '
+            f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="{label_font_size}" '
             f'font-family="Rubik, sans-serif" fill="#06004f" '
-            f'text-anchor="middle">{xml_escape(s["name"])}</text>'
+            f'text-anchor="{anchor_for(i)}">{xml_escape(s["name"])}</text>'
         )
 
     overall_average = sum(s["score"] for s in scores) / n
     band = get_maturity_band(overall_average, bands)
 
+    # Widen the viewBox horizontally so end/start-anchored labels growing
+    # outward from the polygon aren't clipped at x=0 or x=size. The margin
+    # is sized from the longest category name at the label font size
+    # (rough average-character-width estimate), not from a fixed axis
+    # count, so it scales with real config content.
+    avg_char_width_factor = 0.6
+    horizontal_margin = (longest_name_len * label_font_size * avg_char_width_factor) + 10
+    view_min_x = -horizontal_margin
+    view_width = size + 2 * horizontal_margin
+
     return (
-        f'<svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">'
+        f'<svg viewBox="{view_min_x:.1f} 0 {view_width:.1f} {size}" '
+        f'xmlns="http://www.w3.org/2000/svg">'
         + "".join(spokes)
         + f'<polygon points="{data_points}" fill="{band["color"]}" '
         f'fill-opacity="0.25" stroke="{band["color"]}" stroke-width="2"/>'

@@ -195,3 +195,38 @@ def test_radar_svg_escapes_special_characters_in_category_name():
 
     assert "<script>" not in svg
     assert "A &amp; B &lt;script&gt;" in svg
+
+
+def test_radar_svg_labels_use_position_aware_text_anchor():
+    """G-16-1: for the real 6-category config (axes evenly spaced starting
+    straight up), exactly 2 labels are text-anchor="middle" (top/bottom,
+    cos ~ 0), exactly 2 are "start" (right side, cos > 0), and exactly 2
+    are "end" (left side, cos < 0) — no more uniform "middle" anchor that
+    clips long left-side labels at the viewBox's left edge."""
+    config = _config()
+    bands = _bands()
+    scores = _six_scores(value=3.0)
+    assert len(config["categories"]) == 6
+
+    svg = generate_radar_svg(scores, bands)
+
+    assert svg.count('text-anchor="middle"') == 2
+    assert svg.count('text-anchor="start"') == 2
+    assert svg.count('text-anchor="end"') == 2
+
+
+def test_radar_svg_viewbox_widened_horizontally():
+    """G-16-1: the viewBox is widened horizontally (negative min-x, width
+    greater than height) so outward-growing start/end-anchored labels have
+    room — including the longest real category name, "Control over Data &
+    Trust" — without being clipped at either horizontal edge."""
+    bands = _bands()
+    scores = _six_scores(value=3.0)
+
+    svg = generate_radar_svg(scores, bands)
+
+    view_box_str = svg.split('viewBox="')[1].split('"')[0]
+    min_x, min_y, width, height = (float(v) for v in view_box_str.split())
+
+    assert min_x < 0
+    assert width > height
