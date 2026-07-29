@@ -120,6 +120,76 @@ def test_priority_score_column_css_has_fixed_width_and_right_align():
     assert re.search(r"text-align\s*:\s*right", rule_body)
 
 
+def test_radar_wrap_svg_sized_by_height_not_width():
+    """CR-01 regression (post-16-05 code review): the widened viewBox
+    (G-16-1) must not shrink the whole chart. Sizing by a fixed height (with
+    width:auto/max-width:100%) keeps the chart's visual scale constant
+    regardless of viewBox aspect ratio, unlike the old width-capped +
+    height:auto rule, which derived height from the capped width divided by
+    whatever ratio the viewBox happened to have — shrinking the entire chart
+    (labels included) whenever the viewBox got wider."""
+    initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
+    bands = _bands()
+    scores = _six_scores(value=3.0)
+    priority_list = build_priority_list(scores, bands)
+    radar_chart_svg = generate_radar_svg(scores, bands)
+
+    html = generate_html_report(
+        initiative=initiative,
+        generated_at="24 July 2026, 12:00 UTC",
+        dimension_scores=scores,
+        priority_list=priority_list,
+        radar_chart_svg=radar_chart_svg,
+        maturity_bands=bands,
+    )
+
+    rule_match = re.search(r"\.radar-wrap svg\s*\{([^}]*)\}", html)
+    assert rule_match is not None, "expected a .radar-wrap svg CSS rule in the rendered HTML"
+    rule_body = rule_match.group(1)
+    assert re.search(r"height\s*:\s*\d+px", rule_body), (
+        "height must be a fixed px value, not 'auto' derived from a width cap"
+    )
+    assert "height: auto" not in rule_body
+
+
+def test_priority_band_label_has_fixed_width_independent_of_content():
+    """CR-02 regression (post-16-05 code review): .priority-band-label must
+    have a *fixed* width (not just min-width), so the trailing column
+    occupies identical space on every row regardless of which band's label
+    it holds ("Needs attention" vs "Mature"). Otherwise .priority-name (the
+    sole flex-grow item) resolves to a different width per row, shifting
+    .priority-score's position whenever a report spans more than one band —
+    the ordinary case, since build_priority_list always returns all 6
+    dimensions sorted by score."""
+    initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
+    bands = _bands()
+    # Force at least two distinct bands (red + green) in the same report.
+    categories = _config()["categories"]
+    values = {cat["id"]: (1.5 if i % 2 == 0 else 4.5) for i, cat in enumerate(categories)}
+    scores = _six_scores(values=values)
+    priority_list = build_priority_list(scores, bands)
+    radar_chart_svg = generate_radar_svg(scores, bands)
+    band_labels_present = {row["band_label"] for row in priority_list}
+    assert len(band_labels_present) > 1, "test setup must span more than one maturity band"
+
+    html = generate_html_report(
+        initiative=initiative,
+        generated_at="24 July 2026, 12:00 UTC",
+        dimension_scores=scores,
+        priority_list=priority_list,
+        radar_chart_svg=radar_chart_svg,
+        maturity_bands=bands,
+    )
+
+    rule_match = re.search(r"\.priority-band-label\s*\{([^}]*)\}", html)
+    assert rule_match is not None, "expected a .priority-band-label CSS rule in the rendered HTML"
+    rule_body = rule_match.group(1)
+    assert re.search(r"(?<!min-)width\s*:\s*\d+px", rule_body), (
+        "expected a fixed width (not min-width) so every row's label column is identical"
+    )
+    assert re.search(r"flex-shrink\s*:\s*0", rule_body)
+
+
 def test_priority_row_flattened_no_inner_name_wrapper():
     """G-16-2: the priority-row's band dot, name, score, and band label are
     flat siblings — the old inner wrapper span that nested the band-dot

@@ -54,9 +54,18 @@
     }
     .card-body { padding: 24px; }
 
-    /* ── Radar chart ── */
+    /* ── Radar chart ──
+       Phase 16 gap-closure (G-16-1 follow-up, CR-01): the SVG's viewBox is
+       widened horizontally (see generate_radar_svg) to fit outward-growing
+       axis labels. Sizing by height (not width) keeps the chart's visual
+       scale constant regardless of viewBox aspect ratio — a width-based cap
+       combined with height:auto shrinks the whole chart (including label
+       text) whenever the viewBox gets wider, since height derives from the
+       capped width divided by the new, wider ratio. max-width still caps it
+       for narrower containers, preserving aspect ratio via the SVG's own
+       preserveAspectRatio (default meet). */
     .radar-wrap { display: flex; justify-content: center; }
-    .radar-wrap svg { width: 100%; max-width: 360px; height: auto; }
+    .radar-wrap svg { height: 320px; width: auto; max-width: 100%; }
 
     /* ── Priority list ──
        Single-level flex only: .priority-row is the sole flex container in
@@ -100,6 +109,18 @@
       font-size: 13px; /* Label */
       color: rgba(6,0,79,0.65);
       white-space: nowrap;
+      /* Phase 16 gap-closure (G-16-2 follow-up, CR-02): a *fixed* width (not
+         min-width) so this trailing column occupies identical space on every
+         row regardless of which band's label it holds ("Needs attention" vs
+         "Mature") — otherwise .priority-name (the sole flex-grow item)
+         resolves to a different width per row, shifting the score column's
+         position whenever a report spans more than one band. Sized to the
+         longest real band label plus margin; white-space:nowrap lets any
+         future longer label overflow gracefully (last child, no clipping)
+         rather than silently reintroducing per-row misalignment.
+         flex-shrink: 0 keeps it from being compressed under space pressure. */
+      width: 120px;
+      flex-shrink: 0;
     }
 
     /* ── Legend ──
