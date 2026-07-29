@@ -1,310 +1,309 @@
 ---
 phase: 16-report-data-contract-dual-visualization-admin-aggregation
-reviewed: 2026-07-27T00:00:00Z
+reviewed: 2026-07-28T17:26:43Z
 depth: standard
-files_reviewed: 17
+files_reviewed: 3
 files_reviewed_list:
-  - backend/app/api/v1/admin.py
-  - backend/app/api/v1/reports.py
-  - backend/app/schemas/report.py
-  - backend/app/services/admin_aggregation.py
-  - backend/app/services/dimension_scoring.py
   - backend/app/services/report_generator.py
   - backend/app/templates/report.html
-  - backend/tests/api/test_admin.py
-  - backend/tests/api/test_reports.py
-  - backend/tests/services/test_admin_aggregation.py
-  - backend/tests/services/test_dimension_scoring.py
   - backend/tests/services/test_report_generator.py
-  - config/dssc-questionnaire.json
-  - docs/api/openapi.json
-  - frontend/src/lib/reports.ts
-  - frontend/src/routes/_app/admin.heatmap.tsx
-  - frontend/src/routes/_app/report.tsx
 findings:
   critical: 2
-  warning: 6
+  warning: 2
   info: 2
-  total: 10
+  total: 6
 status: issues_found
 ---
 
 # Phase 16: Code Review Report
 
-**Reviewed:** 2026-07-27T00:00:00Z
+**Reviewed:** 2026-07-28T17:26:43Z
 **Depth:** standard
-**Files Reviewed:** 17
+**Files Reviewed:** 3
 **Status:** issues_found
 
 ## Summary
 
-Reviewed the Phase 16 report-data-contract rebuild: the shared `ReportContract`
-(`build_report_contract`), the submitted-scoped assessment resolver
-(`resolve_report_assessment`), the admin cross-initiative aggregation
-(`build_admin_aggregate`), the Jinja/SVG rendering path, and the two React
-surfaces (`report.tsx`, `admin.heatmap.tsx`) that consume the contract.
+Scope: gap-closure plan 16-05 (commits `271a543` fix(16-05) position-aware
+radar text-anchor + widened viewBox [G-16-1], and `61ec7a4` fix(16-05)
+flatten priority-row/legend to single-level flex [G-16-2]), diffed against
+`2d45ae0fde646a8060c3087bd3ea8e7763ef7e55`. This supersedes the phase's prior
+16-REVIEW.md (17-file, full-phase review) for these 3 files only.
 
-The core submitted-vs-draft resolution logic (`resolve_report_assessment`),
-IDOR/ownership handling, and the priority-list/maturity-band logic are sound
-and well covered by tests. Two real defects stand out, both centered on the
-same root cause: this phase's admin aggregation code assumes every
-initiative's **frozen historical** `dimension_scores` snapshot always
-matches the **current live** questionnaire config's category set — an
-assumption the codebase's own `Assessment.dimension_scores` docstring
-explicitly says will NOT hold ("once the config changes ... every
-already-submitted version's history must still show what the user actually
-answered against, not the new config"), and this exact scenario just
-happened one commit prior to this review (`7ede5e2`, replacing the placeholder
-config with real content). Additionally, the CSV export writes free-text,
-user-controlled initiative names into cells unescaped, a classic CSV/formula
-injection vector. Several smaller robustness and dead-code issues are also
-listed below.
+**What was verified as correct:**
+- `anchor_for()`'s angle math is correct: traced through n=3, n=4, and the
+  real 6-category config by hand and by executing `generate_radar_svg()`
+  directly — for the real config it produces exactly 2 "middle" (top/bottom),
+  2 "start" (right side), 2 "end" (left side) anchors, matching the new
+  tests. The longest real category name ("Control over Data & Trust", 25
+  chars, index 4) lands on an "end"-anchored left-side axis and, per manual
+  computation of its rendered `x` position against the new `viewBox`, has
+  ~210px of margin available against an estimated ~165px text-width need —
+  not clipped.
+- `xml_escape(s["name"])` (threat T-16-05-01 / WR-05) is still applied
+  unconditionally before every `<text>` interpolation — the gap-closure diff
+  only added the `text-anchor` attribute (a fixed enum value, no injection
+  surface) and did not touch the escaping call. Confirmed both by reading
+  the diff and by the still-passing
+  `test_radar_svg_escapes_special_characters_in_category_name`.
+- The flattened `.priority-row`/`.legend-item` HTML structure genuinely
+  removes the nested-flex-in-flex shape that triggered the WeasyPrint 69.0
+  bug (confirmed via diff: no flex container is nested inside another flex
+  container post-fix).
+
+**What is not correct — two BLOCKERs found by tracing through CSS/SVG
+layout mechanics rather than by pattern-matching the diff:**
+1. Widening the radar SVG's `viewBox` (G-16-1) changes its aspect ratio from
+   square to ~2.1:1 wide, which — combined with `report.html`'s *unchanged*
+   `.radar-wrap svg { width: 100%; max-width: 360px; height: auto; }` —
+   causes the browser/WeasyPrint to render the entire chart (hexagon **and**
+   all `font-size="11"` text) at roughly half its previous scale, because
+   `height: auto` derives from the SVG's now much-wider intrinsic aspect
+   ratio. See CR-01.
+2. The G-16-2 flatten makes the score column's x-position independent of the
+   *preceding* `.priority-name`'s width (as claimed and tested), but not of
+   the *following* `.priority-band-label`'s width — and real maturity-band
+   labels vary substantially in length ("Needs attention" vs "Mature").
+   Traced through the flexbox free-space distribution algorithm by hand: the
+   score column's actual screen position shifts per row by the difference in
+   adjacent label width, so scores still won't line up vertically across
+   rows whenever a report spans more than one maturity band (the normal
+   case). See CR-02.
+
+Neither regression would be caught by `test_report_generator.py`, since
+every assertion there operates on the raw SVG/HTML string (attribute
+presence, CSS rule text, substring containment) rather than on
+computed/rendered layout — see IN-02.
 
 ## Critical Issues
 
-### CR-01: Admin aggregate org-average computation crashes (500) when a frozen assessment snapshot doesn't cover every current config category
+### CR-01: Widened radar-chart viewBox shrinks the whole chart (and its text) to roughly half size via the unchanged CSS aspect-ratio-locked sizing
 
-**File:** `backend/app/services/admin_aggregation.py:97-115`
-**Issue:** `build_admin_aggregate`'s `org_average_scores` computation iterates the
-**current, live** `config["categories"]` and, for every included initiative,
-does:
+**File:** `backend/app/services/report_generator.py:202-220`, interacting with `backend/app/templates/report.html:59`
+
+**Issue:** G-16-1 widens the SVG's `viewBox` horizontally to give
+outward-growing labels room:
 ```python
-next(
-    s["score"]
-    for s in r["dimension_scores"]
-    if s["category_id"] == cat["id"]
-)
+horizontal_margin = (longest_name_len * label_font_size * avg_char_width_factor) + 10
+view_min_x = -horizontal_margin
+view_width = size + 2 * horizontal_margin
+...
+f'<svg viewBox="{view_min_x:.1f} 0 {view_width:.1f} {size}" ...'
 ```
-with no default. `r["dimension_scores"]` is the **frozen** JSONB snapshot taken
-at submission time (see `Assessment.dimension_scores`'s own docstring in
-`backend/app/models/assessment.py:25-35`, which explicitly anticipates config
-churn: "once the config changes ... every already-submitted version's
-history must still show what the user actually answered against, not the
-new config"). If any included initiative's frozen snapshot lacks a
-`category_id` that exists in the *current* config (different category id/count
-between the config version an old submission was scored against and today's
-config), `next()` raises an unhandled `StopIteration`, which is not caught
-anywhere in the call chain — the whole `/admin/heatmap` endpoint returns an
-unhandled-exception 500 for every admin, not just a degraded row for one
-initiative.
+For the real 6-category config this produces `viewBox="-175.0 0 670.0 320"`
+(verified by executing `generate_radar_svg()` directly against
+`config/dssc-questionnaire.json`) — an aspect ratio of `670/320 ≈ 2.09`,
+versus the previous `320/320 = 1.0` (square).
 
-This is not a hypothetical: this very branch's most recent commit
-(`7ede5e2`, "replace placeholder DSSC config with real 52-question content")
-changed the category/question structure that `dssc-questionnaire.json` now
-serves, while any previously-submitted assessment's `dimension_scores`
-snapshot remains frozen under the old placeholder shape. None of the tests in
-`test_admin_aggregation.py`/`test_admin.py` exercise this mismatch — every
-test fixture builds its `dimension_scores` fresh from the *same* config
-object the assertions later re-read, so the gap is untested.
-
-**Fix:**
-```python
-score = next(
-    (s["score"] for s in r["dimension_scores"] if s["category_id"] == cat["id"]),
-    None,
-)
-if score is None:
-    continue  # or: exclude this initiative from this category's average
+`report.html`'s CSS for this element is untouched by this diff:
+```css
+.radar-wrap svg { width: 100%; max-width: 360px; height: auto; }
 ```
-More robustly, exclude a whole initiative from `included` (or from a specific
-category's average) when its snapshot doesn't cover the current category set,
-rather than crashing the endpoint. Add a regression test that submits an
-assessment with a `dimension_scores` snapshot using category ids that don't
-exist in the current config, and asserts `/admin/heatmap` still returns 200.
+Because the `<svg>` has a `viewBox` but no explicit `width`/`height`
+attributes, `height: auto` resolves via the element's *intrinsic aspect
+ratio*, which is now the widened viewBox's ratio. At the CSS cap of
+`width: 360px`, the computed height becomes `360 / 2.09 ≈ 172px` — down from
+`360px` (a square) before this fix. Since every coordinate in the SVG (the
+hexagon polygon, the axis spokes, and every `font-size="11"` `<text>`
+label) is scaled by the same uniform factor to fit that box, the effective
+on-screen scale drops from `360/320 ≈ 1.125×` to `360/670 ≈ 0.537×` —
+roughly **2.1× smaller** than before. Concretely, the 11-unit SVG label
+font renders at ~`12.4px` before this fix and ~`5.9px` after it: the axis
+labels — the very thing G-16-1 was fixing to stop clipping — become close
+to illegible instead of clipped, and the chart itself shrinks to less than
+half its intended visual footprint in both the in-app card and the
+fixed-width PDF page (the exact rendering context this function's own
+docstring calls out: "scales in both the responsive in-app card and the
+fixed-width PDF page").
 
-### CR-02: CSV export is vulnerable to formula/CSV injection via free-text initiative name
+This bug reproduces for the real production config today (not a
+hypothetical edge case), and would also affect the admin org-average
+chart, which this module's docstring states reuses the same
+`generate_radar_svg()` output verbatim.
 
-**File:** `backend/app/api/v1/admin.py:296-306` (also header at `246-316`)
-**Issue:** `export_dataset` streams `row["initiative_name"]` directly into a CSV
-cell via `csv.writer.writerow(...)` with no sanitization.
-`Initiative.name` (`backend/app/models/initiative.py:34`) is free text,
-2–200 characters, fully user-controlled (any authenticated user can set it
-via `POST /initiatives`). A participant can set their initiative name to a
-value starting with `=`, `+`, `-`, or `@` (e.g.
-`=cmd|'/c calc.exe'!A1` or `=HYPERLINK("http://evil","click")`), and when an
-admin opens the exported `mami-dataset.csv` in Excel/Sheets/LibreOffice, the
-cell is interpreted as a formula (CWE-1236, "Improper Neutralization of
-Formula Elements in a CSV File") — a classic CSV-injection vector that can
-lead to arbitrary command execution or data exfiltration on the admin's
-machine, all triggered by an unprivileged user.
-
-**Fix:** Sanitize any cell whose value starts with `=`, `+`, `-`, `@`, tab, or
-CR before writing it:
-```python
-def _csv_safe(value: str) -> str:
-    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
-        return "'" + value
-    return value
-
-writer.writerow([
-    row["email"],
-    _csv_safe(row["initiative_name"]),
-    row["participant_type"],
-    row["status"],
-    row["question_id"],
-    row["category_id"],
-    row["score"],
-])
+**Fix:** Size the `<svg>` by its intended visual height instead of a width
+cap, so a wider viewBox no longer forces a shorter render:
+```css
+.radar-wrap svg {
+  height: 320px;      /* match the intended visual chart size */
+  width: auto;
+  max-width: 100%;    /* still shrink gracefully on narrow viewports/PDF pages */
+}
 ```
+Alternatively, keep width-based sizing but decouple the label margin from
+the rendered viewBox's aspect ratio — e.g. render the labels in a
+fixed-height overflow area outside the scaled `viewBox`, or clamp
+`view_width` growth so the ratio never exceeds a bound the CSS is built to
+tolerate. Either way, this needs a real rendered-pixel check (browser or
+WeasyPrint screenshot), not just a viewBox-string assertion, before it can
+be called fixed — see IN-02.
+
+---
+
+### CR-02: Score column position still depends on a variable-width sibling (`.priority-band-label`), so scores won't align across rows with different maturity bands
+
+**File:** `backend/app/templates/report.html:69-103, 172-177`
+
+**Issue:** G-16-2's fix makes `.priority-score`'s position independent of
+`.priority-name`'s width (the specific WeasyPrint bug that was reported and
+the specific thing `test_priority_score_column_css_has_fixed_width_and_right_align`
+checks for) — that part is correctly fixed. But the flex row is:
+```
+[band-dot] [priority-name: flex:1, flex-basis:0] [priority-score: min-width:48px] [priority-band-label: no flex, content width]
+```
+`priority-name` is the *only* flex-grow item, so per the flexbox algorithm
+it absorbs `container_width - (dot + score + label + 3×gap)` — i.e. its
+resolved width (and therefore where the score column starts) is a function
+of `.priority-band-label`'s content width, which is **not fixed**. Real
+maturity-band labels vary substantially:
+```
+"Needs attention"  (red)     — 15 chars
+"Developing"       (orange)  — 10 chars
+"Mature"           (green)   — 6 chars
+```
+(confirmed against `config/dssc-questionnaire.json`'s `maturity_bands`).
+Working through the free-space distribution by hand: `score`'s left edge =
+`container_width - score_width - label_width - 2×gap`. Since this
+formula's only per-row variable is `label_width`, a row banded "red" (long
+label) will render its score column measurably further left than a row
+banded "green" (short label) — by roughly the pixel-width difference
+between "Needs attention" and "Mature" (tens of pixels at 13px font). Any
+report whose 6 dimensions span more than one maturity band — the ordinary
+case, since `build_priority_list` explicitly always returns all 6
+dimensions sorted by score rather than filtering to one band — will still
+show a visibly staggered score column, which is the exact user-facing
+symptom (UAT bug) this gap-closure round was meant to eliminate.
+
+**Fix:** Give the trailing column a fixed width too, so only
+`.priority-name` (the genuinely variable-length field) absorbs free space:
+```css
+.priority-band-label {
+  font-size: 13px;
+  color: rgba(6,0,79,0.65);
+  white-space: nowrap;
+  min-width: 120px;   /* fixed-width column: keeps score's position independent
+                          of which band's label follows it */
+}
+```
+(size `120px` to the longest real label, "Needs attention", plus margin —
+same technique already used for `.priority-score`). Alternatively, switch
+`.priority-row` to CSS Grid with explicit fixed-width trailing columns
+(`grid-template-columns: auto 1fr auto 140px`), which guarantees column
+alignment regardless of any one cell's content length — this is the layout
+primitive actually suited to "align a column across rows," which
+flexbox's single-item free-space model does not provide by construction.
 
 ## Warnings
 
-### WR-01: Per-initiative dimension score lookup keys off display `name`, not the stable `category_id`
+### WR-01: Flatten widened the band-dot-to-name-text gap from 4px to 16px, an apparently unintended visual regression
 
-**File:** `frontend/src/routes/_app/admin.heatmap.tsx:100-108`
-**Issue:** The per-initiative breakdown table's dynamic dimension columns are
-built from `data.org_average_scores` (computed fresh from the *current* live
-config) and matched against each row's `dimension_scores` (a per-initiative
-**frozen** snapshot, per CR-01 above) by `name`:
-```ts
-const match = record.dimension_scores?.find((d) => d.name === name);
+**File:** `backend/app/templates/report.html:69-75` (compare with pre-fix `.priority-name { display:flex; gap:4px; ... }`, now removed)
+
+**Issue:** Before this diff, `.priority-name` was itself a flex container
+with `gap: 4px` between its nested `.band-dot` and the name text — a tight
+badge-to-label pairing. After flattening, `band-dot` and `priority-name`
+are now direct siblings of `.priority-row`, which has a single
+`gap: 16px` applying uniformly between *all four* children (dot→name,
+name→score, score→label). The dot is now 4× further from its label than
+before. This is a real visual side effect of the fix (not called out in
+the docstring/comments, which only discuss the WeasyPrint bug and the
+score-column requirement), and it's inconsistent with `.legend-item`'s
+deliberately-preserved 8px dot-to-label spacing (`margin-right: 8px`) in
+the same template — the same visual element (a maturity-band dot next to
+a label) now has three different spacings in one document (4px pre-fix /
+16px in the priority list / 8px in the legend).
+
+**Fix:** Give `.band-dot` its own explicit spacing in the `.priority-row`
+context instead of relying on the row's uniform gap, e.g.:
+```css
+.priority-row { display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid #f0f0f0; gap: 16px; }
+.priority-row .band-dot { margin-right: -8px; }  /* claw back 8px of the 16px row gap to match the legend's 8px */
 ```
-Both `AdminInitiativeAggregateRow.dimension_scores` and
-`AdminAggregateResponse.org_average_scores` carry a stable `category_id`
-field already — matching by mutable display `name` instead is fragile to the
-exact same config-drift scenario as CR-01: if a category's display name is
-ever renamed, or an older frozen snapshot used a different name for the same
-id, a cell that does in fact have data silently renders "—" instead.
-**Fix:** Match on `category_id` instead of `name` (the columns can still show
-`name` as the header text).
+or restructure the gap so the dot uses `margin-right` explicitly and the
+row's `gap` only applies to the remaining (name/score/label) boundaries.
 
-### WR-02: Per-initiative breakdown table is completely hidden when the org has zero submitted assessments, even though the API returns visibility rows for exactly this case
+### WR-02: `anchor_for()` re-derives the same axis angle formula as `point()` — duplicated math that can silently drift
 
-**File:** `frontend/src/routes/_app/admin.heatmap.tsx:181-248`
-**Issue:** `AdminAggregateResponse.initiatives` is explicitly designed (per
-`build_admin_aggregate`'s docstring and `test_admin_heatmap_empty_org_...`)
-to include every initiative — including `has_data=False` draft-only ones —
-even when the org-wide radar/average is suppressed. But the frontend renders
-the entire `<Card>`+`<Table>` block only inside the `!isOrgEmpty` branch
-(line 195), so the moment `org_radar_chart_svg` is `null` (zero submitted
-assessments org-wide), admins see only the "No submitted assessments yet"
-message and never see the list of initiatives at all — even in a "0 of N
-initiatives have submitted" state that would otherwise be useful triage
-information the backend already computed and shipped.
-**Fix:** Render the per-initiative table unconditionally (it already
-handles `has_data=False` rows via the "No data yet" tag); scope the
-"no submitted assessments yet" empty-state messaging to the radar-chart card
-only.
+**File:** `backend/app/services/report_generator.py:153-164`
 
-### WR-03: `ReportContract`/`PriorityListItem`/`MaturityBand` schemas are dead code — never applied as `response_model`, so OpenAPI documents an empty `{}` response
+**Issue:** `point()` and the new `anchor_for()` both independently compute
+`angle = (2 * math.pi * i / n) - (math.pi / 2)`. They are correct and
+consistent today (verified: the code renders exactly 2/2/2
+middle/start/end for the 6-axis config, matching the axis positions
+`point()` draws), but the two functions have no shared source of truth — a
+future change to the angle offset or direction in one (e.g. adjusting the
+`-pi/2` start offset, or reversing axis winding) would silently
+desynchronize label anchoring from actual axis position unless both call
+sites are remembered and updated together.
 
-**File:** `backend/app/schemas/report.py` (whole file); `backend/app/api/v1/reports.py:179-211`
-**Issue:** `schemas/report.py`'s docstring states these Pydantic models
-"document the contract for openapi and for the frontend fetch types," but a
-repo-wide grep shows zero import sites outside the module itself. Neither
-`generate_report_data_endpoint` nor `get_report_data_endpoint` declares
-`response_model=ReportContract` — they return the raw dict from
-`build_report_contract` directly. Consequently `docs/api/openapi.json`'s
-`/api/v1/initiatives/{initiative_id}/report/data` GET/POST 200 responses
-show `"schema": {}` (confirmed by direct inspection), i.e. the documented
-contract these types exist to describe never actually reaches the generated
-API docs, and there is no FastAPI-side response validation catching a
-`build_report_contract` shape regression either.
-**Fix:** Add `response_model=ReportContract` to both `/report/data` routes
-(and consider whether `Depends`-injected `dict` typing elsewhere should be
-tightened too), or remove the unused schema module if it's genuinely not
-meant to be wired up yet.
-
-### WR-04: Zero-question config category produces a score (`0.0`) outside every maturity band's range, which `get_maturity_band` will raise `ValueError` on
-
-**File:** `backend/app/services/dimension_scoring.py:174-186`, `backend/app/services/report_generator.py:66-83`
-**Issue:** `compute_dimension_scores`'s own comment claims its zero-question
-guard ("WR-04" in that file's comment) is now "load-bearing" because it's
-"called directly on the submit path (a real, user-triggered crash surface)."
-That guard does prevent a `ZeroDivisionError`, returning `0.0` for a
-zero-question category — but it does not prevent the *next* crash: every
-`maturity_bands` entry in `config/dssc-questionnaire.json` starts at
-`min: 1.0`, so `get_maturity_band(0.0, bands)` (called from both
-`build_priority_list` and `generate_radar_svg`, both on the report path)
-falls through the loop with no match and raises an unhandled
-`ValueError("score 0.0 not covered by any maturity_bands entry")`. The
-current real config has no zero-question categories, so this is latent, not
-currently triggered — but the comment's claim of having closed this crash
-surface is only half true, and a future config edit that empties a category
-(rather than removing it outright) would 500 report generation for every
-user, not just fail gracefully.
-**Fix:** Either forbid zero-question categories at config-load time (fail
-fast at startup, not at request time), or extend `maturity_bands` coverage
-down to include an explicit "no data" band, or have
-`compute_dimension_scores` omit zero-question categories from the returned
-list entirely instead of emitting a synthetic out-of-range `0.0`.
-
-### WR-05: `generate_radar_svg` interpolates category names into SVG `<text>` content with no XML escaping
-
-**File:** `backend/app/services/report_generator.py:160-165`
-**Issue:**
+**Fix:** Factor the angle computation into a single helper both functions
+call:
 ```python
-labels.append(
-    f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="11" '
-    f'font-family="Rubik, sans-serif" fill="#06004f" '
-    f'text-anchor="middle">{s["name"]}</text>'
-)
-```
-`s["name"]` is interpolated raw. Today this is benign because
-`dssc-questionnaire.json` category names are static and developer-controlled,
-and the function's own docstring documents this as an invariant ("Only
-server-controlled config category names and computed numeric scores flow
-into this string — never end-user free-text"). But the resulting string is
-subsequently marked `| safe` in `report.html` (bypassing Jinja's
-autoescaping) and rendered via `dangerouslySetInnerHTML` on both React pages
-(`report.tsx:267`, `admin.heatmap.tsx:213`) — three independent layers all
-trust this one unescaped string. A category name containing `&`, `<`, or `"`
-would silently break the generated SVG's XML validity today; the moment this
-invariant is violated by any future feature (e.g. an admin-editable
-questionnaire builder), it becomes a stored-XSS vector with no defense in
-depth anywhere in the chain.
-**Fix:** `xml.sax.saxutils.escape(s["name"])` (or equivalent) before
-interpolating into SVG text nodes, regardless of the current trust
-assumption — cheap insurance against the documented invariant ever changing.
+def axis_angle(i: int) -> float:
+    return (2 * math.pi * i / n) - (math.pi / 2)
 
-### WR-06: `report.tsx`'s PDF download hardcodes a duplicate fallback API base URL instead of reusing the shared `api` client's `baseURL`
+def point(i: int, value_fraction: float) -> tuple[float, float]:
+    angle = axis_angle(i)
+    r = radius * value_fraction
+    return (cx + r * math.cos(angle), cy + r * math.sin(angle))
 
-**File:** `frontend/src/routes/_app/report.tsx:156`
-**Issue:**
-```ts
-const url = new URL(
-  `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/initiatives/${resolvedInitiativeId}/report/pdf`,
-);
-```
-This duplicates the exact same `import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"`
-fallback expression already defined once in `frontend/src/lib/api.ts:5` as
-`api.defaults.baseURL`, and already used correctly elsewhere in this same
-module family (`reports.ts`'s `getReportUrl`). Two independent copies of the
-same magic default will silently drift if one is ever changed without the
-other.
-**Fix:**
-```ts
-const url = new URL(`${api.defaults.baseURL}/initiatives/${resolvedInitiativeId}/report/pdf`);
+def anchor_for(i: int) -> str:
+    cos_angle = math.cos(axis_angle(i))
+    ...
 ```
 
 ## Info
 
-### IN-01: `generateReport()`'s docstring is stale — claims persistence that Phase 16 explicitly removed
+### IN-01: `avg_char_width_factor = 0.6` is an unvalidated heuristic for a proportional (non-monospace) font
 
-**File:** `frontend/src/lib/reports.ts:65-69`
-**Issue:** The comment reads: "The POST endpoint scores all answers, renders
-the HTML report, stores it, and returns the rendered HTML as text." Per this
-phase's own decision (RESEARCH Pitfall 2 / decision A1, documented at length
-in `reports.py`'s module docstring and `report_generator.py`), the POST
-endpoint no longer stores anything — `ComplianceReport` persistence was
-removed and every read recomputes fresh. This stale comment will mislead a
-future maintainer about the actual behavior.
-**Fix:** Update the comment to state the report is rendered fresh on every
-call with no server-side persistence.
+**File:** `backend/app/services/report_generator.py:207-208`
 
-### IN-02: `_generated_at_str()` uses the deprecated `datetime.utcnow()`
+**Issue:** `horizontal_margin` is estimated as
+`longest_name_len * label_font_size * 0.6 + 10`, a rough average-character-
+width approximation for the Rubik font at 11px. This is reasonable and,
+per manual calculation against the real config's longest name, currently
+leaves a comfortable buffer (~45px) rather than being right at the edge.
+But it's an estimate with no runtime feedback loop (no actual
+text-measurement, e.g. via a font-metrics table) — if a future
+admin-editable questionnaire (explicitly flagged as a future risk in this
+same function's docstring) introduces a much longer or wider-character
+category name, this heuristic could under-provision the margin and
+reintroduce clipping with no test or assertion to catch it.
 
-**File:** `backend/app/api/v1/reports.py:82-84`
-**Issue:** `datetime.utcnow()` is deprecated as of Python 3.12 in favor of
-timezone-aware `datetime.now(timezone.utc)`; it returns a naive datetime that
-silently claims UTC without actually carrying that information, which is
-error-prone if this value is ever consumed programmatically rather than just
-formatted to a string.
-**Fix:** `datetime.now(UTC)` (or `datetime.now(timezone.utc)`), adjusting the
-`.strftime` call accordingly.
+**Fix:** Not urgent given today's config, but worth a code comment
+cross-reference to this ticket, or (stronger) a minimum-margin floor
+derived from a worst-case per-character width rather than an average, e.g.
+bias `avg_char_width_factor` upward (e.g. 0.65-0.7) to trade a little extra
+margin for a larger safety buffer, since CR-01's fix will decouple margin
+growth from overall chart shrinkage.
+
+### IN-02: No test in `test_report_generator.py` observes actual rendered layout — both CR-01 and CR-02 pass every existing assertion
+
+**File:** `backend/tests/services/test_report_generator.py:96-121, 307-322`
+
+**Issue:** `test_priority_score_column_css_has_fixed_width_and_right_align`
+only regex-matches that the `.priority-score` CSS rule contains
+`min-width` and `text-align: right` declarations — it does not (and, as a
+pure-Python unit test without a layout engine, cannot) verify that the
+score column actually renders at a consistent x-position across rows with
+differing band labels (CR-02). Likewise
+`test_radar_svg_viewbox_widened_horizontally` only checks that
+`min_x < 0` and `width > height` as raw numbers — it never checks the
+resulting aspect ratio against the template's CSS sizing rules, so it
+can't catch CR-01's chart-shrinkage regression. Both bugs are real,
+reproduce with the shipped production config, and are invisible to this
+test suite by construction.
+
+**Fix:** For layout-sensitive fixes like these, add (even a lightweight)
+rendered-output check — e.g. a Playwright/WeasyPrint snapshot test that
+measures the actual pixel bounding boxes of `.priority-score` across two
+rows with different band labels, and the actual rendered `<svg>` height at
+the CSS-capped width — before marking G-16-1/G-16-2 done. Pure
+string/regex assertions on markup are a reasonable smoke test but should
+not be treated as proof that a visual-alignment bug is fixed.
 
 ---
 
-_Reviewed: 2026-07-27T00:00:00Z_
+_Reviewed: 2026-07-28T17:26:43Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_

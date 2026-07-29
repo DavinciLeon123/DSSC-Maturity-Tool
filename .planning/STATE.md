@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-07-27T07:11:17.830Z"
+stopped_at: Completed 16-05-PLAN.md — Phase 16 complete (5/5 plans)
+last_updated: "2026-07-28T15:10:36.465Z"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 25
-  completed_plans: 21
+  completed_phases: 5
+  total_plans: 26
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 16 — report-data-contract-dual-visualization-admin-aggregation
+**Current focus:** Phase 16 complete — next up: Phase 17 (Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E)
 
 ## Milestone Status
 
@@ -38,10 +38,12 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 14-scoring-engine-replacement — 4/4 plans executed, phase complete pending verification
-**Next phase:** Verify Phase 14, then Phase 15 (Questionnaire Submission API, Wizard UI & Save Reliability)
+**Active phase:** 16-report-data-contract-dual-visualization-admin-aggregation — 5/5 plans executed (4 core + 1 gap-closure), phase complete
+**Next phase:** Phase 17 (Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E)
 
-This session (2026-07-24): Executed Plan 14-04 (ZEN/MoSCoW subsystem deletion + static regression test + openapi regeneration, SCOR-03 — the final plan in Phase 14). Removed the `zen-engine==0.51.0` dependency via `uv remove zen-engine` (pyproject.toml/uv.lock); deleted `backend/app/services/scoring_engine.py`, `config/scoring/mami-scoring.json`, `config/mami-framework.json` via `git rm`. Trimmed `main.py`'s lifespan (removed `import zen`, `app.state.mami_config`, the `scoring_dir`/`loader`/`app.state.zen_engine = zen.ZenEngine(...)` block — surviving DSSC/legacy questionnaire config loads untouched), `deps.py` (removed `get_zen_engine`/`get_mami_config` — `get_dssc_questionnaire_config` untouched), and `mami_config.py` (removed `load_mami_config`/`get_scoring_dir` — `load_dssc_questionnaire_config`/`load_questionnaire_config`/`load_questionnaire_configs` untouched); reworded `Dockerfile`'s stale zen-engine comment without touching the base image. Deleted `tests/benchmark/test_scoring_regression.py`/`tests/perf/test_scoring_perf.py` and their only fixture consumers (`mami_codes`/`make_answers` in `conftest.py`); `test_health.py` now asserts `app.state.dssc_questionnaire_config` instead of the removed `mami_config`/`zen_engine`; logged the Phase 17 (TEST-01) perf/benchmark replacement deferral in `deferred-items.md` (D-08). Added `backend/tests/test_zen_removed.py` — a new static regression test mirroring Phase 13's `test_evidence_removed.py` substring-scan + AST-walk pattern (search tokens built from parts, scan scoped to `backend/app`/`config` only, never `backend/tests`), locking SCOR-03 in place. Regenerated `docs/api/openapi.json`, capturing `ScoreResponse`/`DimensionScore` (14-02), `/report/data`'s `dimension_scores` (14-03), and the simplified `AdminHeatmapResponse` (`FindingRead`/`matrix`/`topic_structure` components gone); confirmed diff-clean on a second export run (docs-freshness gate). App imports cleanly, ruff/mypy/format clean, full staging-onward suite (`pytest tests/ -n auto -m "not perf"`) 91/95 passing (same 4 pre-existing local-only WeasyPrint failures recurring from every prior Phase 13/14 plan touching `reports.py`, unrelated). SCOR-03 marked complete. **Phase 14 is now fully executed (4/4 plans)** — awaiting the verification step before Phase 15 begins.
+This session (2026-07-28): Resumed and finalized Plan 16-05 (gap-closure plan for the two major UAT visual gaps, G-16-1/G-16-2). Tasks 1-2 (position-aware radar `text-anchor` + widened viewBox in `generate_radar_svg()`; flattened `.priority-row`/`.legend` to single-level flex with a fixed-width right-aligned score column in `report.html`) had already been executed and committed (`271a543`, `61ec7a4`) in a prior session, both with passing regression tests added to `test_report_generator.py` (12/12 green). Task 3 was the plan's blocking `checkpoint:human-verify` gate — the user deployed the branch via the already-open PR #7 to the Railway Integration environment, generated a real WeasyPrint PDF, and confirmed all four `<how-to-verify>` checks against both the PDF and the in-app `/report` page (radar labels unclipped on both surfaces, PDF scores flush-right, PDF legend on one line, no other visual regression), replying "All approved, please finish up this phase." Wrote `16-05-SUMMARY.md`, updated ROADMAP.md (Phase 16 marked Complete, 5/5 plans, progress table row dated 2026-07-28), and finalized this STATE.md. **Phase 16 is now fully complete (5/5 plans)** — all 5 of its success criteria (radar chart, sorted priority list, single-source color banding, shared JSON contract for in-app + PDF, admin aggregation) are satisfied and human-confirmed on a real render. Phase 17 is unblocked.
+
+Prior session (2026-07-24): Executed Plan 14-04 (ZEN/MoSCoW subsystem deletion + static regression test + openapi regeneration, SCOR-03 — the final plan in Phase 14). Removed the `zen-engine==0.51.0` dependency via `uv remove zen-engine` (pyproject.toml/uv.lock); deleted `backend/app/services/scoring_engine.py`, `config/scoring/mami-scoring.json`, `config/mami-framework.json` via `git rm`. Trimmed `main.py`'s lifespan (removed `import zen`, `app.state.mami_config`, the `scoring_dir`/`loader`/`app.state.zen_engine = zen.ZenEngine(...)` block — surviving DSSC/legacy questionnaire config loads untouched), `deps.py` (removed `get_zen_engine`/`get_mami_config` — `get_dssc_questionnaire_config` untouched), and `mami_config.py` (removed `load_mami_config`/`get_scoring_dir` — `load_dssc_questionnaire_config`/`load_questionnaire_config`/`load_questionnaire_configs` untouched); reworded `Dockerfile`'s stale zen-engine comment without touching the base image. Deleted `tests/benchmark/test_scoring_regression.py`/`tests/perf/test_scoring_perf.py` and their only fixture consumers (`mami_codes`/`make_answers` in `conftest.py`); `test_health.py` now asserts `app.state.dssc_questionnaire_config` instead of the removed `mami_config`/`zen_engine`; logged the Phase 17 (TEST-01) perf/benchmark replacement deferral in `deferred-items.md` (D-08). Added `backend/tests/test_zen_removed.py` — a new static regression test mirroring Phase 13's `test_evidence_removed.py` substring-scan + AST-walk pattern (search tokens built from parts, scan scoped to `backend/app`/`config` only, never `backend/tests`), locking SCOR-03 in place. Regenerated `docs/api/openapi.json`, capturing `ScoreResponse`/`DimensionScore` (14-02), `/report/data`'s `dimension_scores` (14-03), and the simplified `AdminHeatmapResponse` (`FindingRead`/`matrix`/`topic_structure` components gone); confirmed diff-clean on a second export run (docs-freshness gate). App imports cleanly, ruff/mypy/format clean, full staging-onward suite (`pytest tests/ -n auto -m "not perf"`) 91/95 passing (same 4 pre-existing local-only WeasyPrint failures recurring from every prior Phase 13/14 plan touching `reports.py`, unrelated). SCOR-03 marked complete. **Phase 14 is now fully executed (4/4 plans)** — awaiting the verification step before Phase 15 begins.
 
 Prior session (2026-07-24): Executed Plan 14-03 (report endpoints + admin heatmap adaptation, SCOR-04). Trimmed `backend/app/services/report_generator.py` from 313 to 22 lines — deleted `_build_matrix`/`_build_topic_structure`/`_build_heatmap_rows`/`_build_not_yet_recommendations`/`_build_findings_detail`/`_aggregate_cell`/`_suggest_next_steps`/`_RECOMMENDATIONS`/`_ANSWER_LABEL_MAP` outright (D-01a); `generate_report_data(initiative)` now returns `{"initiative": {...}}` only, `generate_html_report(initiative, generated_at)` renders the unchanged `report.html` with literal `heatmap_rows={}`/`not_yet_recommendations=[]` (D-05, Pitfall 1). Rewrote `backend/app/api/v1/reports.py`: removed `import zen`/`score_all_answers`/`get_mami_config`/`get_zen_engine` and the entire degraded-banner mechanism (`_DEGRADED_SCORING_BANNER_HTML`/`_inject_degraded_banner`/`_degraded_scoring_inputs`, D-05a); all four routes (`/report`, `/report/data` GET+POST, `/report/pdf`, `/report/mail`) now call `assert_assessment_complete` immediately after the ownership check (T-14-01 ordering, SCOR-04); both `/report/data` handlers add `dimension_scores` via `compute_dimension_scores` (D-05); dropped async/await (mirrors Plan 14-02). Rewrote `backend/app/api/v1/admin.py`'s `/heatmap`: removed the orphaned `_build_topic_structure` import, reduced `AdminHeatmapResponse`/`get_admin_heatmap` to a fixed `{degraded: true, cells: []}` response (D-01b). Rewrote all three affected test files (`test_report_generator.py`, `test_reports.py` — rebuilt fixtures to fully answer the real 52-question config since the old n=5 partial-answers fixture now fails the SCOR-04 gate, `test_admin.py`) against the new shapes, plus new dimension_scores/422/ownership-ordering tests. App imports cleanly, ruff/mypy/format clean, full quick suite 87/91 (same 4 pre-existing local-only WeasyPrint failures recurring from Phase 13, unrelated — logged in a new phase-14 `deferred-items.md`). Did NOT regenerate `docs/api/openapi.json` per this plan's explicit prohibition (Plan 14-04 owns it once, after all Wave 2/3 response-model changes land). Ready to execute 14-04 (ZEN/MoSCoW removal + openapi regeneration, the final plan in Phase 14).
 
@@ -140,9 +142,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-07-26T19:34:50.546Z
-**Stopped at:** Phase 16 UI-SPEC approved
-**Resume file:** .planning/phases/16-report-data-contract-dual-visualization-admin-aggregation/16-UI-SPEC.md
+**Last session:** 2026-07-28T06:00:00.000Z
+**Stopped at:** Completed 16-05-PLAN.md — Phase 16 complete (5/5 plans)
+**Resume file:** None
 
 ## Performance Metrics
 
@@ -157,6 +159,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 14 P03 | 22min | 3 tasks | 6 files |
 | Phase 14 P04 | 12min | 3 tasks | 11 files |
 | Phase 15 P08 | 25min | 2 tasks | 4 files |
+| Phase 16 P05 | ~10min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -183,3 +186,6 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 14-04]: Deliberately excluded a bare "mami_config" substring scan from the static removal test — mami_config.py survives with legitimate load_dssc_questionnaire_config/load_questionnaire_config(s) loaders; only the specific removed symbols are asserted absent
 - [Phase 14-04]: SCOR-03 marked complete — Phase 14 fully executed (4/4 plans), awaiting verification before Phase 15
 - [Phase ?]: [Phase 15-08 gap-closure]: Added assert_assessment_complete completeness gate to submit_initiative (SCOR-04), closing 15-VERIFICATION.md's single blocking gap; also reordered initiative.status mutation to run after the gate (Rule 1 fix) to prevent a stale in-memory identity-map mutation surviving a rejected submit
+- [Phase 16-05 gap-closure]: Fixed G-16-1 (radar left-side axis-label clipping, both in-app and PDF) via cos(angle)-derived per-label text-anchor + a horizontally widened negative-min-x viewBox in generate_radar_svg(), sized from the longest category name rather than hardcoded to 6 axes
+- [Phase 16-05 gap-closure]: Fixed G-16-2 (PDF-only priority-score misalignment + legend line-wrap) by flattening report.html's .priority-row/.legend to a single flex level (matching the proven React PriorityRow pattern) with a fixed min-width + right-aligned .priority-score column — works around documented WeasyPrint 69.0 justify-content/intrinsic-width bugs rather than fighting them
+- [Phase 16-05 gap-closure]: Human visual confirmation performed against the Railway Integration deployment via the already-open PR #7, not a local render — WeasyPrint's native libs remain unavailable in the local sandbox; all four how-to-verify checks passed, user approved, Phase 16 marked complete (5/5 plans)

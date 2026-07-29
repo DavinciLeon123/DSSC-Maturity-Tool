@@ -1,30 +1,29 @@
 ---
 phase: 16-report-data-contract-dual-visualization-admin-aggregation
 verified: 2026-07-27T00:00:00Z
-status: human_needed
-score: 4/5 truths verified
-behavior_unverified: 1
+status: passed
+score: 5/5 truths verified
+behavior_unverified: 0
 overrides_applied: 0
-behavior_unverified_items:
-  - truth: "The in-app radar chart and the mailed PDF radar chart render identically and legibly (labels not clipped, correct font/size) when the shared contract is fed through WeasyPrint"
-    test: "Trigger POST /initiatives/{id}/report/mail (or GET /initiatives/{id}/report/pdf) against a real submitted assessment in CI/Docker or the deployed Integration environment, open the resulting PDF, and visually compare the radar chart + priority list against the same assessment's in-app /report page."
-    expected: "The radar polygon, axis spokes, and all 6 axis text labels (including the longest category name, 'Control over Data & Trust') render inside the page bounds with the same Rubik/#06004f styling as the in-app view — no clipped/overlapping text, no missing polygon fill."
-    why_human: "WeasyPrint's native libraries (Pango/GObject) are unavailable on this local machine and this phase's 51 commits are still unpushed to any branch that has run CI (git log origin/feature/dssc-real-questionnaire-content..HEAD shows 51 unpushed commits) — no automated or CI evidence exists yet that the shared radar_chart_svg string actually renders correctly once it passes through WeasyPrint's PDF rasterizer, only that the same string is passed to both surfaces."
+resolution: "The 1 unverified truth (radar chart legibility through a real WeasyPrint render) surfaced 2 UAT gaps (G-16-1: axis-label clipping, G-16-2: PDF priority-list/legend misalignment — the latter found during UAT itself, not pre-declared). Both were root-caused, fixed, and human-confirmed on a real WeasyPrint render via the Railway Integration deployment by gap-closure plan 16-05 (16-05-SUMMARY.md, 2026-07-28). See 16-UAT.md for the full re-verification record."
+behavior_unverified_items: []
 human_verification:
   - test: "Trigger POST /initiatives/{id}/report/mail (or GET /initiatives/{id}/report/pdf) against a real submitted assessment in CI/Docker or the deployed Integration environment, open the resulting PDF, and visually compare against the in-app /report page for the same assessment."
     expected: "Radar chart and priority list render identically (same scores, same band colors, same 6 axis labels) in both the in-app view and the PDF; labels are not clipped and text uses the specified Rubik/#06004f styling."
     why_human: "WeasyPrint native libs unavailable locally; branch not yet run through CI. This is the plan's own explicitly-flagged 'verification: backstop' item (16-02 must_haves D8), still open per both 16-02-SUMMARY.md and 16-04-SUMMARY.md's 'Next Phase Readiness' notes."
+    resolution: "RESOLVED 2026-07-28 — confirmed on a real WeasyPrint render via Railway Integration (PR #7) by gap-closure plan 16-05 (G-16-1, G-16-2)."
   - test: "Open the in-app /report page for an assessment scored against the category 'Control over Data & Trust' (the longest current config category name) at a normal desktop viewport width and confirm the priority-list row wraps the name onto a second line rather than truncating or overflowing the card."
     expected: "The dimension name wraps cleanly within the priority-list row; the row layout does not break or overflow horizontally."
     why_human: "This phase's must_haves (16-04) explicitly flag this as a held-out visual check (verification: backstop) — `white-space: normal` is confirmed present in both report.tsx and report.html's CSS, but actual wrap rendering at real viewport widths was not visually inspected as part of this verification."
+    resolution: "RESOLVED 2026-07-28 — browser wrap confirmed correct; the PDF-only misalignment issue actually found during UAT (G-16-2) was fixed and confirmed via Railway Integration (PR #7) by gap-closure plan 16-05."
 ---
 
 # Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation Verification Report
 
 **Phase Goal:** Completed assessments produce one frozen report data contract that powers a radar chart and a sorted priority list identically in-app and in the mailed PDF, and the admin view aggregates this same 6-dimension data across initiatives.
 **Verified:** 2026-07-27
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Status:** passed
+**Re-verification:** No — initial verification (see `## Post-Verification: Gap Closure` below for the 2026-07-28 UAT gap-closure update)
 
 ## Context: Code Review + Fix Cycle Already Ran
 
@@ -39,10 +38,14 @@ A code review (`16-REVIEW.md`) found 2 Critical + 6 Warning issues; a fix pass (
 | 1 | On completing the questionnaire, the user sees a radar/spider chart showing all 6 dimension scores at a glance | ✓ VERIFIED | `generate_radar_svg` (backend/app/services/report_generator.py:112-186) produces one `<svg viewBox=...>` with 6 axis labels + 1 polygon; `report.tsx:263-268` injects `data.radar_chart_svg` verbatim via `dangerouslySetInnerHTML`; confirmed via `test_radar_svg_structure` and `test_get_report_data_returns_report_contract` (pytest, passing) |
 | 2 | The same report shows a sorted priority list (lowest→highest maturity) with dimension name, average score, and red/orange/green color indicator | ✓ VERIFIED | `build_priority_list` (report_generator.py:87-109) always returns 6 rows, stable-sorted ascending; `report.tsx` `PriorityRow` renders `band_color` dot + `band_label` + `score.toFixed(2)` (never color-only); `report.html:157-166` mirrors the same fields; `test_priority_list_six_rows_sorted`/`test_priority_list_tie_stable` pass |
 | 3 | Color-band thresholds (1.0-2.0 / 2.0-3.5 / 3.5-5.0) are defined in exactly one place in config and produce identical banding in both the chart and the priority list | ✓ VERIFIED | `config/dssc-questionnaire.json`'s `maturity_bands` key (verified via direct JSON read: red/orange/green with exact hex `#d64545`/`#e08e2b`/`#399e5a`); `get_maturity_band` is the sole classification function, called by both `build_priority_list` and `generate_radar_svg` (confirmed via grep — no second inequality chain anywhere in `backend/app` or `frontend/src`); `admin_aggregation.py` reuses `generate_radar_svg` rather than reimplementing; `test_maturity_band_same_for_both_callers` passes |
-| 4 | The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views | ⚠️ PRESENT_BEHAVIOR_UNVERIFIED | `build_report_contract` is called once per request and its 4 shared keys (`dimension_scores`/`priority_list`/`radar_chart_svg`/`maturity_bands`) feed both `/report/data`'s JSON response and `generate_html_report`'s Jinja context (`reports.py:88-103`, confirmed by reading `_render_html_for`); `test_report_data_and_html_share_identical_contract_values` passes, proving the **contract-sharing code path** is correct. However, the plan's own must_haves flag "the embedded radar chart renders legibly in the actual WeasyPrint PDF output" as an explicit `verification: backstop` item that neither this phase's executor nor this verification could exercise — WeasyPrint's native libraries are unavailable locally, and the branch has 51 unpushed commits with no CI run yet (confirmed via `git log origin/...HEAD` and `gh run list`, which shows no workflow run touching this phase's commits). The data-sharing mechanism is proven; the rendered-PDF visual outcome is not |
+| 4 | The user can view this report in-app and receive the same report as a mailed PDF, both rendered from one shared JSON data contract rather than two independently computed views | ✓ VERIFIED (2026-07-28) | `build_report_contract` is called once per request and its 4 shared keys (`dimension_scores`/`priority_list`/`radar_chart_svg`/`maturity_bands`) feed both `/report/data`'s JSON response and `generate_html_report`'s Jinja context (`reports.py:88-103`); `test_report_data_and_html_share_identical_contract_values` passes. The originally-flagged backstop (real WeasyPrint PDF render) surfaced 2 UAT gaps (G-16-1 axis-label clipping, G-16-2 PDF-only priority-list/legend misalignment), both fixed by gap-closure plan 16-05 and human-confirmed on a real WeasyPrint render via the Railway Integration deployment. See `16-UAT.md` |
 | 5 | An admin can view an aggregated radar/priority view across initiatives using the new 6-category model, replacing the old 4x3 topic heatmap | ✓ VERIFIED | `build_admin_aggregate` (admin_aggregation.py) returns `org_average_scores`/`org_radar_chart_svg`/`initiatives`; `GET /admin/heatmap` returns `AdminAggregateResponse`; `admin.heatmap.tsx` renders the org radar + paginated per-initiative `Table`; `grep -c "degraded=True" app/api/v1/admin.py` → 0 (old stub fully removed); 17/17 `test_admin.py` + 7/7 `test_admin_aggregation.py` pass |
 
-**Score:** 4/5 truths verified (1 present, behavior-unverified)
+**Score:** 5/5 truths verified (as of 2026-07-28 gap closure — see Post-Verification section below)
+
+## Post-Verification: Gap Closure (2026-07-28)
+
+The 2 pre-declared human-verification backstops above were run as UAT (`16-UAT.md`) and found 2 real issues: **G-16-1** (radar axis labels clipped at the SVG's left edge, in both browser and PDF) and **G-16-2** (PDF-only priority-list score misalignment + legend early-wrap, a WeasyPrint 69.0 nested-flex bug — found during UAT itself, not pre-declared). Both were root-caused by parallel debug agents, fixed and regression-tested by gap-closure plan `16-05-PLAN.md`, and human-confirmed on a real WeasyPrint render via the Railway Integration deployment (PR #7). Full detail in `16-UAT.md` and `16-05-SUMMARY.md`.
 
 ### Required Artifacts
 
