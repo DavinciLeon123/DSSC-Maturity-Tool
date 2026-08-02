@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Completed 16-05-PLAN.md — Phase 16 complete (5/5 plans)
-last_updated: "2026-07-28T15:10:36.465Z"
+stopped_at: Phase 16.1 context gathered
+last_updated: "2026-08-02T10:17:53.311Z"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
   total_plans: 26
   completed_plans: 26
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 16 complete — next up: Phase 17 (Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E)
+**Current focus:** Phase 16 complete — Phase 16.1 (DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default) inserted (URGENT) ahead of Phase 17; not yet planned
 
 ## Milestone Status
 
@@ -32,14 +32,14 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 **v2.0 DSSC Maturity Scan for Dataspaces — IN PROGRESS** (started 2026-07-21)
 
-- Requirements: `.planning/REQUIREMENTS.md` (30 v1 requirements, Phases 13-18)
+- Requirements: `.planning/REQUIREMENTS.md` (35 v1 requirements, Phases 13-18 + inserted Phase 16.1)
 - Phase 12 (test retrofit) originally planned/executed against a `MaMi-Compliance-Checker` checkout, then relocated to this repo — see `.planning/phases/12-test-retrofit-stabilize-existing-flows/12-RELOCATION-NOTE.md`.
 - Note: this repo independently added a 5-workflow CI/CD pipeline + starter test suite (health/privacy-canary/scoring-perf/benchmark) between its 2026-07-20 fork and this milestone landing here — Phase 12's test infra was merged additively into that, not created from scratch.
 
 ## Current Position
 
 **Active phase:** 16-report-data-contract-dual-visualization-admin-aggregation — 5/5 plans executed (4 core + 1 gap-closure), phase complete
-**Next phase:** Phase 17 (Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E)
+**Next phase:** Phase 16.1 (DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default) — inserted (URGENT), not yet planned. Run `/gsd-plan-phase 16.1`. Phase 17 (Test Coverage) follows after.
 
 This session (2026-07-28): Resumed and finalized Plan 16-05 (gap-closure plan for the two major UAT visual gaps, G-16-1/G-16-2). Tasks 1-2 (position-aware radar `text-anchor` + widened viewBox in `generate_radar_svg()`; flattened `.priority-row`/`.legend` to single-level flex with a fixed-width right-aligned score column in `report.html`) had already been executed and committed (`271a543`, `61ec7a4`) in a prior session, both with passing regression tests added to `test_report_generator.py` (12/12 green). Task 3 was the plan's blocking `checkpoint:human-verify` gate — the user deployed the branch via the already-open PR #7 to the Railway Integration environment, generated a real WeasyPrint PDF, and confirmed all four `<how-to-verify>` checks against both the PDF and the in-app `/report` page (radar labels unclipped on both surfaces, PDF scores flush-right, PDF legend on one line, no other visual regression), replying "All approved, please finish up this phase." Wrote `16-05-SUMMARY.md`, updated ROADMAP.md (Phase 16 marked Complete, 5/5 plans, progress table row dated 2026-07-28), and finalized this STATE.md. **Phase 16 is now fully complete (5/5 plans)** — all 5 of its success criteria (radar chart, sorted priority list, single-source color banding, shared JSON contract for in-app + PDF, admin aggregation) are satisfied and human-confirmed on a real render. Phase 17 is unblocked.
 
@@ -133,6 +133,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - Phase 11 added: Recommendations drawer, mail report, invalid date fix, homepage images, mobile portrait fix
 - Phase 5 (Admin, Crawling, PDF): never executed — admin delivered in Phase 6, PDF in Phase 11, crawling deferred
 - Phase 1 (new cycle) added: Bugfix retake-questionnaire save, CSV missing follow-up selections, separate DSI/SP aggregated heatmaps
+- Phase 16.1 inserted after Phase 16: DSSC rebrand: colors/logo/wording (incl. Questionnaire -> Dataspace Maturity Assessment), PDF rebrand + submitted answers, registration defaults to DSI-only (Service Provider option removable/restorable) (URGENT)
 
 ### Blockers/Concerns
 
@@ -142,9 +143,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-07-28T06:00:00.000Z
-**Stopped at:** Completed 16-05-PLAN.md — Phase 16 complete (5/5 plans)
-**Resume file:** None
+**Last session:** 2026-08-02T10:17:53.300Z
+**Stopped at:** Phase 16.1 context gathered
+**Resume file:** .planning/phases/16.1-dssc-rebranding-pdf-content-registration-default/16.1-CONTEXT.md
 
 ## Performance Metrics
 
