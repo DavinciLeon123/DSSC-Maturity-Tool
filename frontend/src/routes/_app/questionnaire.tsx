@@ -71,7 +71,7 @@ function QuestionnairePage() {
           color: "var(--color-text-gray)",
         }}
       >
-        Loading questionnaire...
+        Loading assessment...
       </div>
     );
   }
@@ -88,7 +88,7 @@ function QuestionnairePage() {
           }}
         >
           <p style={{ margin: 0, color: "#92400E", fontWeight: 500 }}>
-            Please create your initiative first before filling in the questionnaire.
+            Please create your initiative first before filling in the assessment.
           </p>
         </div>
       </div>
@@ -114,7 +114,7 @@ function QuestionnairePage() {
             fontFamily: "'Rubik', sans-serif",
           }}
         >
-          <span>Failed to load questionnaire. Please try again.</span>
+          <span>Failed to load assessment. Please try again.</span>
           <button
             type="button"
             onClick={() => {
@@ -152,7 +152,7 @@ function QuestionnairePage() {
             margin: "0 0 0.5rem 0",
           }}
         >
-          MAMI Questionnaire
+          Dataspace Maturity Assessment
         </h1>
       </div>
 

@@ -33,7 +33,11 @@ from app.models.initiative import Initiative
 from app.models.user import User
 from app.schemas.report import ReportContract
 from app.services.dimension_scoring import compute_dimension_scores, resolve_report_assessment
-from app.services.report_generator import build_report_contract, generate_html_report
+from app.services.report_generator import (
+    build_answers_by_category,
+    build_report_contract,
+    generate_html_report,
+)
 
 router = APIRouter(tags=["reports"])
 
@@ -90,9 +94,11 @@ def _render_html_for(
 ) -> str:
     """RPRT-04: builds the shared contract once, then feeds its keys into
     the Jinja2 template — the same contract dict `/report/data` returns
-    verbatim as JSON (one payload, two renderings)."""
+    verbatim as JSON (one payload, two renderings). RPRT-05: also builds
+    answers_by_category for the new submitted-answers section."""
     scores = _resolve_scores(session, assessment, config)
     contract = build_report_contract(scores, initiative, assessment, config)
+    answers_by_category = build_answers_by_category(session, assessment.id, config)
     return generate_html_report(
         initiative=_initiative_dict(initiative),
         generated_at=_generated_at_str(),
@@ -100,6 +106,7 @@ def _render_html_for(
         priority_list=contract["priority_list"],
         radar_chart_svg=contract["radar_chart_svg"],
         maturity_bands=contract["maturity_bands"],
+        answers_by_category=answers_by_category,
     )
 
 
@@ -116,24 +123,24 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
         logger.info("[MAIL] PDF generated (%d bytes), sending via Resend", len(pdf_bytes))
         attachment: resend.Attachment = {
             "content": list(pdf_bytes),
-            "filename": "MAMI-Interoperability-Report.pdf",
+            "filename": "DSSC-Maturity-Report.pdf",
         }
         resend.api_key = api_key
         params: resend.Emails.SendParams = {
-            "from": "MaMi Checker <onboarding@resend.dev>",
+            "from": "DSSC Maturity Scan <onboarding@resend.dev>",
             "to": [email],
-            "subject": "Your MAMI Interoperability Heatmap",
+            "subject": "Your DSSC Maturity Report",
             "text": (
                 "Dear participant,\n\n"
-                "Thank you for completing the MAMI Interoperability Assessment. "
-                "Please find your personalised Interoperability Heatmap report attached as a PDF.\n\n"
-                "Would you like expert guidance on your results? The Centre of Excellence "
-                "for Data Sharing and Cloud (CoE-DSC) is available to help you translate "
-                "your assessment into a concrete improvement plan. Visit the CoE-DSC website "
+                "Thank you for completing the DSSC Dataspace Maturity Assessment. "
+                "Please find your personalised DSSC Maturity Report attached as a PDF.\n\n"
+                "Would you like expert guidance on your results? The Data Spaces Support Centre "
+                "(DSSC) is available to help you translate "
+                "your assessment into a concrete improvement plan. Visit the DSSC website "
                 "or contact us directly to schedule a follow-up conversation.\n\n"
                 "Kind regards,\n"
-                "The MAMI Checker team\n"
-                "Centre of Excellence for Data Sharing and Cloud (CoE-DSC)"
+                "The DSSC Maturity Scan team\n"
+                "Data Spaces Support Centre (DSSC)"
             ),
             "attachments": [attachment],
         }

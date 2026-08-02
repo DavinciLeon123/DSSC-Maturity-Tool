@@ -5,14 +5,14 @@
   <title>DSSC Maturity Report — {{ initiative.name }}</title>
   <style>
     :root {
-      --primary: #06004f;
+      --primary: #008ecf;
       --bg:      #f5f7fa;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: "Rubik", "Segoe UI", Arial, sans-serif;
+      font-family: "Jost", "Open Sans", "Segoe UI", Arial, sans-serif;
       background: var(--bg);
       color: #1a1a2e;
       font-size: 14px; /* Body */
@@ -41,7 +41,7 @@
       background: #ffffff;
       border-radius: 16px; /* borderRadiusLG */
       overflow: hidden;
-      box-shadow: 0 2px 12px rgba(6,0,79,0.08);
+      box-shadow: 0 2px 12px rgba(0,142,207,0.08);
       margin-bottom: 24px; /* lg */
     }
     .card-header {
@@ -92,7 +92,7 @@
     }
     .priority-name {
       font-size: 14px; /* Body */
-      color: #06004f;
+      color: #008ecf;
       flex: 1;
       min-width: 0;
       white-space: normal; /* long dimension names wrap, never truncate */
@@ -100,14 +100,14 @@
     .priority-score {
       font-size: 14px;
       font-weight: 600;
-      color: #06004f;
+      color: #008ecf;
       min-width: 48px; /* fixed-width flush-right column, independent of name width */
       text-align: right;
       white-space: nowrap;
     }
     .priority-band-label {
       font-size: 13px; /* Label */
-      color: rgba(6,0,79,0.65);
+      color: rgba(0,142,207,0.65);
       white-space: nowrap;
       /* Phase 16 gap-closure (G-16-2 follow-up, CR-02): a *fixed* width (not
          min-width) so this trailing column occupies identical space on every
@@ -138,7 +138,7 @@
     }
     .legend-item {
       font-size: 13px;
-      color: rgba(6,0,79,0.6);
+      color: rgba(0,142,207,0.6);
       white-space: nowrap;
     }
     .legend-item .band-dot { margin-right: 8px; vertical-align: middle; }
@@ -165,6 +165,7 @@
 
 <!-- HEADER -->
 <div class="report-header">
+  <img src="assets/logo-dssc-white.png" alt="DSSC" style="height: 40px; margin-bottom: 12px;" />
   <h1>Your DSSC Maturity Report</h1>
   <div class="meta">
     <strong>{{ initiative.name }}</strong>{% if initiative.organization %} &mdash; {{ initiative.organization }}{% endif %}<br />
@@ -209,15 +210,43 @@
     </div>
   </div>
 
+  <!-- SUBMITTED ANSWERS -->
+  <div class="card">
+    <div class="card-header">Submitted answers</div>
+    <div class="card-body">
+      {% for category in answers_by_category %}
+        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; margin-top: 16px;">{{ category.name }}</h3>
+        {% if category.answers %}
+          <div class="answers-list">
+            {% for answer in category.answers %}
+              <div class="answers-row" style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; align-items: flex-start;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 14px; color: #1a1a2e; margin-bottom: 4px;">{{ answer.text }}</div>
+                  <div style="font-size: 13px; color: rgba(26, 26, 46, 0.7);">{{ answer.answer_label }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                  <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ answer.band_color }};"></span>
+                  <span style="font-size: 14px; font-weight: 600; color: #008ecf;">{{ "%.2f"|format(answer.score) }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size: 14px; color: rgba(26, 26, 46, 0.7); padding: 8px 0;">No answers recorded for this category.</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
   <!-- GET EXPERT HELP -->
   <div class="expert-help">
     <h2>Get expert help</h2>
     <p>
       The Centre of Excellence is here to help you navigate your dataspace maturity journey.
       You can read more about the DSSC framework at our website
-      <a href="https://www.coe-dsc.nl" target="_blank" rel="noopener">www.coe-dsc.nl</a>.
+      <a href="https://www.dssc.eu" target="_blank" rel="noopener">www.dssc.eu</a>.
       You can also contact us at
-      <a href="mailto:info@coe-dsc.nl">info@coe-dsc.nl</a>.
+      <a href="mailto:info@dssc.eu">info@dssc.eu</a>.
       We'll be happy to translate your results into concrete actions.
     </p>
   </div>

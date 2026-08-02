@@ -334,8 +334,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             fontFamily: "'Open Sans', sans-serif",
           }}
         >
-          Thank you for completing the MAMI Questionnaire. You can now view your MAMI
-          Interoperability heatmap.
+          Thank you for completing the Dataspace Maturity Assessment. You can now view your DSSC Maturity Report.
         </p>
         <button
           type="button"
