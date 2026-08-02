@@ -156,7 +156,7 @@ export function AdminHeatmapPage() {
         style={{
           fontFamily: "'Rubik', sans-serif",
           fontWeight: 600,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
           fontSize: "28px",
         }}
@@ -202,7 +202,7 @@ export function AdminHeatmapPage() {
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "0.5rem" }}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "0.5rem" }}
               >
                 No submitted assessments yet
               </Title>
@@ -220,7 +220,7 @@ export function AdminHeatmapPage() {
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
               >
                 Org-wide maturity radar
               </Title>
@@ -237,7 +237,7 @@ export function AdminHeatmapPage() {
                   marginTop: "1rem",
                 }}
               >
-                Based on <strong style={{ color: "#06004f" }}>{submittedCount}</strong> submitted
+                Based on <strong style={{ color: "#008ecf" }}>{submittedCount}</strong> submitted
                 initiative{submittedCount !== 1 ? "s" : ""}.
               </Text>
             </Card>
@@ -249,7 +249,7 @@ export function AdminHeatmapPage() {
           <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.08)" }}>
             <Title
               level={2}
-              style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+              style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
             >
               Per-initiative breakdown
             </Title>

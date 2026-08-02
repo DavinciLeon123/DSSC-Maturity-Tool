@@ -12,9 +12,9 @@ function AboutPage() {
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
         }}
       >
         About MAMI
@@ -22,19 +22,19 @@ function AboutPage() {
       <Card
         style={{
           borderRadius: "16px",
-          boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+          boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >
         <p
           style={{
-            color: "rgba(6,0,79,0.75)",
+            color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
             marginBottom: "1rem",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           The{" "}
-          <strong style={{ color: "#06004f" }}>
+          <strong style={{ color: "#008ecf" }}>
             MAMI (Minimal Agreements for Maximal Interoperability)
           </strong>{" "}
           framework, developed by{" "}
@@ -42,7 +42,7 @@ function AboutPage() {
             href="https://coe-dsc.nl"
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#399e5a", textDecoration: "none" }}
+            style={{ color: "#76b82a", textDecoration: "none" }}
           >
             CoE-DSC
           </a>{" "}
@@ -50,10 +50,10 @@ function AboutPage() {
         </p>
         <p
           style={{
-            color: "rgba(6,0,79,0.75)",
+            color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
             marginBottom: "1rem",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           The framework organizes requirements across a 4×3 matrix covering governance, technical,
@@ -62,9 +62,9 @@ function AboutPage() {
         </p>
         <p
           style={{
-            color: "rgba(6,0,79,0.75)",
+            color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           This tool guides DSI leaders and Service Providers through the structured questionnaire and generates a clear
