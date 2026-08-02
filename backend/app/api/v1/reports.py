@@ -123,24 +123,24 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
         logger.info("[MAIL] PDF generated (%d bytes), sending via Resend", len(pdf_bytes))
         attachment: resend.Attachment = {
             "content": list(pdf_bytes),
-            "filename": "MAMI-Interoperability-Report.pdf",
+            "filename": "DSSC-Maturity-Report.pdf",
         }
         resend.api_key = api_key
         params: resend.Emails.SendParams = {
-            "from": "MaMi Checker <onboarding@resend.dev>",
+            "from": "DSSC Maturity Scan <onboarding@resend.dev>",
             "to": [email],
-            "subject": "Your MAMI Interoperability Heatmap",
+            "subject": "Your DSSC Maturity Report",
             "text": (
                 "Dear participant,\n\n"
-                "Thank you for completing the MAMI Interoperability Assessment. "
-                "Please find your personalised Interoperability Heatmap report attached as a PDF.\n\n"
-                "Would you like expert guidance on your results? The Centre of Excellence "
-                "for Data Sharing and Cloud (CoE-DSC) is available to help you translate "
-                "your assessment into a concrete improvement plan. Visit the CoE-DSC website "
+                "Thank you for completing the DSSC Dataspace Maturity Assessment. "
+                "Please find your personalised DSSC Maturity Report attached as a PDF.\n\n"
+                "Would you like expert guidance on your results? The Data Spaces Support Centre "
+                "(DSSC) is available to help you translate "
+                "your assessment into a concrete improvement plan. Visit the DSSC website "
                 "or contact us directly to schedule a follow-up conversation.\n\n"
                 "Kind regards,\n"
-                "The MAMI Checker team\n"
-                "Centre of Excellence for Data Sharing and Cloud (CoE-DSC)"
+                "The DSSC Maturity Scan team\n"
+                "Data Spaces Support Centre (DSSC)"
             ),
             "attachments": [attachment],
         }

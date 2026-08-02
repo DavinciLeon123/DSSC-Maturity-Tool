@@ -325,7 +325,7 @@ def export_dataset(
     return StreamingResponse(
         generate_csv(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=mami-dataset.csv"},
+        headers={"Content-Disposition": "attachment; filename=dssc-dataset.csv"},
     )
 
 

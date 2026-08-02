@@ -23,7 +23,7 @@ export function TopNav() {
 
   const navItems: Array<{ label: string; to: '/dashboard' | '/questionnaire' | '/about' | '/admin' }> = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Questionnaire', to: '/questionnaire' },
+    { label: 'Dataspace Maturity Assessment', to: '/questionnaire' },
     { label: 'About', to: '/about' },
     ...(isAdmin ? [{ label: 'Admin', to: '/admin' as const }] : []),
   ];
