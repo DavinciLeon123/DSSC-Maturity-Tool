@@ -137,7 +137,7 @@ function DashboardPage() {
       await api.post(`/initiatives/${initiative.id}/report/data`, {});
       navigate({ to: "/report" });
     } catch {
-      setReportError("Failed to generate report. Make sure you have answered the questionnaire.");
+      setReportError("Failed to generate report. Make sure you have answered the dataspace maturity assessment.");
     } finally {
       setReportLoading(false);
     }
@@ -348,7 +348,7 @@ function DashboardPage() {
                         fontWeight: 600,
                       }}
                     >
-                      {initiative.status === "submitted" ? "Retake Questionnaire" : "Start Questionnaire"}
+                      {initiative.status === "submitted" ? "Retake Dataspace Maturity Assessment" : "Start Dataspace Maturity Assessment"}
                     </Button>
 
                     <Button

@@ -181,7 +181,7 @@ function AssessmentsPage() {
               fontFamily: "'Rubik', sans-serif",
             }}
           >
-            Finish your first questionnaire to see it appear here as your first assessment version.
+            Finish your first dataspace maturity assessment to see it appear here as your first version.
           </p>
         </Card>
       )}

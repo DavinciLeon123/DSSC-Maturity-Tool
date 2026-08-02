@@ -207,7 +207,7 @@ export function AdminHeatmapPage() {
                 No submitted assessments yet
               </Title>
               <Text style={{ fontFamily: "'Rubik', sans-serif", fontSize: "14px", color: "rgba(6,0,79,0.6)" }}>
-                Once an initiative fully completes and submits the questionnaire, its scores will appear here.
+                Once an initiative fully completes and submits the dataspace maturity assessment, its scores will appear here.
               </Text>
             </Card>
           ) : (

@@ -86,7 +86,7 @@ function LandingPage() {
                 fontFamily: "'Open Sans', sans-serif",
               }}
             >
-              MAMI - Minimal Agreements for Maximum Interoperability
+              DSSC Maturity Scan for Dataspaces
             </h1>
             <p
               style={{
@@ -173,8 +173,8 @@ function LandingPage() {
                 },
                 {
                   step: '02',
-                  title: 'Complete the questionnaire',
-                  body: 'Work through the structured MAMI questionnaire with Yes / Not yet / Not applicable answers per topic.',
+                  title: 'Complete the assessment',
+                  body: 'Work through the structured Dataspace Maturity Assessment with a 1-5 maturity score per question.',
                 },
                 {
                   step: '03',
@@ -253,8 +253,8 @@ function LandingPage() {
                 marginBottom: '1rem',
               }}
             >
-              The MAMI questionnaire gives you an immediate overview of your
-              current level of interoperability.
+              The Dataspace Maturity Assessment gives you an immediate overview of your
+              current level of dataspace maturity.
             </h2>
             <p
               style={{
@@ -264,10 +264,8 @@ function LandingPage() {
                 marginBottom: '2rem',
               }}
             >
-              Across four key domains (Scheme, Participants, Data and Services),
-              you will assess whether you already comply, plan to comply or
-              it&apos;s not applicable. Your answers are visualised in a clear
-              interoperability heatmap.
+              Across six categories (Governance, Business, Legal, Interoperability, Control over Data &amp; Trust, and Value Creation),
+              you will rate your current maturity level. Your answers are visualised in a clear maturity radar.
             </p>
             <Link
               to="/login"

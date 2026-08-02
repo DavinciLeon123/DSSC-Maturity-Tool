@@ -103,7 +103,7 @@ function AdminPage() {
       const url = URL.createObjectURL(response.data as Blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "mami-dataset.csv";
+      a.download = "dssc-dataset.csv";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -119,7 +119,7 @@ function AdminPage() {
     Modal.confirm({
       title: "Reset Demo Data",
       content:
-        "Are you sure? This will permanently delete ALL non-admin users and their questionnaire data. This cannot be undone.",
+        "Are you sure? This will permanently delete ALL non-admin users and their dataspace maturity assessment data. This cannot be undone.",
       okText: "Reset Demo",
       okButtonProps: { danger: true },
       cancelText: "Cancel",
@@ -191,7 +191,7 @@ function AdminPage() {
       title: "Actions",
       render: (_: unknown, record: AdminInitiativeRow) => (
         <Popconfirm
-          title="Delete questionnaire?"
+          title="Delete Dataspace Maturity Assessment?"
           description="Permanently deletes this initiative and all its answers and evidence."
           okText="Delete"
           okButtonProps={{ danger: true }}
@@ -271,7 +271,7 @@ function AdminPage() {
     },
     {
       key: "questionnaires",
-      label: `Questionnaires (${initiatives.length})`,
+      label: `Dataspace Maturity Assessments (${initiatives.length})`,
       children: (
         <Table
           dataSource={initiatives}
@@ -309,7 +309,7 @@ function AdminPage() {
             }}
           >
             Download the complete dataset (all users, initiatives, and
-            questionnaire answers) as a CSV file.
+            dataspace maturity assessment answers) as a CSV file.
           </p>
           <Button
             type="primary"

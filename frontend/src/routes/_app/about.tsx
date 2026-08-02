@@ -17,7 +17,7 @@ function AboutPage() {
           fontFamily: "'Open Sans', sans-serif",
         }}
       >
-        About MAMI
+        About DSSC
       </h1>
       <Card
         style={{
@@ -35,16 +35,16 @@ function AboutPage() {
         >
           The{" "}
           <strong style={{ color: "#008ecf" }}>
-            MAMI (Minimal Agreements for Maximal Interoperability)
+            DSSC (Data Spaces Support Centre)
           </strong>{" "}
           framework, developed by{" "}
           <a
-            href="https://coe-dsc.nl"
+            href="https://dssc.eu"
             target="_blank"
             rel="noreferrer"
             style={{ color: "#76b82a", textDecoration: "none" }}
           >
-            CoE-DSC
+            DSSC
           </a>{" "}
           , defines the essential requirements for trustworthy data sharing initiatives.
         </p>
@@ -56,8 +56,7 @@ function AboutPage() {
             fontFamily: "'Open Sans', sans-serif",
           }}
         >
-          The framework organizes requirements across a 4×3 matrix covering governance, technical,
-          legal, and operational dimensions — helping organizations understand and demonstrate
+          The framework organizes requirements across 6 categories — Governance, Business, Legal, Interoperability, Control over Data &amp; Trust, and Value Creation — helping organizations understand and demonstrate
           compliance.
         </p>
         <p
@@ -67,7 +66,7 @@ function AboutPage() {
             fontFamily: "'Open Sans', sans-serif",
           }}
         >
-          This tool guides DSI leaders and Service Providers through the structured questionnaire and generates a clear
+          This tool guides DSI leaders and Service Providers through the structured Dataspace Maturity Assessment and generates a clear
           compliance report showing where their initiative stands against the framework.
         </p>
       </Card>
