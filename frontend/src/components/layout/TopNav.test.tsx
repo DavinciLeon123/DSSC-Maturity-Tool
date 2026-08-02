@@ -42,7 +42,7 @@ describe('TopNav', () => {
 
     // A stable, always-present element regardless of auth/admin state.
     expect(screen.getByRole('banner')).toBeInTheDocument();
-    expect(screen.getByAltText('CoE DSC')).toBeInTheDocument();
+    expect(screen.getByAltText('DSSC')).toBeInTheDocument();
     expect(screen.getByLabelText('Open navigation menu')).toBeInTheDocument();
   });
 });
