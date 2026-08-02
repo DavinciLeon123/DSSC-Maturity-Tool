@@ -34,6 +34,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely (completed 2026-07-24)
 - [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
 - [x] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view (completed 2026-07-28)
+- [ ] **Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)** - Replace CoE-DSC colors/logo/wording with DSSC's own across the app and PDF, add submitted answers to the PDF, default new registrations to DSI-only
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
@@ -198,6 +199,27 @@ Plans:
 - [x] 16-05-PLAN.md — Report-rendering fixes: position-aware radar axis text-anchor + widened viewBox (G-16-1, clipped labels in browser + PDF) and flattened single-level flex priority-row/legend with fixed-width right-aligned score column (G-16-2, PDF score misalignment + legend wrap) + backend regression tests + human WeasyPrint visual confirmation (RPRT-01/02/04)
 
 **UI hint**: yes
+
+### Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)
+
+**Goal**: The tool is fully rebranded from CoE-DSC to DSSC (colors, logo, wording — including "Questionnaire" → "Dataspace Maturity Assessment") across the app and the PDF report, the PDF report includes the initiative's actual submitted answers alongside the scores, and new registrations default to DSI only (with the Service-Provider option removable/restorable without a data-model change).
+**Depends on**: Phase 16
+**Requirements**: BRAND-01, BRAND-02, BRAND-03, RPRT-05, REG-01
+**Success Criteria** (what must be TRUE):
+
+  1. No CoE-DSC colors, logo, or wording remain anywhere in the app (homepage, About page, Dashboard, and every other page) — replaced with DSSC's own visual identity.
+  2. User-facing terminology reflects DSSC naming throughout, including "Questionnaire" renamed to "Dataspace Maturity Assessment" wherever it appears to the user.
+  3. The mailed/downloaded PDF report's branding and wording match the new DSSC identity, consistent with the in-app rebrand.
+  4. The PDF report shows the initiative's actual submitted answers (per question), not only the aggregate dimension scores and priority list.
+  5. The registration screen no longer offers a "Service Provider" option — new accounts register as DSI by default — and the option can be restored later without a data-model change (the underlying participant-type field/enum is not deleted, only the UI choice is hidden).
+
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 16.1-01-PLAN.md — Frontend color/font/logo swap: theme.ts + globals.css + index.html central tokens, DSSC logo asset copy, ~19 component/route files' hardcoded hex/Rubik recolor + logo import swaps (Wave 1; BRAND-01)
+- [ ] 16.1-02-PLAN.md — Backend PDF rebrand + new submitted-answers section + MAMI/CoE-DSC/Questionnaire wording removal across backend and frontend (Wave 2, depends on 16.1-01; BRAND-02, BRAND-03, RPRT-05)
+- [ ] 16.1-03-PLAN.md — Registration feature flag: hide the DSI/SP toggle in register.tsx (default DSI), fix TopNav.test.tsx's alt-text assertion (Wave 2, depends on 16.1-01; REG-01)
 
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
 
