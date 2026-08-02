@@ -18,6 +18,9 @@ from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from sqlmodel import Session, select
+
+from app.models.questionnaire import QuestionnaireAnswer
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
@@ -37,6 +40,7 @@ def generate_html_report(
     priority_list: list[dict],
     radar_chart_svg: str,
     maturity_bands: list[dict],
+    answers_by_category: list[dict],
 ) -> str:
     """Render the 6-dimension compliance report HTML (RPRT-01/02/04) from the
     rebuilt `report.html` template.
@@ -49,6 +53,8 @@ def generate_html_report(
             response — passed through unmodified so the in-app view and the
             mailed PDF render from one shared payload (RPRT-04), never a
             second independently-built context.
+        answers_by_category: list of dicts with category_id, name, and answers
+            (the new submitted-answers section per RPRT-05).
     """
     env = _get_jinja_env()
     template = env.get_template("report.html")
@@ -60,6 +66,7 @@ def generate_html_report(
         "priority_list": priority_list,
         "radar_chart_svg": radar_chart_svg,
         "maturity_bands": maturity_bands,
+        "answers_by_category": answers_by_category,
     }
     return template.render(**context)
 
@@ -107,6 +114,96 @@ def build_priority_list(scores: list[dict], bands: list[dict]) -> list[dict]:
         }
         for s in sorted(scores, key=lambda s: s["score"])
     ]
+
+
+def build_answers_by_category(
+    session: Session, assessment_id: int, config: dict
+) -> list[dict]:
+    """RPRT-05: return per-question answers grouped by category in config order,
+    with empty-state handling for unanswered categories and silent exclusion of
+    stale question_ids (not present in current config).
+
+    Args:
+        session: SQLModel session for querying QuestionnaireAnswer rows.
+        assessment_id: the assessment_id to filter answers by.
+        config: the dssc_questionnaire_config dict (must contain "categories").
+
+    Returns:
+        A list with one dict per config category (in config order), shaped:
+        {
+            "category_id": str,
+            "name": str,
+            "answers": [
+                {
+                    "question_id": str,
+                    "text": str,
+                    "answer_label": str,
+                    "score": int,
+                    "band_color": str,
+                },
+                ...
+            ]
+        }
+        Each category's "answers" list is ordered by config question order
+        (not answered_at/insertion order), and is empty [] if no answers exist.
+    """
+    # Query all answers for this assessment
+    answers = session.exec(
+        select(QuestionnaireAnswer).where(
+            QuestionnaireAnswer.assessment_id == assessment_id
+        )
+    ).all()
+
+    # Build a {question_id: answer_row} lookup dict for fast retrieval
+    answer_lookup = {a.question_id: a for a in answers}
+
+    bands = config["maturity_bands"]
+    result = []
+
+    for category in config["categories"]:
+        category_answers = []
+
+        # Iterate this category's questions in config order
+        for question in category["questions"]:
+            question_id = question["id"]
+
+            # Skip if this question_id is not in our answer lookup
+            # (stale/orphaned answer handling)
+            if question_id not in answer_lookup:
+                continue
+
+            answer_row = answer_lookup[question_id]
+
+            # Look up the answer_label from the question's options
+            answer_label = f"Score {answer_row.score}"  # fallback
+            for option in question["options"]:
+                if option["score"] == answer_row.score:
+                    answer_label = option["label"]
+                    break
+
+            # Get the band color for this score
+            band = get_maturity_band(answer_row.score, bands)
+
+            category_answers.append(
+                {
+                    "question_id": question_id,
+                    "text": question["text"],
+                    "answer_label": answer_label,
+                    "score": answer_row.score,
+                    "band_color": band["color"],
+                }
+            )
+
+        # Append category entry regardless of whether answers list is empty
+        result.append(
+            {
+                "category_id": category["id"],
+                "name": category["name"],
+                "answers": category_answers,
+            }
+        )
+
+    return result
 
 
 def generate_radar_svg(

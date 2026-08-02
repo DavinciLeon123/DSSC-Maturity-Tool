@@ -210,6 +210,34 @@
     </div>
   </div>
 
+  <!-- SUBMITTED ANSWERS -->
+  <div class="card">
+    <div class="card-header">Submitted answers</div>
+    <div class="card-body">
+      {% for category in answers_by_category %}
+        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; margin-top: 16px;">{{ category.name }}</h3>
+        {% if category.answers %}
+          <div class="answers-list">
+            {% for answer in category.answers %}
+              <div class="answers-row" style="display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; align-items: flex-start;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 14px; color: #1a1a2e; margin-bottom: 4px;">{{ answer.text }}</div>
+                  <div style="font-size: 13px; color: rgba(26, 26, 46, 0.7);">{{ answer.answer_label }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                  <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ answer.band_color }};"></span>
+                  <span style="font-size: 14px; font-weight: 600; color: #008ecf;">{{ "%.2f"|format(answer.score) }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="font-size: 14px; color: rgba(26, 26, 46, 0.7); padding: 8px 0;">No answers recorded for this category.</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
   <!-- GET EXPERT HELP -->
   <div class="expert-help">
     <h2>Get expert help</h2>
