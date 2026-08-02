@@ -7,6 +7,10 @@ export const Route = createFileRoute("/_auth/register")({
   component: RegisterPage,
 });
 
+// Single flip-point to restore the Service Provider registration option (D-14).
+// Backend schema and existing useState default both support "SP" unconditionally.
+const SHOW_PARTICIPANT_TYPE_TOGGLE = false;
+
 function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -75,38 +79,40 @@ function RegisterPage() {
           <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginBottom: "1.5rem", fontFamily: "'Open Sans', sans-serif" }}>
             Minimum 12 characters required.
           </p>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
-              I am a:
-            </label>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              {(["DSI", "SP"] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setParticipantType(type)}
-                  style={{
-                    flex: 1,
-                    padding: "0.75rem",
-                    border: `2px solid ${participantType === type ? "#399e5a" : "rgba(0,142,207,0.2)"}`,
-                    background: participantType === type ? "#399e5a" : "white",
-                    color: participantType === type ? "white" : "#008ecf",
-                    borderRadius: "8px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    fontFamily: "'Open Sans', sans-serif",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {type === "DSI" ? "DSI" : "SP"}
-                </button>
-              ))}
+          {SHOW_PARTICIPANT_TYPE_TOGGLE && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
+                I am a:
+              </label>
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                {(["DSI", "SP"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setParticipantType(type)}
+                    style={{
+                      flex: 1,
+                      padding: "0.75rem",
+                      border: `2px solid ${participantType === type ? "#399e5a" : "rgba(0,142,207,0.2)"}`,
+                      background: participantType === type ? "#399e5a" : "white",
+                      color: participantType === type ? "white" : "#008ecf",
+                      borderRadius: "8px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      fontFamily: "'Open Sans', sans-serif",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {type === "DSI" ? "DSI" : "SP"}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginTop: "0.5rem", fontFamily: "'Open Sans', sans-serif" }}>
+                {participantType === "DSI" ? "Data Space Initiative" : "Service Provider"}
+              </p>
             </div>
-            <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginTop: "0.5rem", fontFamily: "'Open Sans', sans-serif" }}>
-              {participantType === "DSI" ? "Data Space Initiative" : "Service Provider"}
-            </p>
-          </div>
+          )}
           <Button
             type="primary"
             htmlType="submit"
