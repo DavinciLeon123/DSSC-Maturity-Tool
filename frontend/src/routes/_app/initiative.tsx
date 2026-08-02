@@ -37,7 +37,7 @@ const labelStyle: React.CSSProperties = {
   fontSize: "0.875rem",
   fontWeight: 500,
   marginBottom: "0.375rem",
-  color: "#06004f",
+  color: "#008ecf",
   fontFamily: "'Rubik', sans-serif",
 };
 
@@ -173,7 +173,7 @@ function InitiativePage() {
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
           fontFamily: "'Rubik', sans-serif",
         }}
@@ -210,7 +210,7 @@ function InitiativePage() {
                 style={{
                   fontSize: "1.25rem",
                   fontWeight: 700,
-                  color: "#06004f",
+                  color: "#008ecf",
                   fontFamily: "'Rubik', sans-serif",
                   margin: 0,
                 }}
@@ -248,7 +248,7 @@ function InitiativePage() {
               ["Description", initiative.description],
             ].map(([label, value]) => (
               <>
-                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#06004f", fontSize: "0.875rem", fontFamily: "'Rubik', sans-serif" }}>{label}</dt>
+                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#008ecf", fontSize: "0.875rem", fontFamily: "'Rubik', sans-serif" }}>{label}</dt>
                 <dd key={`dd-${label}`} style={{ color: "rgba(6,0,79,0.75)", fontSize: "0.875rem", fontFamily: "'Rubik', sans-serif" }}>{value}</dd>
               </>
             ))}
@@ -267,7 +267,7 @@ function InitiativePage() {
             style={{
               fontSize: "1.1rem",
               fontWeight: 700,
-              color: "#06004f",
+              color: "#008ecf",
               marginBottom: "1.5rem",
               fontFamily: "'Rubik', sans-serif",
             }}
@@ -376,7 +376,7 @@ function InitiativePage() {
               style={{
                 fontSize: "1.1rem",
                 fontWeight: 700,
-                color: "#06004f",
+                color: "#008ecf",
                 marginBottom: "1.5rem",
                 fontFamily: "'Rubik', sans-serif",
               }}

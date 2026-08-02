@@ -26,7 +26,7 @@ export function StepPills({
         padding: "1.5rem",
         background: "white",
         borderRadius: "16px",
-        boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+        boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         alignSelf: "flex-start",
         position: "sticky",
         top: "80px",
@@ -36,12 +36,12 @@ export function StepPills({
         style={{
           fontSize: "0.875rem",
           fontWeight: 600,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "0.5rem",
           marginTop: 0,
           textTransform: "uppercase",
           letterSpacing: "0.06em",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
         }}
       >
         Your progress
@@ -53,10 +53,10 @@ export function StepPills({
         style={{
           fontSize: "0.8125rem",
           fontWeight: 600,
-          color: "rgba(6,0,79,0.6)",
+          color: "rgba(0,142,207,0.6)",
           marginBottom: "1.25rem",
           marginTop: 0,
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
         }}
       >
         {answeredCount} of {totalQuestions} answered
@@ -84,7 +84,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      background: "#399e5a",
+                      background: "#76b82a",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -108,7 +108,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      background: "#06004f",
+                      background: "#008ecf",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -131,7 +131,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      border: "2px solid rgba(6,0,79,0.2)",
+                      border: "2px solid rgba(0,142,207,0.2)",
                       background: "transparent",
                       display: "flex",
                       alignItems: "center",
@@ -141,7 +141,7 @@ export function StepPills({
                   >
                     <span
                       style={{
-                        color: "rgba(6,0,79,0.35)",
+                        color: "rgba(0,142,207,0.35)",
                         fontSize: "10px",
                         fontWeight: 600,
                       }}
@@ -157,11 +157,11 @@ export function StepPills({
                     fontSize: "0.875rem",
                     fontWeight: isActive || isComplete ? 600 : 400,
                     color: isActive
-                      ? "#06004f"
+                      ? "#008ecf"
                       : isComplete
-                      ? "#399e5a"
-                      : "rgba(6,0,79,0.45)",
-                    fontFamily: "'Rubik', sans-serif",
+                      ? "#76b82a"
+                      : "rgba(0,142,207,0.45)",
+                    fontFamily: "'Open Sans', sans-serif",
                     lineHeight: 1.3,
                   }}
                 >
@@ -174,7 +174,7 @@ export function StepPills({
                 <div
                   style={{
                     width: 2,
-                    background: "rgba(6,0,79,0.1)",
+                    background: "rgba(0,142,207,0.1)",
                     minHeight: "16px",
                     margin: "3px 11px",
                   }}

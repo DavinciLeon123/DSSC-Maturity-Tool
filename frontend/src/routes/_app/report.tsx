@@ -59,7 +59,7 @@ function PriorityRow({
           fontFamily: "'Rubik', sans-serif",
           fontSize: "14px",
           fontWeight: 400,
-          color: "#06004f",
+          color: "#008ecf",
           whiteSpace: "normal",
         }}
       >
@@ -81,7 +81,7 @@ function PriorityRow({
           fontFamily: "'Rubik', sans-serif",
           fontSize: "14px",
           fontWeight: 600,
-          color: "#06004f",
+          color: "#008ecf",
           minWidth: "48px",
           textAlign: "right",
         }}
@@ -191,7 +191,7 @@ function ReportPage() {
           fontFamily: "'Rubik', sans-serif",
           fontWeight: 600,
           fontSize: "28px",
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "32px",
         }}
       >
@@ -228,7 +228,7 @@ function ReportPage() {
               marginBottom: "24px",
             }}
           >
-            Initiative: <strong style={{ color: "#06004f" }}>{data.initiative.name}</strong>
+            Initiative: <strong style={{ color: "#008ecf" }}>{data.initiative.name}</strong>
           </p>
 
           <div
@@ -254,7 +254,7 @@ function ReportPage() {
                   fontFamily: "'Rubik', sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
-                  color: "#06004f",
+                  color: "#008ecf",
                   marginBottom: "16px",
                 }}
               >
@@ -283,7 +283,7 @@ function ReportPage() {
                   fontFamily: "'Rubik', sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
-                  color: "#06004f",
+                  color: "#008ecf",
                   marginBottom: "16px",
                 }}
               >

@@ -34,7 +34,7 @@ export function AnswerButtonGroup({ options, value, onChange }: Props) {
               gap: "0.5rem",
               flex: "1 1 0",
               minWidth: 0,
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               cursor: "pointer",
             }}
           >
@@ -63,8 +63,8 @@ export function AnswerButtonGroup({ options, value, onChange }: Props) {
                   width: 30,
                   height: 30,
                   borderRadius: "50%",
-                  border: `2px solid ${isSelected ? "#06004f" : "rgba(6,0,79,0.25)"}`,
-                  background: isSelected ? "#06004f" : "white",
+                  border: `2px solid ${isSelected ? "#008ecf" : "rgba(0,142,207,0.25)"}`,
+                  background: isSelected ? "#008ecf" : "white",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -89,7 +89,7 @@ export function AnswerButtonGroup({ options, value, onChange }: Props) {
                 fontSize: "0.8125rem",
                 lineHeight: 1.4,
                 textAlign: "center",
-                color: "#06004f",
+                color: "#008ecf",
                 fontWeight: isSelected ? 600 : 400,
                 // Wrap up to 2 lines, never ellipsis-truncate — a truncated
                 // maturity-level label could hide its meaning (QSTN-02).

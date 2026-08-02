@@ -132,7 +132,7 @@ function AssessmentsPage() {
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
           fontFamily: "'Rubik', sans-serif",
         }}
@@ -166,7 +166,7 @@ function AssessmentsPage() {
             style={{
               fontSize: "1.25rem",
               fontWeight: 600,
-              color: "#06004f",
+              color: "#008ecf",
               margin: 0,
               fontFamily: "'Rubik', sans-serif",
             }}
@@ -199,7 +199,7 @@ function AssessmentsPage() {
               style={{
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: "#06004f",
+                color: "#008ecf",
                 marginBottom: "1rem",
                 fontFamily: "'Rubik', sans-serif",
               }}
@@ -226,7 +226,7 @@ function AssessmentsPage() {
               style={{
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: "#06004f",
+                color: "#008ecf",
                 marginBottom: "1rem",
                 fontFamily: "'Rubik', sans-serif",
               }}

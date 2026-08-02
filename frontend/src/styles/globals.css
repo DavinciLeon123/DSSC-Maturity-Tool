@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Open+Sans:wght@300;400;600;700&display=swap');
 
 :root {
-  --color-navy:       #020059;
-  --color-green:      #41A765;
-  --color-blue:       #3D52D5;
+  --color-navy:       #008ecf;
+  --color-green:      #76b82a;
+  --color-blue:       #008ecf;
   --color-text-gray:  #4A495B;
   --color-bg-light:   #F5F5F8;
-  --font-family:      'Rubik', sans-serif;
+  --font-family:      'Open Sans', sans-serif;
   --border-radius-sm: 6px;
   --border-radius-lg: 30px;
 }

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Input, Button, Alert } from "antd";
-import logoSrc from "../../assets/logo-coe-dsc.svg";
+import logoSrc from "../../assets/logo-dssc-color.png";
 
 export const Route = createFileRoute("/_auth/register")({
   component: RegisterPage,
@@ -42,18 +42,18 @@ function RegisterPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#06004f", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(6,0,79,0.15)" }}>
+    <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <img src={logoSrc} alt="CoE DSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#06004f", fontFamily: "'Rubik', sans-serif", margin: 0 }}>Create Account</h1>
+          <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Open Sans', sans-serif", margin: 0 }}>Create Account</h1>
         </div>
         {error && (
           <Alert message={error} type="error" style={{ marginBottom: 16 }} showIcon />
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>Email</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>Email</label>
             <Input
               type="email"
               value={email}
@@ -63,7 +63,7 @@ function RegisterPage() {
             />
           </div>
           <div style={{ marginBottom: "0.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>Password</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>Password</label>
             <Input.Password
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -72,11 +72,11 @@ function RegisterPage() {
               size="large"
             />
           </div>
-          <p style={{ fontSize: "0.75rem", color: "rgba(6,0,79,0.5)", marginBottom: "1.5rem", fontFamily: "'Rubik', sans-serif" }}>
+          <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginBottom: "1.5rem", fontFamily: "'Open Sans', sans-serif" }}>
             Minimum 12 characters required.
           </p>
           <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
               I am a:
             </label>
             <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -88,14 +88,14 @@ function RegisterPage() {
                   style={{
                     flex: 1,
                     padding: "0.75rem",
-                    border: `2px solid ${participantType === type ? "#399e5a" : "rgba(6,0,79,0.2)"}`,
+                    border: `2px solid ${participantType === type ? "#399e5a" : "rgba(0,142,207,0.2)"}`,
                     background: participantType === type ? "#399e5a" : "white",
-                    color: participantType === type ? "white" : "#06004f",
+                    color: participantType === type ? "white" : "#008ecf",
                     borderRadius: "8px",
                     fontWeight: 600,
                     cursor: "pointer",
                     fontSize: "0.875rem",
-                    fontFamily: "'Rubik', sans-serif",
+                    fontFamily: "'Open Sans', sans-serif",
                     transition: "all 0.15s",
                   }}
                 >
@@ -103,7 +103,7 @@ function RegisterPage() {
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: "0.75rem", color: "rgba(6,0,79,0.5)", marginTop: "0.5rem", fontFamily: "'Rubik', sans-serif" }}>
+            <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginTop: "0.5rem", fontFamily: "'Open Sans', sans-serif" }}>
               {participantType === "DSI" ? "Data Space Initiative" : "Service Provider"}
             </p>
           </div>
@@ -113,12 +113,12 @@ function RegisterPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Rubik', sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600 }}
           >
             Register
           </Button>
         </form>
-        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "rgba(6,0,79,0.5)", fontFamily: "'Rubik', sans-serif" }}>
+        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "rgba(0,142,207,0.5)", fontFamily: "'Open Sans', sans-serif" }}>
           Already have an account?{" "}
           <Link to="/login" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>Sign In</Link>
         </p>
