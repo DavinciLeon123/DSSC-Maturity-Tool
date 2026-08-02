@@ -1,13 +1,14 @@
 // frontend/src/components/layout/Footer.tsx
+import logoWhite from '../../assets/logo-dssc-white.png';
 
 export function Footer() {
   return (
     <footer
       style={{
-        background: '#06004f',
+        background: '#008ecf',
         color: 'rgba(255,255,255,0.7)',
         padding: '3rem 2rem 2rem',
-        fontFamily: "'Rubik', sans-serif",
+        fontFamily: "'Open Sans', sans-serif",
       }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -23,6 +24,7 @@ export function Footer() {
         >
           {/* Brand column */}
           <div>
+            <img src={logoWhite} alt="DSSC" style={{ height: '32px', marginBottom: '0.75rem', display: 'block' }} />
             <div
               style={{
                 fontWeight: 600,
@@ -66,7 +68,7 @@ export function Footer() {
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   marginBottom: '0.5rem',
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                 }}
               >
                 Contact
