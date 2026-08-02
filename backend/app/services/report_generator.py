@@ -192,7 +192,7 @@ def generate_radar_svg(
         # React pages.
         labels.append(
             f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="{label_font_size}" '
-            f'font-family="Rubik, sans-serif" fill="#06004f" '
+            f'font-family="Jost, sans-serif" fill="#008ecf" '
             f'text-anchor="{anchor_for(i)}">{xml_escape(s["name"])}</text>'
         )
 
