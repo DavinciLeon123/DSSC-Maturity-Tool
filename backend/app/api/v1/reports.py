@@ -239,7 +239,7 @@ def download_report_pdf(
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=MAMI-Interoperability-Report.pdf"},
+        headers={"Content-Disposition": "attachment; filename=DSSC-Maturity-Report.pdf"},
     )
 
 
