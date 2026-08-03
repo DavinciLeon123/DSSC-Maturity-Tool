@@ -134,6 +134,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - Phase 5 (Admin, Crawling, PDF): never executed — admin delivered in Phase 6, PDF in Phase 11, crawling deferred
 - Phase 1 (new cycle) added: Bugfix retake-questionnaire save, CSV missing follow-up selections, separate DSI/SP aggregated heatmaps
 - Phase 16.1 inserted after Phase 16: DSSC rebrand: colors/logo/wording (incl. Questionnaire -> Dataspace Maturity Assessment), PDF rebrand + submitted answers, registration defaults to DSI-only (Service Provider option removable/restorable) (URGENT)
+- Phase 16.2 inserted after Phase 16.1 (ahead of Phase 17/18, per user request to land all UI/content/functionality before test-coverage and security-hardening work): frontpage/about rebrand copy + color changes, assessment welcome screen + per-dimension intro texts, question grouping into 16 named subsections, per `Teksten MAMI Tool.pdf`
 
 ### Blockers/Concerns
 
