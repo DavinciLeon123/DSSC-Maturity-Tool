@@ -111,7 +111,7 @@ function QuestionnairePage() {
             alignItems: "center",
             justifyContent: "space-between",
             gap: "1rem",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           <span>Failed to load assessment. Please try again.</span>
@@ -130,7 +130,7 @@ function QuestionnairePage() {
               color: "#991B1B",
               fontWeight: 600,
               cursor: "pointer",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               whiteSpace: "nowrap",
             }}
           >

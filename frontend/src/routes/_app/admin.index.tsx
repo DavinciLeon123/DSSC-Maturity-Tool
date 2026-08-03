@@ -295,7 +295,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#008ecf",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Export Data
@@ -303,9 +303,9 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Download the complete dataset (all users, initiatives, and
@@ -317,7 +317,7 @@ function AdminPage() {
             style={{
               marginBottom: "3rem",
               borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               fontWeight: 600,
             }}
           >
@@ -330,7 +330,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#B91C1C",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Reset Demo
@@ -338,9 +338,9 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Delete all non-admin users and their data. Use this between demo
@@ -361,7 +361,7 @@ function AdminPage() {
             onClick={handleResetDemo}
             style={{
               borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               fontWeight: 600,
             }}
           >
@@ -391,7 +391,7 @@ function AdminPage() {
             fontWeight: 700,
             color: "#008ecf",
             margin: 0,
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           Admin Panel
@@ -399,7 +399,7 @@ function AdminPage() {
         <Link to="/admin/heatmap">
           <Button
             type="default"
-            style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500 }}
           >
             View Aggregated Heatmap &rarr;
           </Button>
@@ -408,7 +408,7 @@ function AdminPage() {
       <Card
         style={{
           borderRadius: "16px",
-          boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+          boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >
         <Tabs items={tabItems} defaultActiveKey="users" />

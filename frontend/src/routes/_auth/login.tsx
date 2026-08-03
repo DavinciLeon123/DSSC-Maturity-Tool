@@ -98,10 +98,10 @@ function LoginPage() {
         </form>
         <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "#6B7280" }}>
           No account?{" "}
-          <Link to="/register" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>Register</Link>
+          <Link to="/register" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>Register</Link>
         </p>
         <p style={{ textAlign: "center", marginTop: "0.75rem", fontSize: "0.875rem", color: "#6B7280" }}>
-          <Link to="/forgot-password" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>
+          <Link to="/forgot-password" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
             Forgot your password?
           </Link>
         </p>

@@ -55,7 +55,7 @@ function ForgotPasswordPage() {
               showIcon
             />
             <p style={{ textAlign: "center", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>
-              <Link to="/login" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>
+              <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
                 Back to Sign In
               </Link>
             </p>
@@ -91,7 +91,7 @@ function ForgotPasswordPage() {
               </Button>
             </form>
             <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>
-              <Link to="/login" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>
+              <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
                 Back to Sign In
               </Link>
             </p>

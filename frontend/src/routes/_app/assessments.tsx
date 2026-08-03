@@ -134,7 +134,7 @@ function AssessmentsPage() {
           fontWeight: 700,
           color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
         }}
       >
         Assessment History
@@ -155,20 +155,20 @@ function AssessmentsPage() {
       )}
 
       {!isError && isLoading && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.06)" }}>
+        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <Skeleton active paragraph={{ rows: 4 }} />
         </Card>
       )}
 
       {!isError && !isLoading && history && history.length === 0 && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.06)" }}>
+        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <h2
             style={{
               fontSize: "1.25rem",
               fontWeight: 600,
               color: "#008ecf",
               margin: 0,
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             No completed assessments yet
@@ -176,9 +176,9 @@ function AssessmentsPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginTop: "0.5rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Finish your first dataspace maturity assessment to see it appear here as your first version.
@@ -191,7 +191,7 @@ function AssessmentsPage() {
           <Card
             style={{
               borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+              boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
               marginBottom: "1.5rem",
             }}
           >
@@ -201,7 +201,7 @@ function AssessmentsPage() {
                 fontWeight: 600,
                 color: "#008ecf",
                 marginBottom: "1rem",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
               Your assessment history ({history.length})
@@ -219,7 +219,7 @@ function AssessmentsPage() {
           <Card
             style={{
               borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+              boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
             }}
           >
             <h2
@@ -228,7 +228,7 @@ function AssessmentsPage() {
                 fontWeight: 600,
                 color: "#008ecf",
                 marginBottom: "1rem",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
               Compare scores across versions
