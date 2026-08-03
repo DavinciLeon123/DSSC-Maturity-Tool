@@ -93,8 +93,8 @@ function RegisterPage() {
                     style={{
                       flex: 1,
                       padding: "0.75rem",
-                      border: `2px solid ${participantType === type ? "#399e5a" : "rgba(0,142,207,0.2)"}`,
-                      background: participantType === type ? "#399e5a" : "white",
+                      border: `2px solid ${participantType === type ? "#76b82a" : "rgba(0,142,207,0.2)"}`,
+                      background: participantType === type ? "#76b82a" : "white",
                       color: participantType === type ? "white" : "#008ecf",
                       borderRadius: "8px",
                       fontWeight: 600,
@@ -126,7 +126,7 @@ function RegisterPage() {
         </form>
         <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "rgba(0,142,207,0.5)", fontFamily: "'Open Sans', sans-serif" }}>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>Sign In</Link>
+          <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>Sign In</Link>
         </p>
       </div>
     </div>
