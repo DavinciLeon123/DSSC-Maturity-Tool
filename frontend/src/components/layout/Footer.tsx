@@ -1,13 +1,14 @@
 // frontend/src/components/layout/Footer.tsx
+import logoWhite from '../../assets/logo-dssc-white.png';
 
 export function Footer() {
   return (
     <footer
       style={{
-        background: '#06004f',
+        background: '#008ecf',
         color: 'rgba(255,255,255,0.7)',
         padding: '3rem 2rem 2rem',
-        fontFamily: "'Rubik', sans-serif",
+        fontFamily: "'Open Sans', sans-serif",
       }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -23,6 +24,7 @@ export function Footer() {
         >
           {/* Brand column */}
           <div>
+            <img src={logoWhite} alt="DSSC" style={{ height: '32px', marginBottom: '0.75rem', display: 'block' }} />
             <div
               style={{
                 fontWeight: 600,
@@ -31,7 +33,7 @@ export function Footer() {
                 marginBottom: '0.5rem',
               }}
             >
-              CoE DSC
+              DSSC
             </div>
             <div
               style={{
@@ -41,7 +43,7 @@ export function Footer() {
                 lineHeight: 1.6,
               }}
             >
-              Centre of Excellence for Data Sharing &amp; Cloud
+              Data Spaces Support Centre
             </div>
           </div>
 
@@ -59,14 +61,14 @@ export function Footer() {
                 Links
               </div>
               <a
-                href="mailto:info@coe-dsc.nl"
+                href="mailto:info@dssc.eu"
                 style={{
                   display: 'block',
                   color: 'rgba(255,255,255,0.6)',
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   marginBottom: '0.5rem',
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                 }}
               >
                 Contact
@@ -84,7 +86,7 @@ export function Footer() {
             color: 'rgba(255,255,255,0.4)',
           }}
         >
-          &copy; {new Date().getFullYear()} CoE DSC. All rights reserved.
+          &copy; {new Date().getFullYear()} DSSC. All rights reserved.
         </div>
       </div>
     </footer>

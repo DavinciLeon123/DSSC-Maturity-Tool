@@ -28,6 +28,7 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 - [x] **RPRT-02**: End-of-survey report shows a sorted priority list (lowest→highest maturity) with dimension name, average score, and color indicator (red 1.0-2.0, orange 2.0-3.5, green 3.5-5.0)
 - [x] **RPRT-03**: Color-band thresholds are defined once in config and shared by both the chart and the priority list (no duplicated logic)
 - [x] **RPRT-04**: Report is available both in-app (live view) and as a mailed PDF (WeasyPrint + Resend), each rendering the same score data via one shared JSON contract
+- [x] **RPRT-05**: The PDF report includes the initiative's actual submitted answers (per question), not only the aggregate dimension scores and priority list — added Phase 16.1 (INSERTED)
 
 ### Retake & History (HIST)
 
@@ -56,6 +57,16 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 ### Admin (ADMN)
 
 - [x] **ADMN-01**: Admin aggregated view is rebuilt for the new 6-category model (cross-initiative radar/priority visualization), replacing the old 4×3 topic heatmap
+
+### Branding (BRAND) — added Phase 16.1 (INSERTED)
+
+- [x] **BRAND-01**: All CoE-DSC visual branding (colors, logo) is replaced with DSSC's own visual identity across the homepage, About page, Dashboard, and every other page — no leftover CoE-DSC colors or logo anywhere in the app
+- [x] **BRAND-02**: User-facing wording is updated from CoE-DSC/legacy terminology to DSSC terminology throughout the app, including renaming "Questionnaire" to "Dataspace Maturity Assessment"
+- [x] **BRAND-03**: The mailed/downloaded PDF report's branding (colors, logo) and wording match the new DSSC identity, consistent with the in-app rebrand
+
+### Registration (REG) — added Phase 16.1 (INSERTED)
+
+- [x] **REG-01**: The registration screen no longer offers a "Service Provider" participant-type option — every new account registers as DSI by default — implemented so the option can be restored later without a data-model change (e.g. a hidden/removed UI branch or feature flag, not a deleted schema field or enum value)
 
 ### Testing (TEST)
 
@@ -106,6 +117,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPRT-02 | Phase 16 | Complete |
 | RPRT-03 | Phase 16 | Complete |
 | RPRT-04 | Phase 16 | Complete |
+| RPRT-05 | Phase 16.1 | Complete |
+| BRAND-01 | Phase 16.1 | Complete |
+| BRAND-02 | Phase 16.1 | Complete |
+| BRAND-03 | Phase 16.1 | Complete |
+| REG-01 | Phase 16.1 | Complete |
 | HIST-01 | Phase 15 | Complete |
 | HIST-02 | Phase 15 | Complete |
 | SAVE-01 | Phase 15 | Complete |
@@ -126,8 +142,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 
-- v1 requirements: 30 total
-- Mapped to phases: 30/30 ✓
+- v1 requirements: 35 total (30 original + 5 added by Phase 16.1 (INSERTED): RPRT-05, BRAND-01/02/03, REG-01)
+- Mapped to phases: 35/35 ✓
 - Unmapped: 0
 
 **Note:** Phase 12 (Test Retrofit — Stabilize Existing Flows) maps no v1 requirement directly — it is a foundational regression-safety-net phase (auth/admin/PDF-email characterization tests) that protects delivery of Phases 13-18, per research/SUMMARY.md's build-order guidance. All 30 v1 requirements are covered by Phases 13-18.

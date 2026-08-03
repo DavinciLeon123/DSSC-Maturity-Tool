@@ -103,7 +103,7 @@ function AdminPage() {
       const url = URL.createObjectURL(response.data as Blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "mami-dataset.csv";
+      a.download = "dssc-dataset.csv";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -119,7 +119,7 @@ function AdminPage() {
     Modal.confirm({
       title: "Reset Demo Data",
       content:
-        "Are you sure? This will permanently delete ALL non-admin users and their questionnaire data. This cannot be undone.",
+        "Are you sure? This will permanently delete ALL non-admin users and their dataspace maturity assessment data. This cannot be undone.",
       okText: "Reset Demo",
       okButtonProps: { danger: true },
       cancelText: "Cancel",
@@ -191,7 +191,7 @@ function AdminPage() {
       title: "Actions",
       render: (_: unknown, record: AdminInitiativeRow) => (
         <Popconfirm
-          title="Delete questionnaire?"
+          title="Delete Dataspace Maturity Assessment?"
           description="Permanently deletes this initiative and all its answers and evidence."
           okText="Delete"
           okButtonProps={{ danger: true }}
@@ -271,7 +271,7 @@ function AdminPage() {
     },
     {
       key: "questionnaires",
-      label: `Questionnaires (${initiatives.length})`,
+      label: `Dataspace Maturity Assessments (${initiatives.length})`,
       children: (
         <Table
           dataSource={initiatives}
@@ -293,9 +293,9 @@ function AdminPage() {
             style={{
               fontSize: "1rem",
               fontWeight: 600,
-              color: "#06004f",
+              color: "#008ecf",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Export Data
@@ -303,13 +303,13 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Download the complete dataset (all users, initiatives, and
-            questionnaire answers) as a CSV file.
+            dataspace maturity assessment answers) as a CSV file.
           </p>
           <Button
             type="primary"
@@ -317,7 +317,7 @@ function AdminPage() {
             style={{
               marginBottom: "3rem",
               borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               fontWeight: 600,
             }}
           >
@@ -330,7 +330,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#B91C1C",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Reset Demo
@@ -338,9 +338,9 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Delete all non-admin users and their data. Use this between demo
@@ -361,7 +361,7 @@ function AdminPage() {
             onClick={handleResetDemo}
             style={{
               borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               fontWeight: 600,
             }}
           >
@@ -389,9 +389,9 @@ function AdminPage() {
           style={{
             fontSize: "1.75rem",
             fontWeight: 700,
-            color: "#06004f",
+            color: "#008ecf",
             margin: 0,
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           Admin Panel
@@ -399,7 +399,7 @@ function AdminPage() {
         <Link to="/admin/heatmap">
           <Button
             type="default"
-            style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500 }}
           >
             View Aggregated Heatmap &rarr;
           </Button>
@@ -408,7 +408,7 @@ function AdminPage() {
       <Card
         style={{
           borderRadius: "16px",
-          boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+          boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >
         <Tabs items={tabItems} defaultActiveKey="users" />

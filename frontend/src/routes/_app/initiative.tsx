@@ -37,8 +37,8 @@ const labelStyle: React.CSSProperties = {
   fontSize: "0.875rem",
   fontWeight: 500,
   marginBottom: "0.375rem",
-  color: "#06004f",
-  fontFamily: "'Rubik', sans-serif",
+  color: "#008ecf",
+  fontFamily: "'Open Sans', sans-serif",
 };
 
 function InitiativePage() {
@@ -164,7 +164,7 @@ function InitiativePage() {
   };
 
   if (loading) {
-    return <p style={{ color: "rgba(6,0,79,0.6)", fontFamily: "'Rubik', sans-serif" }}>Loading...</p>;
+    return <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Open Sans', sans-serif" }}>Loading...</p>;
   }
 
   return (
@@ -173,9 +173,9 @@ function InitiativePage() {
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
         }}
       >
         My Initiative
@@ -194,7 +194,7 @@ function InitiativePage() {
         <Card
           style={{
             borderRadius: "16px",
-            boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+            boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
           <div
@@ -210,8 +210,8 @@ function InitiativePage() {
                 style={{
                   fontSize: "1.25rem",
                   fontWeight: 700,
-                  color: "#06004f",
-                  fontFamily: "'Rubik', sans-serif",
+                  color: "#008ecf",
+                  fontFamily: "'Open Sans', sans-serif",
                   margin: 0,
                 }}
               >
@@ -220,7 +220,7 @@ function InitiativePage() {
               <div style={{ marginTop: "0.5rem" }}>
                 <Tag
                   color={initiative.status === "submitted" ? "success" : "warning"}
-                  style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, textTransform: "uppercase" }}
+                  style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, textTransform: "uppercase" }}
                 >
                   {{ draft: "Registered", active: "Active", submitted: "Submitted" }[initiative.status] ?? initiative.status}
                 </Tag>
@@ -232,7 +232,7 @@ function InitiativePage() {
                 onClick={startEdit}
                 style={{
                   borderRadius: "8px",
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 600,
                 }}
               >
@@ -248,8 +248,8 @@ function InitiativePage() {
               ["Description", initiative.description],
             ].map(([label, value]) => (
               <>
-                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#06004f", fontSize: "0.875rem", fontFamily: "'Rubik', sans-serif" }}>{label}</dt>
-                <dd key={`dd-${label}`} style={{ color: "rgba(6,0,79,0.75)", fontSize: "0.875rem", fontFamily: "'Rubik', sans-serif" }}>{value}</dd>
+                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#008ecf", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>{label}</dt>
+                <dd key={`dd-${label}`} style={{ color: "rgba(0,142,207,0.75)", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>{value}</dd>
               </>
             ))}
           </dl>
@@ -260,16 +260,16 @@ function InitiativePage() {
         <Card
           style={{
             borderRadius: "16px",
-            boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+            boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
           <h2
             style={{
               fontSize: "1.1rem",
               fontWeight: 700,
-              color: "#06004f",
+              color: "#008ecf",
               marginBottom: "1.5rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Register Your DSI Initiative
@@ -297,7 +297,7 @@ function InitiativePage() {
                   onChange={handleChange}
                   required
                   size="large"
-                  style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
                 />
               </div>
             ))}
@@ -308,7 +308,7 @@ function InitiativePage() {
                 onChange={(value) => setForm((prev) => ({ ...prev, sector: value }))}
                 placeholder="Select a sector..."
                 size="large"
-                style={{ width: "100%", fontFamily: "'Rubik', sans-serif" }}
+                style={{ width: "100%", fontFamily: "'Open Sans', sans-serif" }}
                 options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
               />
             </div>
@@ -321,21 +321,21 @@ function InitiativePage() {
                   onChange={handleChange}
                   required
                   size="large"
-                  style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
                 />
               </div>
             )}
             <div>
               <label style={labelStyle}>
                 Description{" "}
-                <span style={{ fontWeight: 400, color: "rgba(6,0,79,0.5)" }}>(optional)</span>
+                <span style={{ fontWeight: 400, color: "rgba(0,142,207,0.5)" }}>(optional)</span>
               </label>
               <Input.TextArea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 rows={4}
-                style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
               />
             </div>
             <Button
@@ -344,7 +344,7 @@ function InitiativePage() {
               size="large"
               style={{
                 borderRadius: "8px",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
                 fontWeight: 600,
               }}
             >
@@ -361,7 +361,7 @@ function InitiativePage() {
             style={{
               marginBottom: "1rem",
               borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             Cancel
@@ -369,16 +369,16 @@ function InitiativePage() {
           <Card
             style={{
               borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+              boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
             }}
           >
             <h2
               style={{
                 fontSize: "1.1rem",
                 fontWeight: 700,
-                color: "#06004f",
+                color: "#008ecf",
                 marginBottom: "1.5rem",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
               Edit Initiative
@@ -406,7 +406,7 @@ function InitiativePage() {
                     onChange={handleEditChange}
                     required
                     size="large"
-                    style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
                   />
                 </div>
               ))}
@@ -417,7 +417,7 @@ function InitiativePage() {
                   onChange={(value) => setEditForm((prev) => ({ ...prev, sector: value }))}
                   placeholder="Select a sector..."
                   size="large"
-                  style={{ width: "100%", fontFamily: "'Rubik', sans-serif" }}
+                  style={{ width: "100%", fontFamily: "'Open Sans', sans-serif" }}
                   options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
                 />
               </div>
@@ -430,21 +430,21 @@ function InitiativePage() {
                     onChange={handleEditChange}
                     required
                     size="large"
-                    style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
                   />
                 </div>
               )}
               <div>
                 <label style={labelStyle}>
                   Description{" "}
-                  <span style={{ fontWeight: 400, color: "rgba(6,0,79,0.5)" }}>(optional)</span>
+                  <span style={{ fontWeight: 400, color: "rgba(0,142,207,0.5)" }}>(optional)</span>
                 </label>
                 <Input.TextArea
                   name="description"
                   value={editForm.description}
                   onChange={handleEditChange}
                   rows={4}
-                  style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
                 />
               </div>
               <Button
@@ -453,7 +453,7 @@ function InitiativePage() {
                 size="large"
                 style={{
                   borderRadius: "8px",
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 600,
                 }}
               >

@@ -21,15 +21,15 @@ const { useBreakpoint } = Grid;
 function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   const base = {
     fontSize: "0.75rem",
-    fontFamily: "'Rubik', sans-serif",
+    fontFamily: "'Open Sans', sans-serif",
   } as const;
 
   if (state === "saving") {
-    return <span style={{ ...base, color: "rgba(6,0,79,0.5)" }}>Saving...</span>;
+    return <span style={{ ...base, color: "rgba(0,142,207,0.5)" }}>Saving...</span>;
   }
   if (state === "saved") {
     return (
-      <span style={{ ...base, color: "#399e5a", fontWeight: 500 }}>Saved &#10003;</span>
+      <span style={{ ...base, color: "#76b82a", fontWeight: 500 }}>Saved &#10003;</span>
     );
   }
   if (state === "retrying") {
@@ -60,7 +60,7 @@ function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => vo
             borderRadius: "6px",
             padding: "0.125rem 0.5rem",
             cursor: "pointer",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           Retry save
@@ -311,7 +311,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
           style={{
             fontSize: "3rem",
             marginBottom: "1rem",
-            color: "#399e5a",
+            color: "#76b82a",
           }}
         >
           &#10003;
@@ -320,22 +320,21 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
           style={{
             fontSize: "1.5rem",
             fontWeight: 700,
-            color: "#06004f",
+            color: "#008ecf",
             marginBottom: "1rem",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           Thanks for completing the survey.
         </h2>
         <p
           style={{
-            color: "rgba(6,0,79,0.6)",
+            color: "rgba(0,142,207,0.6)",
             marginBottom: "2rem",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
-          Thank you for completing the MAMI Questionnaire. You can now view your MAMI
-          Interoperability heatmap.
+          Thank you for completing the Dataspace Maturity Assessment. You can now view your DSSC Maturity Report.
         </p>
         <button
           type="button"
@@ -343,14 +342,14 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
           disabled={reportLoading}
           style={{
             padding: "0.875rem 2rem",
-            background: reportLoading ? "rgba(57,158,90,0.6)" : "#399e5a",
+            background: reportLoading ? "rgba(118,184,42,0.6)" : "#76b82a",
             color: "white",
             border: "none",
             borderRadius: "8px",
             fontWeight: 600,
             fontSize: "1rem",
             cursor: reportLoading ? "not-allowed" : "pointer",
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Open Sans', sans-serif",
           }}
         >
           {reportLoading ? "Generating..." : "Generate heatmap"}
@@ -364,7 +363,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               padding: "0.75rem 1rem",
               borderRadius: "8px",
               fontSize: "0.875rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             {reportError}
@@ -412,7 +411,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               fontSize: "0.8rem",
               color: "#666",
               marginBottom: "0.5rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
             }}
           >
             {currentCategory.name} · {answeredCount} of {totalQuestions} answered
@@ -425,7 +424,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             background: "white",
             borderRadius: "16px",
             padding: "2.5rem",
-            boxShadow: "0 2px 16px rgba(6,0,79,0.08)",
+            boxShadow: "0 2px 16px rgba(0,142,207,0.08)",
           }}
         >
           {/* Card top row: category title (left) + question pill (center-right) + autosave badge (right) */}
@@ -441,9 +440,9 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               style={{
                 fontSize: "1.25rem",
                 fontWeight: 700,
-                color: "#06004f",
+                color: "#008ecf",
                 margin: 0,
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
                 flex: 1,
               }}
             >
@@ -452,14 +451,14 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             {/* Question X of Y pill — top-right of card header */}
             <span
               style={{
-                background: "rgba(61,82,213,0.16)",
-                color: "#3d52d5",
+                background: "rgba(0,142,207,0.16)",
+                color: "#008ecf",
                 padding: "0.25rem 0.75rem",
                 borderRadius: "100px",
                 fontSize: "0.8125rem",
                 fontWeight: 500,
                 whiteSpace: "nowrap",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
                 alignSelf: "center",
                 marginLeft: "1rem",
                 marginRight: "1rem",
@@ -485,7 +484,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginBottom: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
               {submitError}
@@ -516,7 +515,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginTop: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
               This answer didn't save. Retry before continuing.
@@ -530,7 +529,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               justifyContent: "space-between",
               marginTop: "2rem",
               paddingTop: "1.5rem",
-              borderTop: "1px solid rgba(6,0,79,0.08)",
+              borderTop: "1px solid rgba(0,142,207,0.08)",
             }}
           >
             <button
@@ -539,11 +538,11 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               disabled={isBackDisabled || isNavigating}
               style={{
                 padding: "0.75rem 1.5rem",
-                border: `1px solid ${isBackDisabled || isNavigating ? "rgba(6,0,79,0.2)" : "#06004f"}`,
+                border: `1px solid ${isBackDisabled || isNavigating ? "rgba(0,142,207,0.2)" : "#008ecf"}`,
                 borderRadius: "8px",
                 background: "transparent",
-                color: isBackDisabled || isNavigating ? "rgba(6,0,79,0.3)" : "#06004f",
-                fontFamily: "'Rubik', sans-serif",
+                color: isBackDisabled || isNavigating ? "rgba(0,142,207,0.3)" : "#008ecf",
+                fontFamily: "'Open Sans', sans-serif",
                 fontWeight: 500,
                 cursor: isBackDisabled || isNavigating ? "not-allowed" : "pointer",
                 fontSize: "1rem",
@@ -558,11 +557,11 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               disabled={isNextDisabled}
               style={{
                 padding: "0.75rem 1.5rem",
-                border: `1px solid ${isNextDisabled ? "rgba(6,0,79,0.2)" : "#06004f"}`,
+                border: `1px solid ${isNextDisabled ? "rgba(0,142,207,0.2)" : "#008ecf"}`,
                 borderRadius: "8px",
-                background: isNextDisabled ? "rgba(6,0,79,0.05)" : "#06004f",
-                color: isNextDisabled ? "rgba(6,0,79,0.3)" : "white",
-                fontFamily: "'Rubik', sans-serif",
+                background: isNextDisabled ? "rgba(0,142,207,0.05)" : "#008ecf",
+                color: isNextDisabled ? "rgba(0,142,207,0.3)" : "white",
+                fontFamily: "'Open Sans', sans-serif",
                 fontWeight: 600,
                 cursor: isNextDisabled ? "not-allowed" : "pointer",
                 fontSize: "1rem",

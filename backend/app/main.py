@@ -34,12 +34,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="MAMI Checker API",
-    description="API for the MAMI Framework DSI Assessment Tool — CoE-DSC / TNO",
+    title="DSSC Maturity Scan API",
+    description="API for the DSSC Maturity Scan — Data Spaces Support Centre (DSSC)",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    contact={"name": "CoE-DSC", "url": "https://coe-dsc.nl"},
+    contact={"name": "DSSC", "url": "https://dssc.eu"},
     lifespan=lifespan,
 )
 

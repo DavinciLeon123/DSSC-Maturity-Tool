@@ -85,6 +85,7 @@ def test_generate_html_report_renders_non_empty_html_with_initiative_name():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     assert isinstance(html, str)
@@ -111,6 +112,7 @@ def test_priority_score_column_css_has_fixed_width_and_right_align():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     rule_match = re.search(r"\.priority-score\s*\{([^}]*)\}", html)
@@ -141,6 +143,7 @@ def test_radar_wrap_svg_sized_by_height_not_width():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     rule_match = re.search(r"\.radar-wrap svg\s*\{([^}]*)\}", html)
@@ -179,6 +182,7 @@ def test_priority_band_label_has_fixed_width_independent_of_content():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     rule_match = re.search(r"\.priority-band-label\s*\{([^}]*)\}", html)
@@ -211,6 +215,7 @@ def test_priority_row_flattened_no_inner_name_wrapper():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     name_span_matches = re.findall(r'<span class="priority-name">(.*?)</span>', html, re.DOTALL)
@@ -242,6 +247,7 @@ def test_legend_renders_one_entry_per_band_with_labels():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        answers_by_category=[],
     )
 
     assert html.count('class="legend-item"') == len(bands)
@@ -389,3 +395,164 @@ def test_radar_svg_viewbox_widened_horizontally():
 
     assert min_x < 0
     assert width > height
+
+
+# ---------------------------------------------------------------------------
+# build_answers_by_category (RPRT-05 / Task 2)
+# ---------------------------------------------------------------------------
+
+
+def test_build_answers_by_category_groups_in_config_order(session):
+    """RPRT-05: build_answers_by_category returns exactly 6 entries in config
+    order when all questions are answered. Total answer count is 52."""
+    from tests.factories import make_answer, make_assessment, make_initiative, make_user
+
+    config = _config()
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    assessment = make_assessment(session, initiative=initiative)
+
+    # Answer all 52 questions
+    for cat in config["categories"]:
+        for question in cat["questions"]:
+            make_answer(
+                session,
+                initiative=initiative,
+                assessment=assessment,
+                question_id=question["id"],
+                category_id=cat["id"],
+                score=3,
+            )
+
+    from app.services.report_generator import build_answers_by_category
+
+    result = build_answers_by_category(session, assessment.id, config)
+
+    assert len(result) == 6
+    assert [r["category_id"] for r in result] == [c["id"] for c in config["categories"]]
+    total_answers = sum(len(r["answers"]) for r in result)
+    assert total_answers == 52
+
+
+def test_build_answers_by_category_answer_row_shape_and_label_lookup(session):
+    """RPRT-05: each answer row has the correct shape with question_id, text,
+    answer_label, score, and band_color. answer_label is resolved by matching
+    the score against question options."""
+    from tests.factories import make_answer, make_assessment, make_initiative, make_user
+
+    config = _config()
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    assessment = make_assessment(session, initiative=initiative)
+
+    # Find a specific question and answer it with a known score
+    first_category = config["categories"][0]
+    first_question = first_category["questions"][0]
+    score_value = 4
+
+    # Find the option with score=4
+    expected_label = None
+    for option in first_question["options"]:
+        if option["score"] == score_value:
+            expected_label = option["label"]
+            break
+
+    make_answer(
+        session,
+        initiative=initiative,
+        assessment=assessment,
+        question_id=first_question["id"],
+        category_id=first_category["id"],
+        score=score_value,
+    )
+
+    from app.services.report_generator import build_answers_by_category
+
+    result = build_answers_by_category(session, assessment.id, config)
+
+    # Find the category and answer
+    category_result = [r for r in result if r["category_id"] == first_category["id"]][0]
+    answer_row = [
+        a for a in category_result["answers"] if a["question_id"] == first_question["id"]
+    ][0]
+
+    assert answer_row["question_id"] == first_question["id"]
+    assert answer_row["text"] == first_question["text"]
+    assert answer_row["answer_label"] == expected_label
+    assert answer_row["score"] == score_value
+    assert "band_color" in answer_row
+
+
+def test_build_answers_by_category_empty_category_present_with_empty_list(session):
+    """RPRT-05: a category with zero answered questions still appears in the
+    returned list with an empty answers list (not omitted)."""
+    from tests.factories import make_answer, make_assessment, make_initiative, make_user
+
+    config = _config()
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    assessment = make_assessment(session, initiative=initiative)
+
+    # Answer all questions except those in cat-1
+    for cat in config["categories"]:
+        if cat["id"] == "cat-1":
+            continue
+        for question in cat["questions"]:
+            make_answer(
+                session,
+                initiative=initiative,
+                assessment=assessment,
+                question_id=question["id"],
+                category_id=cat["id"],
+                score=3,
+            )
+
+    from app.services.report_generator import build_answers_by_category
+
+    result = build_answers_by_category(session, assessment.id, config)
+
+    assert len(result) == 6
+    cat_1_result = [r for r in result if r["category_id"] == "cat-1"][0]
+    assert cat_1_result["answers"] == []
+
+
+def test_build_answers_by_category_ignores_stale_question_id(session):
+    """RPRT-05: a QuestionnaireAnswer row whose question_id is not in any
+    config category is silently excluded (never raises, not rendered)."""
+    from tests.factories import make_answer, make_assessment, make_initiative, make_user
+
+    config = _config()
+    user = make_user(session)
+    initiative = make_initiative(session, user=user)
+    assessment = make_assessment(session, initiative=initiative)
+
+    # Answer all questions normally
+    for cat in config["categories"]:
+        for question in cat["questions"]:
+            make_answer(
+                session,
+                initiative=initiative,
+                assessment=assessment,
+                question_id=question["id"],
+                category_id=cat["id"],
+                score=3,
+            )
+
+    # Add a stale answer with a question_id not in any config category
+    make_answer(
+        session,
+        initiative=initiative,
+        assessment=assessment,
+        question_id="q-stale-999",
+        category_id="cat-1",
+        score=2,
+    )
+
+    from app.services.report_generator import build_answers_by_category
+
+    result = build_answers_by_category(session, assessment.id, config)
+
+    # Check that no category contains the stale question_id
+    for category_result in result:
+        stale_answers = [a for a in category_result["answers"] if a["question_id"] == "q-stale-999"]
+        assert len(stale_answers) == 0

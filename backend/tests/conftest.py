@@ -40,6 +40,16 @@ def engine(postgres_container):
     Never repeat this schema-build step after this — Postgres native ENUM
     types (answervalue) raise "type already exists" on repeated
     drop/recreate against the same long-lived container."""
+    # Import all models to ensure they're registered in SQLModel.metadata
+    from app.models.assessment import Assessment  # noqa: F401
+    from app.models.initiative import Initiative  # noqa: F401
+    from app.models.questionnaire import QuestionnaireAnswer  # noqa: F401
+    from app.models.questionnaire_answer_archive import (  # noqa: F401
+        QuestionnaireAnswerV1Archive,
+    )
+    from app.models.report import ComplianceReport  # noqa: F401
+    from app.models.user import User  # noqa: F401
+
     url = postgres_container.get_connection_url().replace("postgresql+psycopg2", "postgresql")
     eng = create_engine(url)
     SQLModel.metadata.create_all(eng)

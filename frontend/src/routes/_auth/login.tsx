@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link, useSearch } from "@tanstack/react-r
 import { useState } from "react";
 import { Input, Button, Alert } from "antd";
 import { authStore } from "../../lib/auth";
-import logoSrc from "../../assets/logo-coe-dsc.svg";
+import logoSrc from "../../assets/logo-dssc-color.png";
 
 export const Route = createFileRoute("/_auth/login")({
   component: LoginPage,
@@ -46,8 +46,8 @@ function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#06004f", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(6,0,79,0.15)" }}>
+    <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         {sessionExpired && (
           <Alert message="Your session expired. Please log in again." type="warning" style={{ marginBottom: 16 }} showIcon />
         )}
@@ -55,15 +55,15 @@ function LoginPage() {
           <Alert message="Password reset successfully. Please log in with your new password." type="success" style={{ marginBottom: 16 }} showIcon />
         )}
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <img src={logoSrc} alt="CoE DSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#06004f", fontFamily: "'Rubik', sans-serif", margin: 0 }}>Sign In</h1>
+          <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Open Sans', sans-serif", margin: 0 }}>Sign In</h1>
         </div>
         {error && (
           <Alert message={error} type="error" style={{ marginBottom: 16 }} showIcon />
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
               Email
             </label>
             <Input
@@ -75,7 +75,7 @@ function LoginPage() {
             />
           </div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
               Password
             </label>
             <Input.Password
@@ -91,17 +91,17 @@ function LoginPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Rubik', sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600 }}
           >
             Sign In
           </Button>
         </form>
         <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "#6B7280" }}>
           No account?{" "}
-          <Link to="/register" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>Register</Link>
+          <Link to="/register" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>Register</Link>
         </p>
         <p style={{ textAlign: "center", marginTop: "0.75rem", fontSize: "0.875rem", color: "#6B7280" }}>
-          <Link to="/forgot-password" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none" }}>
+          <Link to="/forgot-password" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
             Forgot your password?
           </Link>
         </p>

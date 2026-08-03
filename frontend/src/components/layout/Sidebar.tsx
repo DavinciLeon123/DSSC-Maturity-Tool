@@ -33,7 +33,7 @@ export function Sidebar() {
   }> = [
     { label: "Dashboard", to: "/dashboard" },
     { label: "My Initiative", to: "/initiative" },
-    { label: "Questionnaire", to: "/questionnaire" },
+    { label: "Dataspace Maturity Assessment", to: "/questionnaire" },
     { label: "About", to: "/about" },
     ...(isAdmin ? [{ label: "Admin", to: "/admin" as const }] : []),
   ];
@@ -60,9 +60,9 @@ export function Sidebar() {
             marginBottom: "0.25rem",
           }}
         >
-          CoE-DSC
+          DSSC
         </div>
-        <div style={{ fontWeight: 700, fontSize: "1rem" }}>MAMI Checker</div>
+        <div style={{ fontWeight: 700, fontSize: "1rem" }}>DSSC Maturity Scan</div>
       </div>
       <div style={{ flex: 1 }}>
         {navItems.map(({ label, to }) => (

@@ -1,7 +1,8 @@
 // frontend/src/routes/index.tsx
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Footer } from '../components/layout/Footer';
-import logoSrc from '../assets/logo-coe-dsc.svg';
+import logoSrc from '../assets/logo-dssc-color.png';
+import logoWhite from '../assets/logo-dssc-white.png';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -11,7 +12,7 @@ function LandingPage() {
   return (
     <div
       style={{
-        fontFamily: "'Rubik', sans-serif",
+        fontFamily: "'Open Sans', sans-serif",
         background: 'white',
         minHeight: '100vh',
         display: 'flex',
@@ -27,19 +28,19 @@ function LandingPage() {
           padding: '0 2rem',
           height: '64px',
           background: '#ffffff',
-          borderBottom: '1px solid rgba(6,0,79,0.08)',
+          borderBottom: '1px solid rgba(0,142,207,0.08)',
         }}
       >
         <img
           src={logoSrc}
-          alt="CoE DSC"
+          alt="DSSC"
           style={{ width: '76px', height: 'auto' }}
         />
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link
             to="/login"
             style={{
-              color: '#06004f',
+              color: '#008ecf',
               textDecoration: 'none',
               fontWeight: 500,
               fontSize: '0.9375rem',
@@ -50,7 +51,7 @@ function LandingPage() {
           <Link
             to="/register"
             style={{
-              background: '#399e5a',
+              background: '#76b82a',
               color: 'white',
               padding: '0.5rem 1.25rem',
               borderRadius: '8px',
@@ -68,23 +69,24 @@ function LandingPage() {
         {/* Hero section */}
         <section
           style={{
-            background: 'linear-gradient(135deg, #06004f 0%, #00006b 100%)',
+            background: 'linear-gradient(135deg, #008ecf 0%, #008ecf 100%)',
             color: 'white',
             padding: '6rem 2rem',
             textAlign: 'center',
           }}
         >
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <img src={logoWhite} alt="DSSC" style={{ height: '48px', marginBottom: '1.5rem' }} />
             <h1
               style={{
                 fontSize: '2.75rem',
                 fontWeight: 700,
                 lineHeight: 1.2,
                 marginBottom: '1.5rem',
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
               }}
             >
-              MAMI - Minimal Agreements for Maximum Interoperability
+              DSSC Maturity Scan for Dataspaces
             </h1>
             <p
               style={{
@@ -110,7 +112,7 @@ function LandingPage() {
               <Link
                 to="/login"
                 style={{
-                  background: '#399e5a',
+                  background: '#76b82a',
                   color: 'white',
                   padding: '1rem 2.5rem',
                   borderRadius: '8px',
@@ -150,7 +152,7 @@ function LandingPage() {
                 textAlign: 'center',
                 fontSize: '2rem',
                 fontWeight: 700,
-                color: '#06004f',
+                color: '#008ecf',
                 marginBottom: '3rem',
               }}
             >
@@ -171,8 +173,8 @@ function LandingPage() {
                 },
                 {
                   step: '02',
-                  title: 'Complete the questionnaire',
-                  body: 'Work through the structured MAMI questionnaire with Yes / Not yet / Not applicable answers per topic.',
+                  title: 'Complete the assessment',
+                  body: 'Work through the structured Dataspace Maturity Assessment with a 1-5 maturity score per question.',
                 },
                 {
                   step: '03',
@@ -184,22 +186,22 @@ function LandingPage() {
                   key={step}
                   style={{
                     background: 'white',
-                    border: '1px solid rgba(57,158,90,0.3)',
+                    border: '1px solid rgba(118,184,42,0.3)',
                     borderRadius: '16px',
                     padding: '2rem',
-                    boxShadow: '0 2px 12px rgba(6,0,79,0.06)',
+                    boxShadow: '0 2px 12px rgba(0,142,207,0.06)',
                   }}
                 >
                   <div
                     style={{
                       width: '40px',
                       height: '40px',
-                      background: 'rgba(57,158,90,0.12)',
+                      background: 'rgba(118,184,42,0.12)',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#399e5a',
+                      color: '#76b82a',
                       fontWeight: 700,
                       fontSize: '0.875rem',
                       marginBottom: '1.25rem',
@@ -211,7 +213,7 @@ function LandingPage() {
                     style={{
                       fontSize: '1.125rem',
                       fontWeight: 600,
-                      color: '#06004f',
+                      color: '#008ecf',
                       marginBottom: '0.75rem',
                     }}
                   >
@@ -220,7 +222,7 @@ function LandingPage() {
                   <p
                     style={{
                       fontSize: '0.9375rem',
-                      color: 'rgba(6,0,79,0.65)',
+                      color: 'rgba(0,142,207,0.65)',
                       lineHeight: 1.6,
                     }}
                   >
@@ -237,7 +239,7 @@ function LandingPage() {
           style={{
             padding: '5rem 2rem',
             background:
-              'linear-gradient(90deg, rgba(57,158,90,0.07) 0%, rgba(57,158,90,0.07) 100%), white',
+              'linear-gradient(90deg, rgba(118,184,42,0.07) 0%, rgba(118,184,42,0.07) 100%), white',
           }}
         >
           <div
@@ -247,30 +249,28 @@ function LandingPage() {
               style={{
                 fontSize: '2rem',
                 fontWeight: 700,
-                color: '#06004f',
+                color: '#008ecf',
                 marginBottom: '1rem',
               }}
             >
-              The MAMI questionnaire gives you an immediate overview of your
-              current level of interoperability.
+              The Dataspace Maturity Assessment gives you an immediate overview of your
+              current level of dataspace maturity.
             </h2>
             <p
               style={{
                 fontSize: '1rem',
-                color: 'rgba(6,0,79,0.7)',
+                color: 'rgba(0,142,207,0.7)',
                 lineHeight: 1.8,
                 marginBottom: '2rem',
               }}
             >
-              Across four key domains (Scheme, Participants, Data and Services),
-              you will assess whether you already comply, plan to comply or
-              it&apos;s not applicable. Your answers are visualised in a clear
-              interoperability heatmap.
+              Across six categories (Governance, Business, Legal, Interoperability, Control over Data &amp; Trust, and Value Creation),
+              you will rate your current maturity level. Your answers are visualised in a clear maturity radar.
             </p>
             <Link
               to="/login"
               style={{
-                background: '#399e5a',
+                background: '#76b82a',
                 color: 'white',
                 padding: '0.875rem 2rem',
                 borderRadius: '8px',

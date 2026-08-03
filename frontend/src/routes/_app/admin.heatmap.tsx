@@ -144,7 +144,7 @@ export function AdminHeatmapPage() {
         <Link to="/admin">
           <Button
             type="default"
-            style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500 }}
           >
             &larr; Back to Admin
           </Button>
@@ -154,9 +154,9 @@ export function AdminHeatmapPage() {
       <Title
         level={1}
         style={{
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
           fontWeight: 600,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
           fontSize: "28px",
         }}
@@ -196,31 +196,31 @@ export function AdminHeatmapPage() {
             <Card
               style={{
                 borderRadius: "16px",
-                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 marginBottom: "1.5rem",
               }}
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "0.5rem" }}
+                style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "0.5rem" }}
               >
                 No submitted assessments yet
               </Title>
-              <Text style={{ fontFamily: "'Rubik', sans-serif", fontSize: "14px", color: "rgba(6,0,79,0.6)" }}>
-                Once an initiative fully completes and submits the questionnaire, its scores will appear here.
+              <Text style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "14px", color: "rgba(0,142,207,0.6)" }}>
+                Once an initiative fully completes and submits the dataspace maturity assessment, its scores will appear here.
               </Text>
             </Card>
           ) : (
             <Card
               style={{
                 borderRadius: "16px",
-                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 marginBottom: "1.5rem",
               }}
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+                style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
               >
                 Org-wide maturity radar
               </Title>
@@ -230,14 +230,14 @@ export function AdminHeatmapPage() {
               />
               <Text
                 style={{
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                   fontSize: "13px",
-                  color: "rgba(6,0,79,0.6)",
+                  color: "rgba(0,142,207,0.6)",
                   display: "block",
                   marginTop: "1rem",
                 }}
               >
-                Based on <strong style={{ color: "#06004f" }}>{submittedCount}</strong> submitted
+                Based on <strong style={{ color: "#008ecf" }}>{submittedCount}</strong> submitted
                 initiative{submittedCount !== 1 ? "s" : ""}.
               </Text>
             </Card>
@@ -246,10 +246,10 @@ export function AdminHeatmapPage() {
           {/* Per-initiative table — always rendered, regardless of
               org-wide radar state (WR-02); handles has_data=False rows via
               the "No data yet" tag. */}
-          <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(6,0,79,0.08)" }}>
+          <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.08)" }}>
             <Title
               level={2}
-              style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: "#06004f", fontSize: "20px", marginBottom: "1rem" }}
+              style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
             >
               Per-initiative breakdown
             </Title>

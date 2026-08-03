@@ -120,7 +120,7 @@ def test_mail_report_generates_pdf_and_sends_email(client, session, monkeypatch,
     mock_send.assert_called_once()
 
     sent_params = mock_send.call_args[0][0]
-    assert sent_params["attachments"][0]["filename"] == "MAMI-Interoperability-Report.pdf"
+    assert sent_params["attachments"][0]["filename"] == "DSSC-Maturity-Report.pdf"
 
 
 def test_mail_report_dev_mode_skips_resend_send(client, session, monkeypatch, mocker):

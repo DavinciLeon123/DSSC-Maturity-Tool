@@ -39,7 +39,7 @@ function PriorityRow({
         alignItems: "center",
         gap: "16px",
         padding: "12px 0",
-        borderBottom: "1px solid rgba(6,0,79,0.08)",
+        borderBottom: "1px solid rgba(0,142,207,0.08)",
       }}
     >
       <span
@@ -56,10 +56,10 @@ function PriorityRow({
       <span
         style={{
           flex: "1 1 auto",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
           fontSize: "14px",
           fontWeight: 400,
-          color: "#06004f",
+          color: "#008ecf",
           whiteSpace: "normal",
         }}
       >
@@ -67,10 +67,10 @@ function PriorityRow({
       </span>
       <span
         style={{
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
           fontSize: "13px",
           fontWeight: 400,
-          color: "rgba(6,0,79,0.6)",
+          color: "rgba(0,142,207,0.6)",
           whiteSpace: "nowrap",
         }}
       >
@@ -78,10 +78,10 @@ function PriorityRow({
       </span>
       <span
         style={{
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
           fontSize: "14px",
           fontWeight: 600,
-          color: "#06004f",
+          color: "#008ecf",
           minWidth: "48px",
           textAlign: "right",
         }}
@@ -182,16 +182,16 @@ function ReportPage() {
     <div
       style={{
         padding: "32px",
-        background: "rgba(57,158,90,0.08)",
+        background: "rgba(118,184,42,0.08)",
         minHeight: "100vh",
       }}
     >
       <h1
         style={{
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Open Sans', sans-serif",
           fontWeight: 600,
           fontSize: "28px",
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "32px",
         }}
       >
@@ -222,13 +222,13 @@ function ReportPage() {
         <>
           <p
             style={{
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Open Sans', sans-serif",
               fontSize: "14px",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "24px",
             }}
           >
-            Initiative: <strong style={{ color: "#06004f" }}>{data.initiative.name}</strong>
+            Initiative: <strong style={{ color: "#008ecf" }}>{data.initiative.name}</strong>
           </p>
 
           <div
@@ -245,16 +245,16 @@ function ReportPage() {
                 flex: "3 1 480px",
                 background: "#ffffff",
                 borderRadius: "16px",
-                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 padding: "24px",
               }}
             >
               <h2
                 style={{
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
-                  color: "#06004f",
+                  color: "#008ecf",
                   marginBottom: "16px",
                 }}
               >
@@ -274,16 +274,16 @@ function ReportPage() {
                 flex: "2 1 360px",
                 background: "#ffffff",
                 borderRadius: "16px",
-                boxShadow: "0 2px 12px rgba(6,0,79,0.08)",
+                boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 padding: "24px",
               }}
             >
               <h2
                 style={{
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Open Sans', sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
-                  color: "#06004f",
+                  color: "#008ecf",
                   marginBottom: "16px",
                 }}
               >
@@ -306,7 +306,7 @@ function ReportPage() {
               onClick={handleDownload}
               style={{
                 borderRadius: "8px",
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Open Sans', sans-serif",
                 fontWeight: 600,
               }}
             >

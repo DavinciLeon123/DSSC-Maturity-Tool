@@ -1047,11 +1047,11 @@
   },
   "info": {
     "contact": {
-      "name": "CoE-DSC",
-      "url": "https://coe-dsc.nl/"
+      "name": "DSSC",
+      "url": "https://dssc.eu/"
     },
-    "description": "API for the MAMI Framework DSI Assessment Tool \u2014 CoE-DSC / TNO",
-    "title": "MAMI Checker API",
+    "description": "API for the DSSC Maturity Scan \u2014 Data Spaces Support Centre (DSSC)",
+    "title": "DSSC Maturity Scan API",
     "version": "1.0.0"
   },
   "openapi": "3.1.0",
