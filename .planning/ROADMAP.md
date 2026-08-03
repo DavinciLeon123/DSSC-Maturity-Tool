@@ -34,7 +34,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 14: Scoring Engine Replacement** - Equal-weight sum/n scoring replaces GoRules ZEN Engine and MoSCoW entirely (completed 2026-07-24)
 - [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
 - [x] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view (completed 2026-07-28)
-- [ ] **Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)** - Replace CoE-DSC colors/logo/wording with DSSC's own across the app and PDF, add submitted answers to the PDF, default new registrations to DSI-only
+- [x] **Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)** - Replace CoE-DSC colors/logo/wording with DSSC's own across the app and PDF, add submitted answers to the PDF, default new registrations to DSI-only (completed 2026-08-03)
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
