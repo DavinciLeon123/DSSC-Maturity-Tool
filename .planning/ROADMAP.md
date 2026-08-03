@@ -243,10 +243,23 @@ Plans:
   4. Each of the 6 maturity-dimension pages (Governance, Business, Legal, Interoperability, Control over Data & Trust, Value Creation) opens with its own introductory text, exactly as specified in the PDF's "Assessment tool" table (items 14–19).
   5. The 52 questions are grouped under the 16 named subsections given in the PDF's "Secties questionnaire" table (e.g. Q1-4 "Governance Framework Establishment" … Q48-52 "Adoption Level"), each with a visible sub-header.
 
-**Plans**: 0 plans
+**Plans**: 6 plans across 3 waves
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 16.2 to break down)
+**Wave 1**
+
+- [ ] 16.2-01-PLAN.md — Font/color/logo foundation: self-hosted Jost + dssc.eu tokens (globals.css/theme.ts) + logo asset replacement + mechanical 'Open Sans'→Jost replace across 18 files (Wave 1)
+- [ ] 16.2-04-PLAN.md — Config content: per-category `intro` + `subsections` added to dssc-questionnaire.json, `Subsection` type added to questionnaire.ts (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 16.2-02-PLAN.md — Homepage + Footer: new DSMA copy, dssc.eu hero gradient/logo/ink text, dark-navy footer (Wave 2, depends on 16.2-01)
+- [ ] 16.2-03-PLAN.md — About page: new copy (2 paragraphs) + app-wide dssc.eu background wash via _app.tsx (Wave 2, depends on 16.2-01)
+- [ ] 16.2-05-PLAN.md — Wizard UI: gated welcome screen (fixes Pitfall 1 resume-position bug), dimension-intro box, 16-subsection question grouping (Wave 2, depends on 16.2-01, 16.2-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 16.2-06-PLAN.md — Human visual/behavioral verification checkpoint covering all 5 success criteria (Wave 3, depends on 16.2-02, 16.2-03, 16.2-05)
 
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
 
