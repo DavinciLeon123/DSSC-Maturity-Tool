@@ -13,6 +13,7 @@ superseded by `build_report_contract`, which callers (reports.py) now call
 directly.
 """
 
+import base64
 import math
 from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
@@ -23,6 +24,7 @@ from sqlmodel import Session, select
 from app.models.questionnaire import QuestionnaireAnswer
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+_LOGO_PATH = TEMPLATES_DIR / "assets" / "logo-dssc-white.png"
 
 
 def _get_jinja_env() -> Environment:
@@ -30,6 +32,15 @@ def _get_jinja_env() -> Environment:
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
         autoescape=select_autoescape(["html"]),
     )
+
+
+def _logo_data_uri() -> str:
+    """Inline the DSSC logo as a base64 data URI so it renders on both the
+    in-browser HTML response (no StaticFiles mount exists) and the WeasyPrint
+    PDF (rendered via `HTML(string=...)`, which has no base_url to resolve a
+    relative asset path against) with a single code path."""
+    data = base64.b64encode(_LOGO_PATH.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{data}"
 
 
 def generate_html_report(
@@ -67,6 +78,7 @@ def generate_html_report(
         "radar_chart_svg": radar_chart_svg,
         "maturity_bands": maturity_bands,
         "answers_by_category": answers_by_category,
+        "logo_src": _logo_data_uri(),
     }
     return template.render(**context)
 

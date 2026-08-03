@@ -451,8 +451,8 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             {/* Question X of Y pill — top-right of card header */}
             <span
               style={{
-                background: "rgba(61,82,213,0.16)",
-                color: "#3d52d5",
+                background: "rgba(0,142,207,0.16)",
+                color: "#008ecf",
                 padding: "0.25rem 0.75rem",
                 borderRadius: "100px",
                 fontSize: "0.8125rem",

@@ -182,7 +182,7 @@ function ReportPage() {
     <div
       style={{
         padding: "32px",
-        background: "rgba(57,158,90,0.08)",
+        background: "rgba(118,184,42,0.08)",
         minHeight: "100vh",
       }}
     >
