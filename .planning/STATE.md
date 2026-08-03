@@ -4,11 +4,11 @@ milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
 stopped_at: Phase 16.1 context gathered
-last_updated: "2026-08-02T10:17:53.311Z"
+last_updated: "2026-08-02T18:13:18.845Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 26
+  total_plans: 29
   completed_plans: 26
 ---
 
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 16 complete — Phase 16.1 (DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default) inserted (URGENT) ahead of Phase 17; not yet planned
+**Current focus:** Phase 16.1 — dssc-rebranding-pdf-content-registration-default
 
 ## Milestone Status
 

@@ -213,13 +213,17 @@ Plans:
   4. The PDF report shows the initiative's actual submitted answers (per question), not only the aggregate dimension scores and priority list.
   5. The registration screen no longer offers a "Service Provider" option — new accounts register as DSI by default — and the option can be restored later without a data-model change (the underlying participant-type field/enum is not deleted, only the UI choice is hidden).
 
-**Plans**: 3 plans
+**Plans**: 3/3 plans executed
 
 Plans:
+**Wave 1**
 
-- [ ] 16.1-01-PLAN.md — Frontend color/font/logo swap: theme.ts + globals.css + index.html central tokens, DSSC logo asset copy, ~19 component/route files' hardcoded hex/Rubik recolor + logo import swaps (Wave 1; BRAND-01)
-- [ ] 16.1-02-PLAN.md — Backend PDF rebrand + new submitted-answers section + MAMI/CoE-DSC/Questionnaire wording removal across backend and frontend (Wave 2, depends on 16.1-01; BRAND-02, BRAND-03, RPRT-05)
-- [ ] 16.1-03-PLAN.md — Registration feature flag: hide the DSI/SP toggle in register.tsx (default DSI), fix TopNav.test.tsx's alt-text assertion (Wave 2, depends on 16.1-01; REG-01)
+- [x] 16.1-01-PLAN.md — Frontend color/font/logo swap: theme.ts + globals.css + index.html central tokens, DSSC logo asset copy, ~19 component/route files' hardcoded hex/Rubik recolor + logo import swaps (Wave 1; BRAND-01)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 16.1-02-PLAN.md — Backend PDF rebrand + new submitted-answers section + MAMI/CoE-DSC/Questionnaire wording removal across backend and frontend (Wave 2, depends on 16.1-01; BRAND-02, BRAND-03, RPRT-05)
+- [x] 16.1-03-PLAN.md — Registration feature flag: hide the DSI/SP toggle in register.tsx (default DSI), fix TopNav.test.tsx's alt-text assertion (Wave 2, depends on 16.1-01; REG-01)
 
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
 
