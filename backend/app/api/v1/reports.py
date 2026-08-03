@@ -98,6 +98,7 @@ def _render_html_for(
     answers_by_category for the new submitted-answers section."""
     scores = _resolve_scores(session, assessment, config)
     contract = build_report_contract(scores, initiative, assessment, config)
+    assert assessment.id is not None  # always a persisted, submitted row
     answers_by_category = build_answers_by_category(session, assessment.id, config)
     return generate_html_report(
         initiative=_initiative_dict(initiative),

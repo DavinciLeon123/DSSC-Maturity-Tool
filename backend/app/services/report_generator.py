@@ -116,9 +116,7 @@ def build_priority_list(scores: list[dict], bands: list[dict]) -> list[dict]:
     ]
 
 
-def build_answers_by_category(
-    session: Session, assessment_id: int, config: dict
-) -> list[dict]:
+def build_answers_by_category(session: Session, assessment_id: int, config: dict) -> list[dict]:
     """RPRT-05: return per-question answers grouped by category in config order,
     with empty-state handling for unanswered categories and silent exclusion of
     stale question_ids (not present in current config).
@@ -149,9 +147,7 @@ def build_answers_by_category(
     """
     # Query all answers for this assessment
     answers = session.exec(
-        select(QuestionnaireAnswer).where(
-            QuestionnaireAnswer.assessment_id == assessment_id
-        )
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.assessment_id == assessment_id)
     ).all()
 
     # Build a {question_id: answer_row} lookup dict for fast retrieval

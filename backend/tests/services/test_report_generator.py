@@ -472,7 +472,9 @@ def test_build_answers_by_category_answer_row_shape_and_label_lookup(session):
 
     # Find the category and answer
     category_result = [r for r in result if r["category_id"] == first_category["id"]][0]
-    answer_row = [a for a in category_result["answers"] if a["question_id"] == first_question["id"]][0]
+    answer_row = [
+        a for a in category_result["answers"] if a["question_id"] == first_question["id"]
+    ][0]
 
     assert answer_row["question_id"] == first_question["id"]
     assert answer_row["text"] == first_question["text"]
