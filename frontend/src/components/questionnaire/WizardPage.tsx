@@ -8,6 +8,7 @@ import { api } from "../../lib/api";
 import { useDebouncedSave, type SaveState } from "../../hooks/useDebouncedSave";
 import { StepPills } from "./StepPills";
 import { QuestionCard } from "./QuestionCard";
+import { WelcomeScreen } from "./WelcomeScreen";
 
 const { useBreakpoint } = Grid;
 
@@ -89,6 +90,12 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // SC3/RESEARCH Pitfall 1: a fresh draft or a fresh retake has never had a
+  // last-viewed category persisted server-side, so lastViewedCategoryId ==
+  // null already reliably means "nothing to resume" — show the welcome
+  // screen once, before question 1. One-way: nothing below ever sets this
+  // back to true.
+  const [showWelcome, setShowWelcome] = useState(lastViewedCategoryId == null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -228,9 +235,17 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
   // on that page, so navigating to a category and refreshing without
   // answering still resumes there. Deliberately not gated on any answer
   // save (no piggyback, per RESEARCH Open Question 1 / plan 15-01).
+  // Phase 16.2 RESEARCH Pitfall 1: MUST also be gated on showWelcome — this
+  // effect fires on mount regardless of which screen is showing, and
+  // without the guard a refresh while the welcome screen is up (before
+  // "Begin" is clicked) would silently persist categories[0].id as
+  // last-viewed, making the next mount incorrectly compute showWelcome =
+  // false. The useEffect call itself must stay unconditional (Rules of
+  // Hooks); only its body is gated.
   useEffect(() => {
+    if (showWelcome) return;
     saveLastViewedCategory(initiativeId, config.categories[categoryIndex].id);
-  }, [categoryIndex, initiativeId, config]);
+  }, [categoryIndex, initiativeId, config, showWelcome]);
 
   // A single aggregate badge for the page header — "worst" state wins so
   // the tertiary badge (UI-SPEC Visual Hierarchy) only escalates when the
@@ -295,6 +310,19 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
     } finally {
       setReportLoading(false);
     }
+  }
+
+  // SC3: genuine early return — renders before StepPills/the question-card
+  // layout, so the welcome screen sits outside the "Question X of Y" count
+  // and the StepPills sidebar for free. Nothing else in this component ever
+  // sets showWelcome back to true (Previous only decrements categoryIndex),
+  // so this is a one-way gate.
+  if (showWelcome) {
+    return (
+      <div style={{ padding: isMobile ? "0 1rem" : undefined }}>
+        <WelcomeScreen onBegin={() => setShowWelcome(false)} />
+      </div>
+    );
   }
 
   if (submitted) {
