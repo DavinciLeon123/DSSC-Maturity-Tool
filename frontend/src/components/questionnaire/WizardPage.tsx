@@ -2,13 +2,75 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Grid } from "antd";
-import type { AnswerRead, QuestionnaireConfig } from "../../lib/questionnaire";
+import type { AnswerOption, AnswerRead, Category, QuestionnaireConfig } from "../../lib/questionnaire";
 import { flushAnswerBeacon, saveLastViewedCategory } from "../../lib/questionnaire";
 import { api } from "../../lib/api";
 import { useDebouncedSave, type SaveState } from "../../hooks/useDebouncedSave";
 import { StepPills } from "./StepPills";
 import { QuestionCard } from "./QuestionCard";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { SubsectionLabel } from "./SubsectionLabel";
+
+interface QuestionGroupProps {
+  category: Category;
+  localAnswers: Record<string, number>;
+  defaultOptions: AnswerOption[];
+  onAnswerChange: (questionId: string, score: number) => void;
+}
+
+/**
+ * Phase 16.2, SC5: groups a category's flat questions array under its named
+ * subsections (config-driven, 16.2-04). Position alone determines grouping —
+ * consecutive and in existing array order, no subsection_id field on
+ * individual questions. Deliberately does not touch Question X of Y,
+ * answeredCount, completedCategoryIds, or StepPills — those all stay keyed
+ * off the flat questions array / localAnswers, unchanged.
+ *
+ * A genuine component (not a plain helper function) so that forwarding
+ * onAnswerChange down to QuestionCard is ordinary JSX prop-passing — the
+ * same idiom the previous inline `.map` already used safely. A plain
+ * function taking onAnswerChange as an argument trips eslint-plugin-react-
+ * hooks's "refs" rule (it can't statically prove the ref-touching closure
+ * isn't invoked synchronously during render when passed through an
+ * arbitrary function call rather than as a JSX prop).
+ */
+function QuestionGroup({ category, localAnswers, defaultOptions, onAnswerChange }: QuestionGroupProps) {
+  if (!category.subsections?.length) {
+    // Defensive fallback if a category is ever missing subsections.
+    return (
+      <>
+        {category.questions.map((q) => (
+          <QuestionCard
+            key={q.id}
+            question={q}
+            defaultOptions={defaultOptions}
+            value={localAnswers[q.id] ?? null}
+            onAnswerChange={onAnswerChange}
+          />
+        ))}
+      </>
+    );
+  }
+  const nodes: React.ReactNode[] = [];
+  let idx = 0;
+  category.subsections.forEach((sub, subIdx) => {
+    nodes.push(<SubsectionLabel key={`sub-${subIdx}`}>{sub.name}</SubsectionLabel>);
+    for (let i = 0; i < sub.count; i++) {
+      const q = category.questions[idx];
+      nodes.push(
+        <QuestionCard
+          key={q.id}
+          question={q}
+          defaultOptions={defaultOptions}
+          value={localAnswers[q.id] ?? null}
+          onAnswerChange={onAnswerChange}
+        />
+      );
+      idx++;
+    }
+  });
+  return <>{nodes}</>;
+}
 
 const { useBreakpoint } = Grid;
 
@@ -519,17 +581,14 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             </div>
           )}
 
-          {/* Question cards */}
+          {/* Question cards, grouped under subsection eyebrow labels (SC5) */}
           <div>
-            {currentCategory.questions.map((question) => (
-              <QuestionCard
-                key={question.id}
-                question={question}
-                defaultOptions={config.default_options}
-                value={localAnswers[question.id] ?? null}
-                onAnswerChange={handleAnswerChange}
-              />
-            ))}
+            <QuestionGroup
+              category={currentCategory}
+              localAnswers={localAnswers}
+              defaultOptions={config.default_options}
+              onAnswerChange={handleAnswerChange}
+            />
           </div>
 
           {/* Terminal-failure banner (D-10/D-11/D-12): appears next to the
