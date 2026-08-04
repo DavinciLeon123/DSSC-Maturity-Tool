@@ -295,7 +295,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#008ecf",
               marginBottom: "1rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Export Data
@@ -305,7 +305,7 @@ function AdminPage() {
               fontSize: "0.875rem",
               color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Download the complete dataset (all users, initiatives, and
@@ -317,7 +317,7 @@ function AdminPage() {
             style={{
               marginBottom: "3rem",
               borderRadius: "8px",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
           >
@@ -330,7 +330,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#B91C1C",
               marginBottom: "1rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Reset Demo
@@ -340,7 +340,7 @@ function AdminPage() {
               fontSize: "0.875rem",
               color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Delete all non-admin users and their data. Use this between demo
@@ -361,7 +361,7 @@ function AdminPage() {
             onClick={handleResetDemo}
             style={{
               borderRadius: "8px",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
           >
@@ -391,7 +391,7 @@ function AdminPage() {
             fontWeight: 700,
             color: "#008ecf",
             margin: 0,
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Admin Panel
@@ -399,7 +399,7 @@ function AdminPage() {
         <Link to="/admin/heatmap">
           <Button
             type="default"
-            style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             View Aggregated Heatmap &rarr;
           </Button>

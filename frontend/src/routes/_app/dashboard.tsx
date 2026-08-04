@@ -42,7 +42,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 500,
   marginBottom: "0.375rem",
   color: "#008ecf",
-  fontFamily: "'Open Sans', sans-serif",
+  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
 };
 
 function DashboardPage() {
@@ -151,7 +151,7 @@ function DashboardPage() {
           fontWeight: 700,
           color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         Dashboard
@@ -172,7 +172,7 @@ function DashboardPage() {
             style={{
               fontSize: "1.1rem",
               color: "rgba(0,142,207,0.75)",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Welcome, <strong style={{ color: "#008ecf" }}>{user.email}</strong>
@@ -193,7 +193,7 @@ function DashboardPage() {
                   fontWeight: 700,
                   color: "#008ecf",
                   marginBottom: "0.5rem",
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Register Your Initiative
@@ -203,7 +203,7 @@ function DashboardPage() {
                   fontSize: "0.875rem",
                   color: "rgba(0,142,207,0.6)",
                   marginBottom: "1.5rem",
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Get started by registering your DSI initiative.
@@ -230,7 +230,7 @@ function DashboardPage() {
                     required
                     size="large"
                     placeholder="Enter initiative name"
-                    style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                   />
                 </div>
 
@@ -241,7 +241,7 @@ function DashboardPage() {
                     onChange={(value) => setRegForm((prev) => ({ ...prev, sector: value }))}
                     placeholder="Select a sector..."
                     size="large"
-                    style={{ width: "100%", fontFamily: "'Open Sans', sans-serif" }}
+                    style={{ width: "100%", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                     options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
                   />
                 </div>
@@ -254,7 +254,7 @@ function DashboardPage() {
                       onChange={(e) => setRegForm((prev) => ({ ...prev, sector_other: e.target.value }))}
                       size="large"
                       placeholder="Describe your sector"
-                      style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                      style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                     />
                   </div>
                 )}
@@ -266,7 +266,7 @@ function DashboardPage() {
                   size="large"
                   style={{
                     borderRadius: "8px",
-                    fontFamily: "'Open Sans', sans-serif",
+                    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                     fontWeight: 600,
                   }}
                 >
@@ -301,7 +301,7 @@ function DashboardPage() {
                         fontSize: "1.25rem",
                         fontWeight: 700,
                         color: "#008ecf",
-                        fontFamily: "'Open Sans', sans-serif",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         margin: 0,
                       }}
                     >
@@ -311,7 +311,7 @@ function DashboardPage() {
                       <Tag
                         color={initiative.status === "submitted" ? "success" : "warning"}
                         style={{
-                          fontFamily: "'Open Sans', sans-serif",
+                          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                           fontWeight: 600,
                           textTransform: "uppercase",
                         }}
@@ -324,7 +324,7 @@ function DashboardPage() {
                         marginTop: "0.75rem",
                         fontSize: "0.875rem",
                         color: "rgba(0,142,207,0.75)",
-                        fontFamily: "'Open Sans', sans-serif",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         margin: "0.75rem 0 0",
                       }}
                     >
@@ -344,7 +344,7 @@ function DashboardPage() {
                       onClick={handleStartOrRetake}
                       style={{
                         borderRadius: "8px",
-                        fontFamily: "'Open Sans', sans-serif",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}
                     >
@@ -357,7 +357,7 @@ function DashboardPage() {
                       loading={reportLoading}
                       style={{
                         borderRadius: "8px",
-                        fontFamily: "'Open Sans', sans-serif",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}
                     >
@@ -370,7 +370,7 @@ function DashboardPage() {
                       size="large"
                       onClick={() => navigate({ to: "/assessments" })}
                       style={{
-                        fontFamily: "'Open Sans', sans-serif",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                         paddingLeft: 0,
                         paddingRight: 0,
@@ -400,7 +400,7 @@ function DashboardPage() {
                 marginTop: "1rem",
                 fontSize: "0.875rem",
                 color: "rgba(0,142,207,0.5)",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               Loading initiative...
@@ -408,7 +408,7 @@ function DashboardPage() {
           ) : null}
         </Card>
       ) : !error ? (
-        <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Open Sans', sans-serif" }}>Loading...</p>
+        <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Loading...</p>
       ) : null}
     </div>
   );

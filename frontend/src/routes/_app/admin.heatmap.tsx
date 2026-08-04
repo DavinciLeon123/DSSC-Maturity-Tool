@@ -144,7 +144,7 @@ export function AdminHeatmapPage() {
         <Link to="/admin">
           <Button
             type="default"
-            style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             &larr; Back to Admin
           </Button>
@@ -154,7 +154,7 @@ export function AdminHeatmapPage() {
       <Title
         level={1}
         style={{
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           fontWeight: 600,
           color: "#008ecf",
           marginBottom: "1.5rem",
@@ -202,11 +202,11 @@ export function AdminHeatmapPage() {
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "0.5rem" }}
+                style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "0.5rem" }}
               >
                 No submitted assessments yet
               </Title>
-              <Text style={{ fontFamily: "'Open Sans', sans-serif", fontSize: "14px", color: "rgba(0,142,207,0.6)" }}>
+              <Text style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontSize: "14px", color: "rgba(0,142,207,0.6)" }}>
                 Once an initiative fully completes and submits the dataspace maturity assessment, its scores will appear here.
               </Text>
             </Card>
@@ -220,7 +220,7 @@ export function AdminHeatmapPage() {
             >
               <Title
                 level={2}
-                style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
+                style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
               >
                 Org-wide maturity radar
               </Title>
@@ -230,7 +230,7 @@ export function AdminHeatmapPage() {
               />
               <Text
                 style={{
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontSize: "13px",
                   color: "rgba(0,142,207,0.6)",
                   display: "block",
@@ -249,7 +249,7 @@ export function AdminHeatmapPage() {
           <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.08)" }}>
             <Title
               level={2}
-              style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
+              style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
             >
               Per-initiative breakdown
             </Title>

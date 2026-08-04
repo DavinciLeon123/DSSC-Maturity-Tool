@@ -2,12 +2,75 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Grid } from "antd";
-import type { AnswerRead, QuestionnaireConfig } from "../../lib/questionnaire";
+import type { AnswerOption, AnswerRead, Category, QuestionnaireConfig } from "../../lib/questionnaire";
 import { flushAnswerBeacon, saveLastViewedCategory } from "../../lib/questionnaire";
 import { api } from "../../lib/api";
 import { useDebouncedSave, type SaveState } from "../../hooks/useDebouncedSave";
 import { StepPills } from "./StepPills";
 import { QuestionCard } from "./QuestionCard";
+import { WelcomeScreen } from "./WelcomeScreen";
+import { SubsectionLabel } from "./SubsectionLabel";
+
+interface QuestionGroupProps {
+  category: Category;
+  localAnswers: Record<string, number>;
+  defaultOptions: AnswerOption[];
+  onAnswerChange: (questionId: string, score: number) => void;
+}
+
+/**
+ * Phase 16.2, SC5: groups a category's flat questions array under its named
+ * subsections (config-driven, 16.2-04). Position alone determines grouping —
+ * consecutive and in existing array order, no subsection_id field on
+ * individual questions. Deliberately does not touch Question X of Y,
+ * answeredCount, completedCategoryIds, or StepPills — those all stay keyed
+ * off the flat questions array / localAnswers, unchanged.
+ *
+ * A genuine component (not a plain helper function) so that forwarding
+ * onAnswerChange down to QuestionCard is ordinary JSX prop-passing — the
+ * same idiom the previous inline `.map` already used safely. A plain
+ * function taking onAnswerChange as an argument trips eslint-plugin-react-
+ * hooks's "refs" rule (it can't statically prove the ref-touching closure
+ * isn't invoked synchronously during render when passed through an
+ * arbitrary function call rather than as a JSX prop).
+ */
+function QuestionGroup({ category, localAnswers, defaultOptions, onAnswerChange }: QuestionGroupProps) {
+  if (!category.subsections?.length) {
+    // Defensive fallback if a category is ever missing subsections.
+    return (
+      <>
+        {category.questions.map((q) => (
+          <QuestionCard
+            key={q.id}
+            question={q}
+            defaultOptions={defaultOptions}
+            value={localAnswers[q.id] ?? null}
+            onAnswerChange={onAnswerChange}
+          />
+        ))}
+      </>
+    );
+  }
+  const nodes: React.ReactNode[] = [];
+  let idx = 0;
+  category.subsections.forEach((sub, subIdx) => {
+    nodes.push(<SubsectionLabel key={`sub-${subIdx}`}>{sub.name}</SubsectionLabel>);
+    for (let i = 0; i < sub.count; i++) {
+      const q = category.questions[idx];
+      nodes.push(
+        <QuestionCard
+          key={q.id}
+          question={q}
+          defaultOptions={defaultOptions}
+          value={localAnswers[q.id] ?? null}
+          onAnswerChange={onAnswerChange}
+        />
+      );
+      idx++;
+    }
+  });
+  return <>{nodes}</>;
+}
 
 const { useBreakpoint } = Grid;
 
@@ -21,7 +84,7 @@ const { useBreakpoint } = Grid;
 function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   const base = {
     fontSize: "0.75rem",
-    fontFamily: "'Open Sans', sans-serif",
+    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
   } as const;
 
   if (state === "saving") {
@@ -60,7 +123,7 @@ function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => vo
             borderRadius: "6px",
             padding: "0.125rem 0.5rem",
             cursor: "pointer",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Retry save
@@ -89,6 +152,12 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
   });
   const [isNavigating, setIsNavigating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // SC3/RESEARCH Pitfall 1: a fresh draft or a fresh retake has never had a
+  // last-viewed category persisted server-side, so lastViewedCategoryId ==
+  // null already reliably means "nothing to resume" — show the welcome
+  // screen once, before question 1. One-way: nothing below ever sets this
+  // back to true.
+  const [showWelcome, setShowWelcome] = useState(lastViewedCategoryId == null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -228,9 +297,17 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
   // on that page, so navigating to a category and refreshing without
   // answering still resumes there. Deliberately not gated on any answer
   // save (no piggyback, per RESEARCH Open Question 1 / plan 15-01).
+  // Phase 16.2 RESEARCH Pitfall 1: MUST also be gated on showWelcome — this
+  // effect fires on mount regardless of which screen is showing, and
+  // without the guard a refresh while the welcome screen is up (before
+  // "Begin" is clicked) would silently persist categories[0].id as
+  // last-viewed, making the next mount incorrectly compute showWelcome =
+  // false. The useEffect call itself must stay unconditional (Rules of
+  // Hooks); only its body is gated.
   useEffect(() => {
+    if (showWelcome) return;
     saveLastViewedCategory(initiativeId, config.categories[categoryIndex].id);
-  }, [categoryIndex, initiativeId, config]);
+  }, [categoryIndex, initiativeId, config, showWelcome]);
 
   // A single aggregate badge for the page header — "worst" state wins so
   // the tertiary badge (UI-SPEC Visual Hierarchy) only escalates when the
@@ -297,6 +374,19 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
     }
   }
 
+  // SC3: genuine early return — renders before StepPills/the question-card
+  // layout, so the welcome screen sits outside the "Question X of Y" count
+  // and the StepPills sidebar for free. Nothing else in this component ever
+  // sets showWelcome back to true (Previous only decrements categoryIndex),
+  // so this is a one-way gate.
+  if (showWelcome) {
+    return (
+      <div style={{ padding: isMobile ? "0 1rem" : undefined }}>
+        <WelcomeScreen onBegin={() => setShowWelcome(false)} />
+      </div>
+    );
+  }
+
   if (submitted) {
     return (
       <div
@@ -322,7 +412,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             fontWeight: 700,
             color: "#008ecf",
             marginBottom: "1rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Thanks for completing the survey.
@@ -331,7 +421,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
           style={{
             color: "rgba(0,142,207,0.6)",
             marginBottom: "2rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Thank you for completing the Dataspace Maturity Assessment. You can now view your DSSC Maturity Report.
@@ -349,7 +439,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             fontWeight: 600,
             fontSize: "1rem",
             cursor: reportLoading ? "not-allowed" : "pointer",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           {reportLoading ? "Generating..." : "Generate heatmap"}
@@ -363,7 +453,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               padding: "0.75rem 1rem",
               borderRadius: "8px",
               fontSize: "0.875rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {reportError}
@@ -411,7 +501,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               fontSize: "0.8rem",
               color: "#666",
               marginBottom: "0.5rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {currentCategory.name} · {answeredCount} of {totalQuestions} answered
@@ -442,7 +532,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 fontWeight: 700,
                 color: "#008ecf",
                 margin: 0,
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 flex: 1,
               }}
             >
@@ -458,7 +548,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 fontSize: "0.8125rem",
                 fontWeight: 500,
                 whiteSpace: "nowrap",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 alignSelf: "center",
                 marginLeft: "1rem",
                 marginRight: "1rem",
@@ -474,6 +564,29 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             </div>
           </div>
 
+          {/* Dimension intro box (SC4): a lighter tint variant (not the
+              same solid-white card as the question cards below it) so it
+              reads as framing/context rather than another question card —
+              renders every time the dimension page is viewed, no dismiss/
+              collapse state. intro is optional on Category (16.2-04); a
+              category without one simply renders nothing here. */}
+          {currentCategory.intro && (
+            <div
+              style={{
+                background: "rgba(0,142,207,0.04)",
+                borderRadius: "12px",
+                padding: "1.25rem 1.5rem",
+                marginBottom: "1.5rem",
+                color: "#3d444b",
+                fontSize: "0.9375rem",
+                lineHeight: 1.6,
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+              }}
+            >
+              {currentCategory.intro}
+            </div>
+          )}
+
           {/* Submit error */}
           {submitError && (
             <div
@@ -484,24 +597,21 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginBottom: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               {submitError}
             </div>
           )}
 
-          {/* Question cards */}
+          {/* Question cards, grouped under subsection eyebrow labels (SC5) */}
           <div>
-            {currentCategory.questions.map((question) => (
-              <QuestionCard
-                key={question.id}
-                question={question}
-                defaultOptions={config.default_options}
-                value={localAnswers[question.id] ?? null}
-                onAnswerChange={handleAnswerChange}
-              />
-            ))}
+            <QuestionGroup
+              category={currentCategory}
+              localAnswers={localAnswers}
+              defaultOptions={config.default_options}
+              onAnswerChange={handleAnswerChange}
+            />
           </div>
 
           {/* Terminal-failure banner (D-10/D-11/D-12): appears next to the
@@ -515,7 +625,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginTop: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               This answer didn't save. Retry before continuing.
@@ -542,7 +652,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 background: "transparent",
                 color: isBackDisabled || isNavigating ? "rgba(0,142,207,0.3)" : "#008ecf",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 500,
                 cursor: isBackDisabled || isNavigating ? "not-allowed" : "pointer",
                 fontSize: "1rem",
@@ -561,7 +671,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 background: isNextDisabled ? "rgba(0,142,207,0.05)" : "#008ecf",
                 color: isNextDisabled ? "rgba(0,142,207,0.3)" : "white",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
                 cursor: isNextDisabled ? "not-allowed" : "pointer",
                 fontSize: "1rem",

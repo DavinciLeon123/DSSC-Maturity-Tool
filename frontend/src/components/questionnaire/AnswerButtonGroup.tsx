@@ -34,7 +34,7 @@ export function AnswerButtonGroup({ options, value, onChange }: Props) {
               gap: "0.5rem",
               flex: "1 1 0",
               minWidth: 0,
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               cursor: "pointer",
             }}
           >

@@ -56,7 +56,7 @@ function PriorityRow({
       <span
         style={{
           flex: "1 1 auto",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           fontSize: "14px",
           fontWeight: 400,
           color: "#008ecf",
@@ -67,7 +67,7 @@ function PriorityRow({
       </span>
       <span
         style={{
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           fontSize: "13px",
           fontWeight: 400,
           color: "rgba(0,142,207,0.6)",
@@ -78,7 +78,7 @@ function PriorityRow({
       </span>
       <span
         style={{
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           fontSize: "14px",
           fontWeight: 600,
           color: "#008ecf",
@@ -188,7 +188,7 @@ function ReportPage() {
     >
       <h1
         style={{
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           fontWeight: 600,
           fontSize: "28px",
           color: "#008ecf",
@@ -222,7 +222,7 @@ function ReportPage() {
         <>
           <p
             style={{
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontSize: "14px",
               color: "rgba(0,142,207,0.6)",
               marginBottom: "24px",
@@ -251,7 +251,7 @@ function ReportPage() {
             >
               <h2
                 style={{
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
                   color: "#008ecf",
@@ -280,7 +280,7 @@ function ReportPage() {
             >
               <h2
                 style={{
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                   fontSize: "20px",
                   color: "#008ecf",
@@ -306,7 +306,7 @@ function ReportPage() {
               onClick={handleDownload}
               style={{
                 borderRadius: "8px",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
               }}
             >

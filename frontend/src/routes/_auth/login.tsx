@@ -56,14 +56,14 @@ function LoginPage() {
         )}
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
           <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Open Sans', sans-serif", margin: 0 }}>Sign In</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", margin: 0 }}>Sign In</h1>
         </div>
         {error && (
           <Alert message={error} type="error" style={{ marginBottom: 16 }} showIcon />
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
               Email
             </label>
             <Input
@@ -75,7 +75,7 @@ function LoginPage() {
             />
           </div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
               Password
             </label>
             <Input.Password
@@ -91,7 +91,7 @@ function LoginPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Sign In
           </Button>

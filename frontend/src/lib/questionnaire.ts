@@ -17,9 +17,16 @@ export interface Question {
   options?: AnswerOption[];
 }
 
+export interface Subsection {
+  name: string;
+  count: number;
+}
+
 export interface Category {
   id: string;
   name: string;
+  intro?: string;
+  subsections?: Subsection[];
   questions: Question[];
 }
 

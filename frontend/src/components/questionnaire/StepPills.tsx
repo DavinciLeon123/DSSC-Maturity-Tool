@@ -41,7 +41,7 @@ export function StepPills({
           marginTop: 0,
           textTransform: "uppercase",
           letterSpacing: "0.06em",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         Your progress
@@ -56,7 +56,7 @@ export function StepPills({
           color: "rgba(0,142,207,0.6)",
           marginBottom: "1.25rem",
           marginTop: 0,
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         {answeredCount} of {totalQuestions} answered
@@ -161,7 +161,7 @@ export function StepPills({
                       : isComplete
                       ? "#76b82a"
                       : "rgba(0,142,207,0.45)",
-                    fontFamily: "'Open Sans', sans-serif",
+                    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                     lineHeight: 1.3,
                   }}
                 >

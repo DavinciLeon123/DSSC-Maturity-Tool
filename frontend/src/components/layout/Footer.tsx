@@ -5,10 +5,10 @@ export function Footer() {
   return (
     <footer
       style={{
-        background: '#008ecf',
+        background: '#0f1c2b',
         color: 'rgba(255,255,255,0.7)',
         padding: '3rem 2rem 2rem',
-        fontFamily: "'Open Sans', sans-serif",
+        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -24,7 +24,7 @@ export function Footer() {
         >
           {/* Brand column */}
           <div>
-            <img src={logoWhite} alt="DSSC" style={{ height: '32px', marginBottom: '0.75rem', display: 'block' }} />
+            <img src={logoWhite} alt="DSSC" style={{ height: '50px', marginBottom: '0.75rem', display: 'block' }} />
             <div
               style={{
                 fontWeight: 600,
@@ -38,12 +38,13 @@ export function Footer() {
             <div
               style={{
                 fontSize: '0.875rem',
-                color: 'rgba(255,255,255,0.6)',
+                color: 'rgba(255,255,255,0.85)',
                 maxWidth: '280px',
                 lineHeight: 1.6,
               }}
             >
-              Data Spaces Support Centre
+              Data Space Support Center – Tool Powered by the Centre of Excellence
+              for Data Sharing and Cloud
             </div>
           </div>
 
@@ -68,7 +69,7 @@ export function Footer() {
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   marginBottom: '0.5rem',
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Contact

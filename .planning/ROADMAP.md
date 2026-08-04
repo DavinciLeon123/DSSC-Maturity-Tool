@@ -35,6 +35,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 15: Questionnaire Submission API, Wizard UI & Save Reliability** - Rebuilt wizard with reliable autosave and versioned retake history (completed 2026-07-26)
 - [x] **Phase 16: Report Data Contract, Dual Visualization & Admin Aggregation** - One frozen report contract powering radar chart + priority list in-app, in PDF, and in the admin aggregate view (completed 2026-07-28)
 - [x] **Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)** - Replace CoE-DSC colors/logo/wording with DSSC's own across the app and PDF, add submitted answers to the PDF, default new registrations to DSI-only (completed 2026-08-03)
+- [x] **Phase 16.2: Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping (INSERTED)** - New DSMA copy for the homepage and About page, a welcome screen before the assessment plus a per-dimension intro text within it, and question grouping into 16 named subsections, all per `Teksten MAMI Tool.pdf` (completed 2026-08-04, pending Railway visual sign-off)
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
@@ -229,6 +230,37 @@ Plans:
 
 - [x] 16.1-04-PLAN.md — Fix 51 remaining 'Rubik' font references + 33 remaining old hex colors (#399e5a, rgba(6,0,79,...)) across 9 broken frontend route files + 1 backend filename string in reports.py (BRAND-01, BRAND-02, BRAND-03)
 
+### Phase 16.2: Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping (INSERTED)
+
+**Goal**: The homepage, About page, and assessment wizard reflect the new DSMA copy, structure, and grouping specified in `Teksten MAMI Tool.pdf`, so the tool's content and question flow match the finalized wording before test-coverage and security-hardening work begins.
+**Depends on**: Phase 16.1
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+
+  1. The homepage ("Hoofdpagina") shows the new DSMA copy from the PDF — including the MAMI → DSMA rebrand of headings, CTAs, and body text — and any specified color changes.
+  2. The About page shows the new "About Data Space Maturity Assessment Tool" copy from the PDF, and any specified color changes.
+  3. The assessment opens with an introductory/welcome screen (the PDF's "Voorblad questionnaire" copy: Welcome, What you will assess, What you will receive, Before you start, Time required) before any question is shown.
+  4. Each of the 6 maturity-dimension pages (Governance, Business, Legal, Interoperability, Control over Data & Trust, Value Creation) opens with its own introductory text, exactly as specified in the PDF's "Assessment tool" table (items 14–19).
+  5. The 52 questions are grouped under the 16 named subsections given in the PDF's "Secties questionnaire" table (e.g. Q1-4 "Governance Framework Establishment" … Q48-52 "Adoption Level"), each with a visible sub-header.
+
+**Plans**: 6/6 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 16.2-01-PLAN.md — Font/color/logo foundation: self-hosted Jost + dssc.eu tokens (globals.css/theme.ts) + logo asset replacement + mechanical 'Open Sans'→Jost replace across 18 files (Wave 1)
+- [x] 16.2-04-PLAN.md — Config content: per-category `intro` + `subsections` added to dssc-questionnaire.json, `Subsection` type added to questionnaire.ts (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 16.2-02-PLAN.md — Homepage + Footer: new DSMA copy, dssc.eu hero gradient/logo/ink text, dark-navy footer (Wave 2, depends on 16.2-01)
+- [x] 16.2-03-PLAN.md — About page: new copy (2 paragraphs) + app-wide dssc.eu background wash via _app.tsx (Wave 2, depends on 16.2-01)
+- [x] 16.2-05-PLAN.md — Wizard UI: gated welcome screen (fixes Pitfall 1 resume-position bug), dimension-intro box, 16-subsection question grouping (Wave 2, depends on 16.2-01, 16.2-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 16.2-06-PLAN.md — Human visual/behavioral verification checkpoint covering all 5 success criteria (Wave 3, depends on 16.2-02, 16.2-03, 16.2-05) — conditional approval; user deferred literal click-through to the Railway Integration deployment (see 16.2-06-SUMMARY.md)
+
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
 
 **Goal**: The rebuilt scoring engine, questionnaire API, wizard, and report rendering have automated test coverage, and a Playwright suite verifies the critical end-to-end path.
@@ -270,5 +302,7 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 14. Scoring Engine Replacement | v2.0 | 4/4 | Complete    | 2026-07-24 |
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 5/5 | Complete    | 2026-07-28 |
+| 16.1. DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default | v2.0 | 4/4 | Complete    | 2026-08-03 |
+| 16.2. Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping | v2.0 | 6/6 | In Progress | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |
