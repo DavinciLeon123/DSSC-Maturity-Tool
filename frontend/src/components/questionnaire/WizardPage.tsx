@@ -21,7 +21,7 @@ const { useBreakpoint } = Grid;
 function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   const base = {
     fontSize: "0.75rem",
-    fontFamily: "'Open Sans', sans-serif",
+    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
   } as const;
 
   if (state === "saving") {
@@ -60,7 +60,7 @@ function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => vo
             borderRadius: "6px",
             padding: "0.125rem 0.5rem",
             cursor: "pointer",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Retry save
@@ -322,7 +322,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             fontWeight: 700,
             color: "#008ecf",
             marginBottom: "1rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Thanks for completing the survey.
@@ -331,7 +331,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
           style={{
             color: "rgba(0,142,207,0.6)",
             marginBottom: "2rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Thank you for completing the Dataspace Maturity Assessment. You can now view your DSSC Maturity Report.
@@ -349,7 +349,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             fontWeight: 600,
             fontSize: "1rem",
             cursor: reportLoading ? "not-allowed" : "pointer",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           {reportLoading ? "Generating..." : "Generate heatmap"}
@@ -363,7 +363,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               padding: "0.75rem 1rem",
               borderRadius: "8px",
               fontSize: "0.875rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {reportError}
@@ -411,7 +411,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               fontSize: "0.8rem",
               color: "#666",
               marginBottom: "0.5rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {currentCategory.name} · {answeredCount} of {totalQuestions} answered
@@ -442,7 +442,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 fontWeight: 700,
                 color: "#008ecf",
                 margin: 0,
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 flex: 1,
               }}
             >
@@ -458,7 +458,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 fontSize: "0.8125rem",
                 fontWeight: 500,
                 whiteSpace: "nowrap",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 alignSelf: "center",
                 marginLeft: "1rem",
                 marginRight: "1rem",
@@ -484,7 +484,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginBottom: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               {submitError}
@@ -515,7 +515,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 marginTop: "1rem",
                 fontSize: "0.875rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               This answer didn't save. Retry before continuing.
@@ -542,7 +542,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 background: "transparent",
                 color: isBackDisabled || isNavigating ? "rgba(0,142,207,0.3)" : "#008ecf",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 500,
                 cursor: isBackDisabled || isNavigating ? "not-allowed" : "pointer",
                 fontSize: "1rem",
@@ -561,7 +561,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
                 borderRadius: "8px",
                 background: isNextDisabled ? "rgba(0,142,207,0.05)" : "#008ecf",
                 color: isNextDisabled ? "rgba(0,142,207,0.3)" : "white",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
                 cursor: isNextDisabled ? "not-allowed" : "pointer",
                 fontSize: "1rem",

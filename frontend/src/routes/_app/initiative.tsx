@@ -38,7 +38,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 500,
   marginBottom: "0.375rem",
   color: "#008ecf",
-  fontFamily: "'Open Sans', sans-serif",
+  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
 };
 
 function InitiativePage() {
@@ -164,7 +164,7 @@ function InitiativePage() {
   };
 
   if (loading) {
-    return <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Open Sans', sans-serif" }}>Loading...</p>;
+    return <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Loading...</p>;
   }
 
   return (
@@ -175,7 +175,7 @@ function InitiativePage() {
           fontWeight: 700,
           color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         My Initiative
@@ -211,7 +211,7 @@ function InitiativePage() {
                   fontSize: "1.25rem",
                   fontWeight: 700,
                   color: "#008ecf",
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   margin: 0,
                 }}
               >
@@ -220,7 +220,7 @@ function InitiativePage() {
               <div style={{ marginTop: "0.5rem" }}>
                 <Tag
                   color={initiative.status === "submitted" ? "success" : "warning"}
-                  style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, textTransform: "uppercase" }}
+                  style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, textTransform: "uppercase" }}
                 >
                   {{ draft: "Registered", active: "Active", submitted: "Submitted" }[initiative.status] ?? initiative.status}
                 </Tag>
@@ -232,7 +232,7 @@ function InitiativePage() {
                 onClick={startEdit}
                 style={{
                   borderRadius: "8px",
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                 }}
               >
@@ -248,8 +248,8 @@ function InitiativePage() {
               ["Description", initiative.description],
             ].map(([label, value]) => (
               <>
-                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#008ecf", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>{label}</dt>
-                <dd key={`dd-${label}`} style={{ color: "rgba(0,142,207,0.75)", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>{value}</dd>
+                <dt key={`dt-${label}`} style={{ fontWeight: 600, color: "#008ecf", fontSize: "0.875rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>{label}</dt>
+                <dd key={`dd-${label}`} style={{ color: "rgba(0,142,207,0.75)", fontSize: "0.875rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>{value}</dd>
               </>
             ))}
           </dl>
@@ -269,7 +269,7 @@ function InitiativePage() {
               fontWeight: 700,
               color: "#008ecf",
               marginBottom: "1.5rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Register Your DSI Initiative
@@ -297,7 +297,7 @@ function InitiativePage() {
                   onChange={handleChange}
                   required
                   size="large"
-                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                 />
               </div>
             ))}
@@ -308,7 +308,7 @@ function InitiativePage() {
                 onChange={(value) => setForm((prev) => ({ ...prev, sector: value }))}
                 placeholder="Select a sector..."
                 size="large"
-                style={{ width: "100%", fontFamily: "'Open Sans', sans-serif" }}
+                style={{ width: "100%", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                 options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
               />
             </div>
@@ -321,7 +321,7 @@ function InitiativePage() {
                   onChange={handleChange}
                   required
                   size="large"
-                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                 />
               </div>
             )}
@@ -335,7 +335,7 @@ function InitiativePage() {
                 value={form.description}
                 onChange={handleChange}
                 rows={4}
-                style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
               />
             </div>
             <Button
@@ -344,7 +344,7 @@ function InitiativePage() {
               size="large"
               style={{
                 borderRadius: "8px",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
               }}
             >
@@ -361,7 +361,7 @@ function InitiativePage() {
             style={{
               marginBottom: "1rem",
               borderRadius: "8px",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Cancel
@@ -378,7 +378,7 @@ function InitiativePage() {
                 fontWeight: 700,
                 color: "#008ecf",
                 marginBottom: "1.5rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               Edit Initiative
@@ -406,7 +406,7 @@ function InitiativePage() {
                     onChange={handleEditChange}
                     required
                     size="large"
-                    style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                   />
                 </div>
               ))}
@@ -417,7 +417,7 @@ function InitiativePage() {
                   onChange={(value) => setEditForm((prev) => ({ ...prev, sector: value }))}
                   placeholder="Select a sector..."
                   size="large"
-                  style={{ width: "100%", fontFamily: "'Open Sans', sans-serif" }}
+                  style={{ width: "100%", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                   options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
                 />
               </div>
@@ -430,7 +430,7 @@ function InitiativePage() {
                     onChange={handleEditChange}
                     required
                     size="large"
-                    style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                   />
                 </div>
               )}
@@ -444,7 +444,7 @@ function InitiativePage() {
                   value={editForm.description}
                   onChange={handleEditChange}
                   rows={4}
-                  style={{ borderRadius: "8px", fontFamily: "'Open Sans', sans-serif" }}
+                  style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                 />
               </div>
               <Button
@@ -453,7 +453,7 @@ function InitiativePage() {
                 size="large"
                 style={{
                   borderRadius: "8px",
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                 }}
               >

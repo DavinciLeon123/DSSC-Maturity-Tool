@@ -12,7 +12,7 @@ function LandingPage() {
   return (
     <div
       style={{
-        fontFamily: "'Open Sans', sans-serif",
+        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         background: 'white',
         minHeight: '100vh',
         display: 'flex',
@@ -83,7 +83,7 @@ function LandingPage() {
                 fontWeight: 700,
                 lineHeight: 1.2,
                 marginBottom: '1.5rem',
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               DSSC Maturity Scan for Dataspaces

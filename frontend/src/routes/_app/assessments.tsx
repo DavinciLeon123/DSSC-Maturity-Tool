@@ -134,7 +134,7 @@ function AssessmentsPage() {
           fontWeight: 700,
           color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         Assessment History
@@ -168,7 +168,7 @@ function AssessmentsPage() {
               fontWeight: 600,
               color: "#008ecf",
               margin: 0,
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             No completed assessments yet
@@ -178,7 +178,7 @@ function AssessmentsPage() {
               fontSize: "0.875rem",
               color: "rgba(0,142,207,0.6)",
               marginTop: "0.5rem",
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Finish your first dataspace maturity assessment to see it appear here as your first version.
@@ -201,7 +201,7 @@ function AssessmentsPage() {
                 fontWeight: 600,
                 color: "#008ecf",
                 marginBottom: "1rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               Your assessment history ({history.length})
@@ -228,7 +228,7 @@ function AssessmentsPage() {
                 fontWeight: 600,
                 color: "#008ecf",
                 marginBottom: "1rem",
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               Compare scores across versions

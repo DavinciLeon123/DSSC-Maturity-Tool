@@ -50,14 +50,14 @@ function RegisterPage() {
       <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
           <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Open Sans', sans-serif", margin: 0 }}>Create Account</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", margin: 0 }}>Create Account</h1>
         </div>
         {error && (
           <Alert message={error} type="error" style={{ marginBottom: 16 }} showIcon />
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>Email</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Email</label>
             <Input
               type="email"
               value={email}
@@ -67,7 +67,7 @@ function RegisterPage() {
             />
           </div>
           <div style={{ marginBottom: "0.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>Password</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Password</label>
             <Input.Password
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -76,12 +76,12 @@ function RegisterPage() {
               size="large"
             />
           </div>
-          <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginBottom: "1.5rem", fontFamily: "'Open Sans', sans-serif" }}>
+          <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginBottom: "1.5rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
             Minimum 12 characters required.
           </p>
           {SHOW_PARTICIPANT_TYPE_TOGGLE && (
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
                 I am a:
               </label>
               <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -100,7 +100,7 @@ function RegisterPage() {
                       fontWeight: 600,
                       cursor: "pointer",
                       fontSize: "0.875rem",
-                      fontFamily: "'Open Sans', sans-serif",
+                      fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                       transition: "all 0.15s",
                     }}
                   >
@@ -108,7 +108,7 @@ function RegisterPage() {
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginTop: "0.5rem", fontFamily: "'Open Sans', sans-serif" }}>
+              <p style={{ fontSize: "0.75rem", color: "rgba(0,142,207,0.5)", marginTop: "0.5rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
                 {participantType === "DSI" ? "Data Space Initiative" : "Service Provider"}
               </p>
             </div>
@@ -119,12 +119,12 @@ function RegisterPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Register
           </Button>
         </form>
-        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "rgba(0,142,207,0.5)", fontFamily: "'Open Sans', sans-serif" }}>
+        <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", color: "rgba(0,142,207,0.5)", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
           Already have an account?{" "}
           <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>Sign In</Link>
         </p>

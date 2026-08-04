@@ -14,7 +14,7 @@ function AboutPage() {
           fontWeight: 700,
           color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Open Sans', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         About DSSC
@@ -30,7 +30,7 @@ function AboutPage() {
             color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
             marginBottom: "1rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           The{" "}
@@ -53,7 +53,7 @@ function AboutPage() {
             color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
             marginBottom: "1rem",
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           The framework organizes requirements across 6 categories — Governance, Business, Legal, Interoperability, Control over Data &amp; Trust, and Value Creation — helping organizations understand and demonstrate
@@ -63,7 +63,7 @@ function AboutPage() {
           style={{
             color: "rgba(0,142,207,0.75)",
             lineHeight: 1.8,
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           This tool guides DSI leaders and Service Providers through the structured Dataspace Maturity Assessment and generates a clear

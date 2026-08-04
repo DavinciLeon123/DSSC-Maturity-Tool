@@ -8,7 +8,7 @@ export function Footer() {
         background: '#008ecf',
         color: 'rgba(255,255,255,0.7)',
         padding: '3rem 2rem 2rem',
-        fontFamily: "'Open Sans', sans-serif",
+        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -68,7 +68,7 @@ export function Footer() {
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   marginBottom: '0.5rem',
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Contact

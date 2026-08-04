@@ -43,7 +43,7 @@ function ForgotPasswordPage() {
       <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
           <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Open Sans', sans-serif", margin: 0 }}>Reset Password</h1>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", margin: 0 }}>Reset Password</h1>
         </div>
 
         {sent ? (
@@ -54,7 +54,7 @@ function ForgotPasswordPage() {
               style={{ marginBottom: "1.5rem" }}
               showIcon
             />
-            <p style={{ textAlign: "center", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>
+            <p style={{ textAlign: "center", fontSize: "0.875rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
               <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
                 Back to Sign In
               </Link>
@@ -62,7 +62,7 @@ function ForgotPasswordPage() {
           </div>
         ) : (
           <>
-            <p style={{ fontSize: "0.875rem", color: "rgba(0,142,207,0.6)", marginBottom: "1.5rem", fontFamily: "'Open Sans', sans-serif" }}>
+            <p style={{ fontSize: "0.875rem", color: "rgba(0,142,207,0.6)", marginBottom: "1.5rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
               Enter your email address and we'll send you a link to reset your password.
             </p>
             {error && (
@@ -70,7 +70,7 @@ function ForgotPasswordPage() {
             )}
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Open Sans', sans-serif" }}>Email</label>
+                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Email</label>
                 <Input
                   type="email"
                   value={email}
@@ -85,12 +85,12 @@ function ForgotPasswordPage() {
                 block
                 size="large"
                 loading={loading}
-                style={{ borderRadius: "8px", height: "48px", fontFamily: "'Open Sans', sans-serif", fontWeight: 600 }}
+                style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
               >
                 Send Reset Link
               </Button>
             </form>
-            <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", fontFamily: "'Open Sans', sans-serif" }}>
+            <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
               <Link to="/login" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none" }}>
                 Back to Sign In
               </Link>

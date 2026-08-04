@@ -64,7 +64,7 @@ export function TopNav() {
             cursor: 'pointer',
             padding: '0.5rem',
             color: '#008ecf',
-            fontFamily: "'Open Sans', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             fontWeight: 500,
             fontSize: '1rem',
           }}
@@ -87,7 +87,7 @@ export function TopNav() {
         placement="right"
         width={280}
         title={
-          <div style={{ fontFamily: "'Open Sans', sans-serif", fontWeight: 600, color: '#008ecf', fontSize: '1rem' }}>
+          <div style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: '#008ecf', fontSize: '1rem' }}>
             Navigation
           </div>
         }
@@ -106,7 +106,7 @@ export function TopNav() {
                 padding: '0.875rem 1.5rem',
                 color: '#008ecf',
                 textDecoration: 'none',
-                fontFamily: "'Open Sans', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 500,
                 fontSize: '1rem',
                 borderBottom: '1px solid rgba(0,142,207,0.06)',
@@ -117,7 +117,7 @@ export function TopNav() {
                   padding: '0.875rem 1.5rem',
                   color: '#76b82a',
                   textDecoration: 'none',
-                  fontFamily: "'Open Sans', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                   fontSize: '1rem',
                   borderBottom: '1px solid rgba(0,142,207,0.06)',
@@ -136,7 +136,7 @@ export function TopNav() {
             style={{
               border: '1px solid rgba(0,142,207,0.3)',
               color: '#008ecf',
-              fontFamily: "'Open Sans', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 500,
             }}
           >
