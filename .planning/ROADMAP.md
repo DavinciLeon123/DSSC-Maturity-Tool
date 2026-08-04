@@ -204,12 +204,22 @@ Plans:
 ### Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)
 
 **Goal:** Fix 7 user-reported bugs: (1) retaking the questionnaire fails to save because the retake isn't registered as a new assessment, (2) questionnaire question/answer text renders blue instead of black, (3) "View Report" always shows/downloads the newest survey instead of the one the user selected, (4) PDF report is missing a "For the initiative:" label before the DSI name, (5a) PDF report's score status dot (green/orange/red) is visually clipped, (5b) PDF "Get expert help" box says "Centre of Excellence" instead of "Data Spaces Support Centre", (6) buttons AND cards app-wide have rounded corners but DSSC's brand style (dssc.eu) uses square corners, (7) Admin Panel's "Answers per user" should show completed-assessment count instead of raw answer count on both the Dataspace Maturity Assessments tab and the Users tab, plus an indicator for an in-progress next assessment.
-**Requirements**: TBD
+**Requirements**: TBD (phase-local pseudo-IDs BUG-01/02/03/04/05A/05B/06/07 used in plan frontmatter, mapped 1:1 to the 7 bugs above)
 **Depends on:** Phase 16
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 16.3 to break down — see 16.3-CONTEXT.md for full bug list and investigation notes)
+**Wave 1** *(5 plans, disjoint files, run in parallel)*
+
+- [ ] 16.3-01-PLAN.md — Retake-save fix: shared useStartOrRetakeAssessment hook wired into TopNav + Dashboard + a questionnaire.tsx defense-in-depth guard (Wave 1; BUG-01)
+- [ ] 16.3-02-PLAN.md — Questionnaire text color: QuestionCard.tsx + AnswerButtonGroup.tsx blue-to-black (Wave 1; BUG-02)
+- [ ] 16.3-03-PLAN.md — "View Report" assessment_id fix in assessments.tsx, matching the already-proven admin.heatmap.tsx pattern (Wave 1; BUG-03)
+- [ ] 16.3-04-PLAN.md — PDF report.html: "For the initiative:" label, flattened WeasyPrint-safe answers-row (score-dot clipping), "Data Spaces Support Centre" wording + human-verify checkpoint (Wave 1; BUG-04, BUG-05A, BUG-05B)
+- [ ] 16.3-05-PLAN.md — Admin panel completed-assessment count + in-progress indicator on both the Assessments and Users tabs (backend query rewrite + rewritten tests + frontend columns) (Wave 1; BUG-07)
+
+**Wave 2** *(blocked on Wave 1 completion — touches files 16.3-01/02/03/05 already modified)*
+
+- [ ] 16.3-06-PLAN.md — Square corners (buttons + cards, D-01): theme.ts component-scoped Button/Card radius + ~53 inline-style edits across 17 files (Wave 2, depends on 16.3-01, 16.3-02, 16.3-03, 16.3-05; BUG-06)
 
 ### Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)
 
