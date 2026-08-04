@@ -2,7 +2,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Footer } from '../components/layout/Footer';
 import logoSrc from '../assets/logo-dssc-color.png';
-import logoWhite from '../assets/logo-dssc-white.png';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -34,7 +33,7 @@ function LandingPage() {
         <img
           src={logoSrc}
           alt="DSSC"
-          style={{ width: '76px', height: 'auto' }}
+          style={{ height: '75px', width: 'auto' }}
         />
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <Link
@@ -69,14 +68,14 @@ function LandingPage() {
         {/* Hero section */}
         <section
           style={{
-            background: 'linear-gradient(135deg, #008ecf 0%, #008ecf 100%)',
-            color: 'white',
+            background:
+              'linear-gradient(135deg, rgba(118,184,42,0.06) 0%, rgba(0,142,207,0.10) 60%, rgba(255,255,255,0) 100%), #fff',
             padding: '6rem 2rem',
             textAlign: 'center',
           }}
         >
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <img src={logoWhite} alt="DSSC" style={{ height: '48px', marginBottom: '1.5rem' }} />
+            <img src={logoSrc} alt="DSSC" style={{ height: '48px', marginBottom: '1.5rem' }} />
             <h1
               style={{
                 fontSize: '2.75rem',
@@ -84,22 +83,23 @@ function LandingPage() {
                 lineHeight: 1.2,
                 marginBottom: '1.5rem',
                 fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+                color: '#1c2025',
               }}
             >
-              DSSC Maturity Scan for Dataspaces
+              <span style={{ background: 'linear-gradient(135deg, #76b82a 0%, #008ecf 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', WebkitTextFillColor: 'transparent' }}>DSMA – Data Spaces Maturity Assessment</span>
             </h1>
             <p
               style={{
                 fontSize: '1.1875rem',
                 lineHeight: 1.7,
                 marginBottom: '2.5rem',
-                color: 'rgba(255,255,255,0.85)',
+                color: '#3d444b',
                 maxWidth: '620px',
                 margin: '0 auto 2.5rem',
               }}
             >
-              A practical self-assessment tool that helps you understand and
-              improve the interoperability of your initiative
+              A self-assessment tool that evaluates the maturity of a data space by
+              answering a series of questions across key development indicators.
             </p>
             <div
               style={{
@@ -122,19 +122,19 @@ function LandingPage() {
                   display: 'inline-block',
                 }}
               >
-                Start the check
+                Start the assessment
               </Link>
               <Link
                 to="/register"
                 style={{
                   background: 'transparent',
-                  color: 'white',
+                  color: '#008ecf',
                   padding: '1rem 2.5rem',
                   borderRadius: '8px',
                   fontWeight: 600,
                   fontSize: '1rem',
                   textDecoration: 'none',
-                  border: '1px solid rgba(255,255,255,0.4)',
+                  border: '1px solid rgba(0,142,207,0.4)',
                   display: 'inline-block',
                 }}
               >
@@ -168,18 +168,18 @@ function LandingPage() {
               {[
                 {
                   step: '01',
-                  title: 'Register your initiative',
-                  body: 'Create an account and register your Data Sharing Initiative (DSI) or Service Provider (SP) initiative.',
+                  title: 'Register your data space',
+                  body: 'Create an account and register your Data Space (DS).',
                 },
                 {
                   step: '02',
                   title: 'Complete the assessment',
-                  body: 'Work through the structured Dataspace Maturity Assessment with a 1-5 maturity score per question.',
+                  body: 'Work through the different maturity dimensions indicating your maturity within each question.',
                 },
                 {
                   step: '03',
                   title: 'Receive your report',
-                  body: 'Generate an instant interoperability heatmap with your current compliance level.',
+                  body: 'Generate an instant maturity report with your current levels.',
                 },
               ].map(({ step, title, body }) => (
                 <div
@@ -234,12 +234,12 @@ function LandingPage() {
           </div>
         </section>
 
-        {/* MAMI section */}
+        {/* Closing banner section */}
         <section
           style={{
             padding: '5rem 2rem',
             background:
-              'linear-gradient(90deg, rgba(118,184,42,0.07) 0%, rgba(118,184,42,0.07) 100%), white',
+              'linear-gradient(135deg, rgba(118,184,42,0.06) 0%, rgba(0,142,207,0.10) 60%, rgba(255,255,255,0) 100%), #fff',
           }}
         >
           <div
@@ -249,23 +249,23 @@ function LandingPage() {
               style={{
                 fontSize: '2rem',
                 fontWeight: 700,
-                color: '#008ecf',
+                color: '#1c2025',
                 marginBottom: '1rem',
               }}
             >
-              The Dataspace Maturity Assessment gives you an immediate overview of your
-              current level of dataspace maturity.
+              The DSMA gives you an immediate overview of your current maturity level.
             </h2>
             <p
               style={{
                 fontSize: '1rem',
-                color: 'rgba(0,142,207,0.7)',
+                color: '#3d444b',
                 lineHeight: 1.8,
                 marginBottom: '2rem',
               }}
             >
-              Across six categories (Governance, Business, Legal, Interoperability, Control over Data &amp; Trust, and Value Creation),
-              you will rate your current maturity level. Your answers are visualised in a clear maturity radar.
+              Using the CEN / CENELEC Maturity Assessment standard, you will indicate what
+              your current data space already has developed or where there is room for
+              improvement.
             </p>
             <Link
               to="/login"
