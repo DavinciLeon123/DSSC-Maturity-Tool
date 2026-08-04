@@ -243,7 +243,7 @@ Plans:
   4. Each of the 6 maturity-dimension pages (Governance, Business, Legal, Interoperability, Control over Data & Trust, Value Creation) opens with its own introductory text, exactly as specified in the PDF's "Assessment tool" table (items 14–19).
   5. The 52 questions are grouped under the 16 named subsections given in the PDF's "Secties questionnaire" table (e.g. Q1-4 "Governance Framework Establishment" … Q48-52 "Adoption Level"), each with a visible sub-header.
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 **Wave 1**
@@ -259,7 +259,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 16.2-06-PLAN.md — Human visual/behavioral verification checkpoint covering all 5 success criteria (Wave 3, depends on 16.2-02, 16.2-03, 16.2-05)
+- [x] 16.2-06-PLAN.md — Human visual/behavioral verification checkpoint covering all 5 success criteria (Wave 3, depends on 16.2-02, 16.2-03, 16.2-05) — conditional approval; user deferred literal click-through to the Railway Integration deployment (see 16.2-06-SUMMARY.md)
 
 ### Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E
 
@@ -303,6 +303,6 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 15. Questionnaire Submission API, Wizard UI & Save Reliability | v2.0 | 8/8 | Complete    | 2026-07-26 |
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 5/5 | Complete    | 2026-07-28 |
 | 16.1. DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default | v2.0 | 4/4 | Complete    | 2026-08-03 |
-| 16.2. Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping | v2.0 | 5/6 | In Progress | - |
+| 16.2. Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping | v2.0 | 6/6 | In Progress | - |
 | 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |

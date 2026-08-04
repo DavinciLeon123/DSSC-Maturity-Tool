@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 16.2 Plan 05 executed (wizard welcome screen, dimension intros, subsection grouping)
-last_updated: "2026-08-04T05:36:07Z"
+stopped_at: Phase 16.2 Plan 06 executed (human-verify checkpoint resolved with conditional approval; Phase 16.2's 6/6 plans now complete, awaiting orchestrator phase-completion step)
+last_updated: "2026-08-04T05:51:48Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 36
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** A dataspace initiative leader can complete the DSSC Maturity Scan and immediately see which of the 6 maturity dimensions need attention, via a clear score, priority ranking, and visual report.
-**Current focus:** Phase 16.1 — dssc-rebranding-pdf-content-registration-default
+**Current focus:** Phase 16.2 — content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping (6/6 plans executed; phase-goal verification + completion sign-off pending as a separate orchestrator step)
 
 ## Milestone Status
 
@@ -38,7 +38,9 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping — 5/6 plans executed (16.2-01, 16.2-04 complete from Wave 1; 16.2-02, 16.2-03, 16.2-05 complete from Wave 2, ran concurrently in separate agents sharing this working tree). Only 16.2-06 (Wave 3 human verification checkpoint) remains. Phases 17 (Test Coverage) and 18 (Security Hardening) follow after, per user request to land all UI/content/functionality first.
+**Active phase:** 16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping — 6/6 plans executed (16.2-01, 16.2-04 complete from Wave 1; 16.2-02, 16.2-03, 16.2-05 complete from Wave 2, ran concurrently in separate agents sharing this working tree; 16.2-06's Wave 3 human-verify checkpoint now resolved with conditional approval). Phase-goal verification and marking Phase 16.2 complete in ROADMAP.md is a separate orchestrator step, not yet performed. Phases 17 (Test Coverage) and 18 (Security Hardening) follow after, per user request to land all UI/content/functionality first.
+
+This session (2026-08-04): Resumed and finalized Plan 16.2-06 (the phase's single checkpoint task/plan). This plan had paused at its blocking `checkpoint:human-verify` gate (Task 1, requesting confirmation of all 5 of Phase 16.2's success criteria against a real running app). The user's verbatim reply: *"Ill test it on Railway. So approved for now, finish up the phase and open a Feature Branche and a PR to Staging on my DSSC Maturity Tool GH-repo."* **Recorded accurately, not overstated:** this is a conditional/provisional approval to unblock finishing the phase and shipping a PR — the user redirected the actual detailed visual/behavioral click-through (including the welcome-screen refresh-persistence regression check from RESEARCH.md Pitfall 1) to the Railway-deployed Integration environment, to be done once the branch/PR ships and Railway auto-deploys it, rather than performing it locally right now. Treated this as sufficient to close the checkpoint per the plan's own `<resume-signal>` contract (accepts "approved" or a list of concrete gaps — the user gave the former, with explicit instructions to proceed). No code changes in this plan (documentation-only). **User's explicit next-step request — flagged here for the orchestrator/next agent, since opening a feature branch + PR to `staging` is phase-completion-level work outside this single plan's scope per its own execution-context note:** open a `feature/*` branch cut from `staging` and a PR into `staging` on the DSSC Maturity Tool GitHub repo for the whole Phase 16.2 body of work, once phase-completion verification is done. Updated ROADMAP.md (16.2-06 checkbox checked, Plans 5/6 → 6/6; phase `Status` deliberately left as "In Progress" — not marked "Complete" — since that determination belongs to the orchestrator's separate phase-goal-verification step). One pre-existing, unrelated line-ending-only diff on `frontend/src/routeTree.gen.ts` (recurring build/typecheck environment noise, same pattern as 16.2-01) was present in the working tree at session start and left untouched/unstaged, per the scope-boundary rule. Ready for the orchestrator to run phase-goal verification and, if it passes (including the Railway-deployed visual check the user is about to perform), mark Phase 16.2 complete and proceed with the requested feature-branch/PR workflow.
 
 Also this session (2026-08-04): Executed Plan 16.2-05 (wizard welcome screen + dimension intros + subsection grouping, SC3/SC4/SC5 — a Wave-2 plan, ran concurrently with 16.2-02 and 16.2-03 in separate agents sharing this working tree; disjoint files confirmed). Added `WelcomeScreen.tsx` (full verbatim Voorblad copy + Begin CTA) and gated it behind a new `showWelcome` state in `WizardPage.tsx`, seeded from `lastViewedCategoryId == null`; fixed the real pre-existing RESEARCH.md Pitfall 1 bug by guarding the pre-existing `saveLastViewedCategory` effect (`if (showWelcome) return;` inside the effect body, `showWelcome` added to its dependency array) so a refresh mid-welcome-screen no longer silently persists `categories[0].id` and skips the welcome screen on the next mount. Added `SubsectionLabel.tsx` and a `QuestionGroup` component that interleaves subsection eyebrow labels before each subsection's first question, driven by `category.subsections` (16.2-04) — `Question X of Y`/`answeredCount`/`completedCategoryIds`/`StepPills` all left untouched. Added a muted `rgba(0,142,207,0.04)`-tinted dimension-intro box rendering `category.intro` on every dimension page view. **One real deviation:** the plan's own suggested plain-helper-function code for the question-grouping logic tripped `eslint-plugin-react-hooks` v7's new "refs" rule ("Cannot access ref value during render") because it couldn't statically prove the `handleAnswerChange` argument — which closes over a `useRef` — wasn't invoked synchronously; restructured it as a `QuestionGroup` React component instead (same algorithm, `onAnswerChange` forwarded via JSX props, the same idiom the pre-existing inline `.map` already used safely) — zero behavior change, required to pass the plan's own lint gate. `npm run typecheck`/`lint`/`build` all pass. No browser tool or seeded local backend available in this environment, so the plan's Task 3 manual verification pass was performed via a throwaway jsdom/Testing Library harness (4 assertions: welcome screen shows on fresh draft; zero `PATCH last-viewed-category` calls while `showWelcome` is true — the direct proxy for the Pitfall 1 refresh regression; one-way advance past welcome with correct intro/subsections; resume-skips-welcome for an in-progress draft — all passed) plus direct inspection of `config/dssc-questionnaire.json`'s real `intro`/`subsections` data for all 6 categories against `16.2-SOURCE-CONTENT.md` §5 (8/9/6/9/9/11 = 52, names/order all match); the harness was deleted before committing, not part of this plan's file list. **Hit the same recurring git-index race** (a concurrent sibling-plan agent staged its own `ROADMAP.md`/`STATE.md`/summary-file changes into the shared index between my `git status` and `git add`) — used `git commit --only -- <exact paths>` for Tasks 2 and 3 instead of `git add` + `git commit`, verified via `git show --stat` that each of the three resulting commits (`2f6274a`, `e3ebfc8`, `c4da7c8`) contains exactly its own intended files. SC3/SC4/SC5 marked complete. Ready for 16.2-06 (Wave 3 human verification checkpoint) once 16.2-02/16.2-03/16.2-05 are all confirmed landed.
 
@@ -155,9 +157,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-08-04T05:36:07Z
-**Stopped at:** Phase 16.2 Plan 05 executed (wizard welcome screen, dimension intros, subsection grouping); Plans 01/02/03/04 also complete this session
-**Resume file:** .planning/phases/16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping/16.2-05-SUMMARY.md
+**Last session:** 2026-08-04T05:51:48Z
+**Stopped at:** Phase 16.2 Plan 06 executed (human-verify checkpoint resolved with conditional approval); Phase 16.2 now 6/6 plans complete, phase-goal verification/completion sign-off pending as a separate orchestrator step
+**Resume file:** .planning/phases/16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping/16.2-06-SUMMARY.md
 
 ## Performance Metrics
 
@@ -178,6 +180,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 16.2 P03 | ~10min | 2 tasks | 2 files |
 | Phase 16.2 P02 | ~15min | 2 tasks | 2 files |
 | Phase 16.2 P05 | 15min | 3 tasks | 3 files |
+| Phase 16.2 P06 | 5min | 1 task | 0 files |
 
 ## Decisions
 
@@ -220,3 +223,4 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 16.2-05]: Restructured the plan's suggested plain-function question-grouping helper into a `QuestionGroup` React component (Rule 3 auto-fix) — the plain-function form tripped `eslint-plugin-react-hooks` v7's new "refs" rule on the `handleAnswerChange` ref-closing argument; zero behavior change, required to pass the plan's own lint verification gate
 - [Phase 16.2-05]: Verified the plan's Task 3 manual verification pass via a throwaway jsdom/Testing Library harness (deleted before committing) plus direct `config/dssc-questionnaire.json` inspection, rather than a live browser click-through — no browser tool or seeded local backend available in this environment
 - [Phase 16.2-05]: Used `git commit --only -- <paths>` for Tasks 2/3 instead of `git add` + `git commit` after a concurrent sibling-plan agent staged its own `ROADMAP.md`/`STATE.md`/summary files into the shared index mid-session — commits exactly the given paths' content regardless of what else is staged, verified via `git show --stat` after each commit
+- [Phase 16.2-06]: Treated the user's "approved for now" (with detailed click-through verification explicitly deferred to the Railway Integration deployment) as sufficient to close the plan's blocking `checkpoint:human-verify` gate — recorded as a conditional/provisional approval, not overstated as a literal local confirmation of all 5 success-criteria checklist items; ROADMAP.md's phase `Status` deliberately left as "In Progress" (not "Complete") since phase-goal verification and completion sign-off is a separate orchestrator step this plan explicitly did not perform
