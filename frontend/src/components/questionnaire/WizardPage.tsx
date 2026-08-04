@@ -564,6 +564,29 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             </div>
           </div>
 
+          {/* Dimension intro box (SC4): a lighter tint variant (not the
+              same solid-white card as the question cards below it) so it
+              reads as framing/context rather than another question card —
+              renders every time the dimension page is viewed, no dismiss/
+              collapse state. intro is optional on Category (16.2-04); a
+              category without one simply renders nothing here. */}
+          {currentCategory.intro && (
+            <div
+              style={{
+                background: "rgba(0,142,207,0.04)",
+                borderRadius: "12px",
+                padding: "1.25rem 1.5rem",
+                marginBottom: "1.5rem",
+                color: "#3d444b",
+                fontSize: "0.9375rem",
+                lineHeight: 1.6,
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+              }}
+            >
+              {currentCategory.intro}
+            </div>
+          )}
+
           {/* Submit error */}
           {submitError && (
             <div
