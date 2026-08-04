@@ -27,6 +27,11 @@
     {
       "id": "cat-1",
       "name": "Governance",
+      "intro": "This section assesses how your data space is organized and managed. The questions focus on governance structures, decision-making, the rulebook, operational processes, participant management, and support mechanisms. Together, these elements demonstrate how effectively the data space can operate, onboard participants, manage change, and ensure long-term sustainability.",
+      "subsections": [
+        { "name": "Governance Framework Establishment", "count": 4 },
+        { "name": "Participation Management", "count": 4 }
+      ],
       "questions": [
         {
           "id": "q-1-1",
@@ -129,6 +134,11 @@
     {
       "id": "cat-2",
       "name": "Business",
+      "intro": "This section evaluates the business foundations of your data space. The questions examine business goals, funding and revenue models, value propositions, use cases, participant engagement, data sharing activities, and the creation of value-added services. The objective is to understand whether the data space can deliver sustainable value to its participants over time.",
+      "subsections": [
+        { "name": "Business Model Development", "count": 4 },
+        { "name": "Use Case Development", "count": 5 }
+      ],
       "questions": [
         {
           "id": "q-2-1",
@@ -243,6 +253,11 @@
     {
       "id": "cat-3",
       "name": "Legal",
+      "intro": "This section assesses the legal readiness of your data space. The questions focus on identifying applicable regulations, translating them into requirements, ensuring compliance, and establishing agreements that govern participation, data sharing, and service provision. Together, these elements help create a legally sound environment for trusted data exchange.",
+      "subsections": [
+        { "name": "Regulatory Compliance", "count": 3 },
+        { "name": "Contractual Framework", "count": 3 }
+      ],
       "questions": [
         {
           "id": "q-3-1",
@@ -321,6 +336,12 @@
     {
       "id": "cat-4",
       "name": "Interoperability",
+      "intro": "This section evaluates how effectively participants can exchange and understand data. The questions cover data models, semantic standards, reference datasets, APIs, data exchange protocols, and mechanisms for provenance, observability, and traceability. These capabilities enable consistent, reliable, and scalable data sharing both within and across data spaces.",
+      "subsections": [
+        { "name": "Shared Semantics", "count": 4 },
+        { "name": "Interoperable Exchange", "count": 2 },
+        { "name": "Provenance, Observability and Monitoring", "count": 3 }
+      ],
       "questions": [
         {
           "id": "q-4-1",
@@ -435,6 +456,12 @@
     {
       "id": "cat-5",
       "name": "Control over Data & Trust",
+      "intro": "This section assesses the mechanisms that enable participants to share data with confidence while retaining control. The questions focus on digital identity, verifiable credentials, trust frameworks, compliance verification, registries, and the enforcement of access, usage, and consent policies. Together, these capabilities establish trust, security, and data sovereignty within the data space.",
+      "subsections": [
+        { "name": "Identity Management and Attestation", "count": 3 },
+        { "name": "Trust Framework", "count": 3 },
+        { "name": "Access and Usage Policies Enforcement", "count": 3 }
+      ],
       "questions": [
         {
           "id": "q-5-1",
@@ -549,6 +576,13 @@
     {
       "id": "cat-6",
       "name": "Value Creation",
+      "intro": "This section evaluates how your data space enables participants to discover, use, and create value from shared data. The questions focus on data and service descriptions, catalogues, value creation services, federation with other data spaces, participant adoption, data reuse, satisfaction, and the generation of new services and offerings. The goal is to understand the tangible value produced by the data space ecosystem.",
+      "subsections": [
+        { "name": "Data, Services and Offerings Descriptions", "count": 1 },
+        { "name": "Publication and Discovery", "count": 2 },
+        { "name": "Value Creation Services", "count": 3 },
+        { "name": "Adoption Level", "count": 5 }
+      ],
       "questions": [
         {
           "id": "q-6-1",

@@ -40,7 +40,7 @@ export function TopNav() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 2rem',
-        height: '64px',
+        height: '96px',
         background: '#ffffff',
         borderBottom: '1px solid rgba(0,142,207,0.1)',
         position: 'sticky',
@@ -49,7 +49,7 @@ export function TopNav() {
       }}>
         {/* Logo — left side */}
         <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src={logoSrc} alt="DSSC" height={36} />
+          <img src={logoSrc} alt="DSSC" height={75} />
         </Link>
 
         {/* Hamburger + Menu label — right side */}
