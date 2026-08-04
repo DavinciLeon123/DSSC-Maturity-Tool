@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
-stopped_at: Phase 16.2 Plan 02 executed (homepage + footer DSMA rebrand)
-last_updated: "2026-08-04T05:30:04Z"
+stopped_at: Phase 16.2 Plan 05 executed (wizard welcome screen, dimension intros, subsection grouping)
+last_updated: "2026-08-04T05:36:07Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 36
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 # Project State
@@ -38,7 +38,9 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 
 ## Current Position
 
-**Active phase:** 16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping — 4/6 plans executed (16.2-01, 16.2-04 complete from Wave 1; 16.2-02, 16.2-03 complete from Wave 2, ran concurrently with 16.2-05 in separate sessions sharing this working tree). Phases 17 (Test Coverage) and 18 (Security Hardening) follow after, per user request to land all UI/content/functionality first.
+**Active phase:** 16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping — 5/6 plans executed (16.2-01, 16.2-04 complete from Wave 1; 16.2-02, 16.2-03, 16.2-05 complete from Wave 2, ran concurrently in separate agents sharing this working tree). Only 16.2-06 (Wave 3 human verification checkpoint) remains. Phases 17 (Test Coverage) and 18 (Security Hardening) follow after, per user request to land all UI/content/functionality first.
+
+Also this session (2026-08-04): Executed Plan 16.2-05 (wizard welcome screen + dimension intros + subsection grouping, SC3/SC4/SC5 — a Wave-2 plan, ran concurrently with 16.2-02 and 16.2-03 in separate agents sharing this working tree; disjoint files confirmed). Added `WelcomeScreen.tsx` (full verbatim Voorblad copy + Begin CTA) and gated it behind a new `showWelcome` state in `WizardPage.tsx`, seeded from `lastViewedCategoryId == null`; fixed the real pre-existing RESEARCH.md Pitfall 1 bug by guarding the pre-existing `saveLastViewedCategory` effect (`if (showWelcome) return;` inside the effect body, `showWelcome` added to its dependency array) so a refresh mid-welcome-screen no longer silently persists `categories[0].id` and skips the welcome screen on the next mount. Added `SubsectionLabel.tsx` and a `QuestionGroup` component that interleaves subsection eyebrow labels before each subsection's first question, driven by `category.subsections` (16.2-04) — `Question X of Y`/`answeredCount`/`completedCategoryIds`/`StepPills` all left untouched. Added a muted `rgba(0,142,207,0.04)`-tinted dimension-intro box rendering `category.intro` on every dimension page view. **One real deviation:** the plan's own suggested plain-helper-function code for the question-grouping logic tripped `eslint-plugin-react-hooks` v7's new "refs" rule ("Cannot access ref value during render") because it couldn't statically prove the `handleAnswerChange` argument — which closes over a `useRef` — wasn't invoked synchronously; restructured it as a `QuestionGroup` React component instead (same algorithm, `onAnswerChange` forwarded via JSX props, the same idiom the pre-existing inline `.map` already used safely) — zero behavior change, required to pass the plan's own lint gate. `npm run typecheck`/`lint`/`build` all pass. No browser tool or seeded local backend available in this environment, so the plan's Task 3 manual verification pass was performed via a throwaway jsdom/Testing Library harness (4 assertions: welcome screen shows on fresh draft; zero `PATCH last-viewed-category` calls while `showWelcome` is true — the direct proxy for the Pitfall 1 refresh regression; one-way advance past welcome with correct intro/subsections; resume-skips-welcome for an in-progress draft — all passed) plus direct inspection of `config/dssc-questionnaire.json`'s real `intro`/`subsections` data for all 6 categories against `16.2-SOURCE-CONTENT.md` §5 (8/9/6/9/9/11 = 52, names/order all match); the harness was deleted before committing, not part of this plan's file list. **Hit the same recurring git-index race** (a concurrent sibling-plan agent staged its own `ROADMAP.md`/`STATE.md`/summary-file changes into the shared index between my `git status` and `git add`) — used `git commit --only -- <exact paths>` for Tasks 2 and 3 instead of `git add` + `git commit`, verified via `git show --stat` that each of the three resulting commits (`2f6274a`, `e3ebfc8`, `c4da7c8`) contains exactly its own intended files. SC3/SC4/SC5 marked complete. Ready for 16.2-06 (Wave 3 human verification checkpoint) once 16.2-02/16.2-03/16.2-05 are all confirmed landed.
 
 This session (2026-08-04): Executed Plan 16.2-01 (font/color/logo foundation, SC1/SC2 — the other Wave-1 "define contracts first" plan, ran concurrently with 16.2-04). Self-hosted the Jost variable font (`frontend/src/assets/fonts/Jost-VariableFont_wght.ttf`), replacing the Google Fonts CDN `@import` in `globals.css` with a local `@font-face`; added the full `--dssc-*` brand token set (ink/paper/bg-dark/hero+accent gradients, etc.) sourced from dssc.eu's live compiled CSS; updated `theme.ts`'s antd `fontFamily`/`colorText` to Jost/`#1c2025`; resized `TopNav.tsx`'s shared header logo 36px→75px (header 64px→96px) to match dssc.eu; mechanically replaced `'Open Sans', sans-serif` with the Jost stack across the remaining 18 files (confirmed zero `Open Sans` references left anywhere in `frontend/src`); confirmed both logo PNGs already matched the dssc.eu reference assets byte-for-byte from Phase 16.1 (no change needed). `npm run typecheck`/`lint`/`build` all pass. **Hit the same concurrent-execution git-index race this plan's counterpart (16.2-04) hit, from the other side:** Task 1's commit (`f86b1c3`) unexpectedly absorbed 16.2-04's staged `config/dssc-questionnaire.json` change (34 lines) even though this plan never touched or staged that file — confirmed via `git status` immediately before committing that it was unstaged, and via `git show` after that the swept-in diff is exactly 16.2-04's intended, uncorrupted content. Left it as-is rather than rewriting a concurrently-running agent's commit. Also caught and reverted two pieces of pure environment noise before they could pollute a commit: `frontend/package-lock.json` npm-metadata churn from a first-time `npm install` in this sandbox, and a line-ending-only diff on `frontend/src/routeTree.gen.ts` from running the build/typecheck. **`gsd-tools roadmap update-plan-progress 16.2` reproduced a real bug this run:** it reported `{"updated": true, "summary_count": 2, ...}` but the actual diff it wrote checked off the wrong plan (`16.2-04-PLAN.md` instead of `16.2-01-PLAN.md`, the plan this session executed) and shifted/dropped columns in the new phase-16.2 progress-table row (milestone `v2.0` missing, values shifted left) — reverted via `git checkout` and fixed ROADMAP.md by hand instead. `gsd-tools state advance-plan`/`state update-progress` both hard-failed outright (same errors 16.2-04 hit: `Cannot parse Current Plan or Total Plans in Phase`, `Progress field not found`) — updated this STATE.md by hand, merging with 16.2-04's already-present same-session edits rather than overwriting them. See `16.2-01-SUMMARY.md` for full detail. Ready to continue with 16.2-02/03/05/06 (Waves 2-3, per ROADMAP.md's wave structure) once both Wave-1 plans' outputs are confirmed consistent.
 
@@ -153,9 +155,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-08-04T05:30:04Z
-**Stopped at:** Phase 16.2 Plan 02 executed (homepage + footer DSMA rebrand); Plans 01/03/04 also complete this session
-**Resume file:** .planning/phases/16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping/16.2-02-SUMMARY.md
+**Last session:** 2026-08-04T05:36:07Z
+**Stopped at:** Phase 16.2 Plan 05 executed (wizard welcome screen, dimension intros, subsection grouping); Plans 01/02/03/04 also complete this session
+**Resume file:** .planning/phases/16.2-content-ux-updates-frontpage-about-copy-assessment-intros-question-grouping/16.2-05-SUMMARY.md
 
 ## Performance Metrics
 
@@ -175,6 +177,7 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 16.2 P01 | 25min | 2 tasks | 19 files |
 | Phase 16.2 P03 | ~10min | 2 tasks | 2 files |
 | Phase 16.2 P02 | ~15min | 2 tasks | 2 files |
+| Phase 16.2 P05 | 15min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -214,3 +217,6 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 16.2-03]: Did not fix an unrelated pre-existing ESLint error in `WizardPage.tsx` surfaced by a repo-wide lint run — caused by concurrently running sibling plan 16.2-05's in-progress edits, confirmed out of scope, logged to `deferred-items.md` (D-16.2-03-01) instead of fixed
 - [Phase 16.2-02]: Wrapped the entire h1 text in the gradient-clip span (not just the "Data Spaces Maturity Assessment" substring the plan's `<interfaces>` prose suggested) — a tag boundary splitting the phrase would have broken the plan's own literal-string `grep`/`must_haves.contains` verification; prioritized the explicit machine-checked check over the softer "reasonable substring" wording
 - [Phase 16.2-02]: Removed the now-unused `logoWhite` import from `index.tsx` (Rule 3 auto-fix) after swapping the hero logo to `logoSrc` per the plan's own instructed change
+- [Phase 16.2-05]: Restructured the plan's suggested plain-function question-grouping helper into a `QuestionGroup` React component (Rule 3 auto-fix) — the plain-function form tripped `eslint-plugin-react-hooks` v7's new "refs" rule on the `handleAnswerChange` ref-closing argument; zero behavior change, required to pass the plan's own lint verification gate
+- [Phase 16.2-05]: Verified the plan's Task 3 manual verification pass via a throwaway jsdom/Testing Library harness (deleted before committing) plus direct `config/dssc-questionnaire.json` inspection, rather than a live browser click-through — no browser tool or seeded local backend available in this environment
+- [Phase 16.2-05]: Used `git commit --only -- <paths>` for Tasks 2/3 instead of `git add` + `git commit` after a concurrent sibling-plan agent staged its own `ROADMAP.md`/`STATE.md`/summary files into the shared index mid-session — commits exactly the given paths' content regardless of what else is staged, verified via `git show --stat` after each commit
