@@ -201,6 +201,16 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)
+
+**Goal:** Fix 7 user-reported bugs: (1) retaking the questionnaire fails to save because the retake isn't registered as a new assessment, (2) questionnaire question/answer text renders blue instead of black, (3) "View Report" always shows/downloads the newest survey instead of the one the user selected, (4) PDF report is missing a "For the initiative:" label before the DSI name, (5a) PDF report's score status dot (green/orange/red) is visually clipped, (5b) PDF "Get expert help" box says "Centre of Excellence" instead of "Data Spaces Support Centre", (6) buttons AND cards app-wide have rounded corners but DSSC's brand style (dssc.eu) uses square corners, (7) Admin Panel's "Answers per user" should show completed-assessment count instead of raw answer count on both the Dataspace Maturity Assessments tab and the Users tab, plus an indicator for an in-progress next assessment.
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16.3 to break down — see 16.3-CONTEXT.md for full bug list and investigation notes)
+
 ### Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)
 
 **Goal**: The tool is fully rebranded from CoE-DSC to DSSC (colors, logo, wording — including "Questionnaire" → "Dataspace Maturity Assessment") across the app and the PDF report, the PDF report includes the initiative's actual submitted answers alongside the scores, and new registrations default to DSI only (with the Service-Provider option removable/restorable without a data-model change).
