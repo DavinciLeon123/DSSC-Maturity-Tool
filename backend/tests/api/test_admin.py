@@ -84,15 +84,18 @@ def test_admin_endpoints_reject_plain_user_token_with_403(user_client, method, p
     assert response.json()["detail"] == "Admin access required"
 
 
-def test_list_users_returns_initiative_and_answer_fields(admin_client, session):
+def test_list_users_returns_completed_assessment_count_and_draft_indicator(
+    admin_client, session
+):
     user_a = make_user(session)
     initiative_a = make_initiative(session, user=user_a)
-    make_answer(session, initiative=initiative_a)
-    make_answer(session, initiative=initiative_a)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.submitted)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.submitted)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.draft)
 
     user_b = make_user(session)
     initiative_b = make_initiative(session, user=user_b)
-    make_answer(session, initiative=initiative_b)
+    # No assessments at all for user_b.
 
     response = admin_client.get("/api/v1/admin/users")
     assert response.status_code == 200
@@ -101,20 +104,23 @@ def test_list_users_returns_initiative_and_answer_fields(admin_client, session):
     row_a = rows_by_email[user_a.email]
     assert row_a["initiative_name"] == initiative_a.name
     assert row_a["initiative_status"] == initiative_a.status.value
-    assert row_a["answer_count"] == 2
+    assert row_a["completed_assessment_count"] == 2
+    assert row_a["has_draft_in_progress"] is True
 
     row_b = rows_by_email[user_b.email]
     assert row_b["initiative_name"] == initiative_b.name
-    assert row_b["initiative_status"] == initiative_b.status.value
-    assert row_b["answer_count"] == 1
+    assert row_b["completed_assessment_count"] == 0
+    assert row_b["has_draft_in_progress"] is False
 
 
-def test_list_initiatives_returns_user_email_and_answer_count(admin_client, session):
+def test_list_initiatives_returns_completed_assessment_count_and_draft_indicator(
+    admin_client, session
+):
     user_a = make_user(session)
     initiative_a = make_initiative(session, user=user_a)
-    make_answer(session, initiative=initiative_a)
-    make_answer(session, initiative=initiative_a)
-    make_answer(session, initiative=initiative_a)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.submitted)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.submitted)
+    make_assessment(session, initiative=initiative_a, status=AssessmentStatus.draft)
 
     user_b = make_user(session)
     initiative_b = make_initiative(session, user=user_b)
@@ -125,11 +131,13 @@ def test_list_initiatives_returns_user_email_and_answer_count(admin_client, sess
 
     row_a = rows_by_name[initiative_a.name]
     assert row_a["user_email"] == user_a.email
-    assert row_a["answer_count"] == 3
+    assert row_a["completed_assessment_count"] == 2
+    assert row_a["has_draft_in_progress"] is True
 
     row_b = rows_by_name[initiative_b.name]
     assert row_b["user_email"] == user_b.email
-    assert row_b["answer_count"] == 0
+    assert row_b["completed_assessment_count"] == 0
+    assert row_b["has_draft_in_progress"] is False
 
 
 # ---------------------------------------------------------------------------
