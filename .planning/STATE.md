@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
+stopped_at: Phase 16.3 Plan 03 executed (Wave 1, BUG-03 "View Report" assessment_id fix; other Wave 1 plans running concurrently)
+last_updated: "2026-08-05T05:10:31.505Z"
+progress:
+  total_phases: 20
+  completed_phases: 17
+  total_plans: 85
+  completed_plans: 82
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
 stopped_at: Phase 17 context gathered
 last_updated: "2026-08-04T18:27:09.909Z"
 progress:
@@ -178,8 +192,8 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 
 ## Session
 
-**Last session:** 2026-08-05T05:06:18Z
-**Stopped at:** Phase 16.3 Plan 02 executed (Wave 1, BUG-02 questionnaire text color; other Wave 1 plans running concurrently)
+**Last session:** 2026-08-05T05:10:00Z
+**Stopped at:** Phase 16.3 Plan 03 executed (Wave 1, BUG-03 "View Report" assessment_id fix; other Wave 1 plans running concurrently)
 **Resume file:** .planning/phases/16.3-bug-fixes-batch-survey-retake-report-colors-and-pdf/16.3-CONTEXT.md
 
 ## Performance Metrics
@@ -204,6 +218,8 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 | Phase 16.2 P06 | 5min | 1 task | 0 files |
 | Phase 16.3 P02 | 5min | 1 tasks | 2 files |
 | Phase 16.3 P01 | ~12min | 2 tasks | 4 files |
+| Phase 16.3 P03 | <5min | 1 task | 1 file |
+| Phase 16.3 P05 | 10min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -250,3 +266,9 @@ This session (2026-07-23): Executed Plan 13-04 (hand-written archive-table-split
 - [Phase 16.3-02]: Verified a prior crashed attempt's already-applied edit matched the plan's `<action>` block exactly before proceeding, rather than blindly redoing it — ran the plan's full verification suite (tsc/eslint/grep) against the existing edit instead
 - [Phase 16.3-02]: Left an unrelated sibling-plan (16.3-03) change to `assessments.tsx`, swept into this plan's commit by the same recurring concurrent-execution git-index race documented in Phase 16.2, as-is after confirming via `git show` the diff is complete and uncorrupted — consistent with this repo's established precedent of not rewriting a concurrently-running agent's work
 - [Phase 16.3-02]: Reverted a newly-observed `gsd-tools state record-metric` bug (prepended a corrupted duplicate frontmatter block with fabricated progress numbers) by hand, keeping only the correctly-appended metrics-table row — same class of bug previously documented against `state record-session`
+- [Phase 16.3-01]: Accepted a prior crashed attempt's already-created `frontend/src/lib/retake.ts` as-is after verifying it byte-for-byte matched the plan's `<action>` block and typechecked cleanly, rather than recreating it
+- [Phase 16.3-01]: Used `git commit -m "..." --only -- <exact paths>` for both task commits (same pattern as 16.2-05/16.3-02) after confirming concurrent sibling agents were staging unrelated files into the shared index between `git status` checks and commit time
+- [Phase 16.3-01]: Skipped `gsd-tools state advance-plan`/`record-metric`/`roadmap update-plan-progress` after `state advance-plan` reproduced the already-documented `Cannot parse Current Plan or Total Plans in Phase` hard failure on the first attempt — updated STATE.md/ROADMAP.md by hand instead
+- [Phase 16.3-03]: Verified a prior crashed attempt's already-applied edit matched the plan's `<interfaces>` code block and file list exactly before proceeding, rather than blindly redoing it — ran the plan's full verification suite (tsc/eslint/grep) against the existing edit instead
+- [Phase 16.3-03]: Left this plan's `assessments.tsx` change swept into the concurrently-running 16.3-02 agent's commit (`b6324a5`) by the same recurring concurrent-execution git-index race, as-is after confirming via `git show` the diff is byte-for-byte correct and uncorrupted — consistent with this repo's established precedent (16.2-01/04/05, 16.3-02) of not rewriting a concurrently-running agent's commit
+- [Phase 16.3-03]: `gsd-tools roadmap update-plan-progress 16.3` again undercounted/failed to check off this plan's list-item box despite reporting `updated: true` — checked off only 16.3-03's own checkbox and incremented the `**Plans:**` summary line by hand, leaving 16.3-01's checkbox (whose SUMMARY.md already existed on disk) for its own agent to finalize rather than risk conflicting with its in-flight state update
