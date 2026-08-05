@@ -78,7 +78,8 @@ class AdminUserRow(BaseModel):
     created_at: str
     initiative_name: str | None = None
     initiative_status: str | None = None
-    answer_count: int = 0
+    completed_assessment_count: int = 0
+    has_draft_in_progress: bool = False
 
 
 class AdminInitiativeRow(BaseModel):
@@ -88,7 +89,8 @@ class AdminInitiativeRow(BaseModel):
     participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     status: str
     created_at: str
-    answer_count: int
+    completed_assessment_count: int
+    has_draft_in_progress: bool
 
 
 # ─── Cascade delete helpers ────────────────────────────────────────────────────
@@ -156,19 +158,35 @@ def list_users(
     rows = []
     for row in result.mappings():
         initiative_id = row["initiative_id"]
-        answer_count = 0
         if initiative_id:
-            # D-06: questionnaire_answer keys off assessment_id, not
-            # initiative_id — join through assessment to count answers.
-            count_result = session.execute(
+            # BUG-07: count completed (submitted) Assessment rows directly —
+            # not a join through questionnaire_answer, which would count raw
+            # answer rows across every draft+submitted assessment ever
+            # created. A FILTER/EXISTS pair (not a multi-join GROUP BY)
+            # avoids a Cartesian-product miscount when both submitted and
+            # draft assessments coexist for the same initiative.
+            stats_result = session.execute(
                 text("""
-                    SELECT COUNT(*) FROM questionnaire_answer qa
-                    JOIN assessment a ON a.id = qa.assessment_id
+                    SELECT
+                        COUNT(DISTINCT a.id)
+                            FILTER (WHERE a.status = 'submitted') AS completed_assessment_count,
+                        EXISTS (
+                            SELECT 1 FROM assessment a2
+                            WHERE a2.initiative_id = :iid AND a2.status = 'draft'
+                        ) AS has_draft_in_progress
+                    FROM assessment a
                     WHERE a.initiative_id = :iid
                 """),
                 {"iid": initiative_id},
             )
-            answer_count = count_result.scalar() or 0
+            stats_row = stats_result.mappings().first()
+            completed_assessment_count = (
+                (stats_row["completed_assessment_count"] or 0) if stats_row else 0
+            )
+            has_draft_in_progress = bool(stats_row["has_draft_in_progress"]) if stats_row else False
+        else:
+            completed_assessment_count = 0
+            has_draft_in_progress = False
         rows.append(
             AdminUserRow(
                 id=row["id"],
@@ -178,7 +196,8 @@ def list_users(
                 created_at=row["created_at"].isoformat(),
                 initiative_name=row["initiative_name"],
                 initiative_status=row["initiative_status"],
-                answer_count=answer_count,
+                completed_assessment_count=completed_assessment_count,
+                has_draft_in_progress=has_draft_in_progress,
             )
         )
     return rows
@@ -206,19 +225,26 @@ def list_initiatives(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """List all initiatives with owner email, status, and answer count."""
+    """List all initiatives with owner email, status, and completed-assessment count."""
     # Use raw SQL to avoid enum deserialization errors on legacy data.
-    # D-06: questionnaire_answer keys off assessment_id, not initiative_id —
-    # join through assessment to count answers per initiative.
+    # BUG-07: count completed (submitted) Assessment rows directly — not a
+    # join through questionnaire_answer, which would count raw answer rows
+    # across every draft+submitted assessment ever created. Counting
+    # Assessment rows (not answer rows) via FILTER/EXISTS sidesteps the
+    # Cartesian-product risk of a naive multi-join GROUP BY entirely.
     result = session.execute(
         text("""
         SELECT i.id, i.name, i.participant_type, i.status, i.created_at,
                u.email AS user_email,
-               COUNT(qa.id) AS answer_count
+               COUNT(DISTINCT a.id)
+                   FILTER (WHERE a.status = 'submitted') AS completed_assessment_count,
+               EXISTS (
+                   SELECT 1 FROM assessment a2
+                   WHERE a2.initiative_id = i.id AND a2.status = 'draft'
+               ) AS has_draft_in_progress
         FROM initiative i
         LEFT JOIN "user" u ON u.id = i.user_id
         LEFT JOIN assessment a ON a.initiative_id = i.id
-        LEFT JOIN questionnaire_answer qa ON qa.assessment_id = a.id
         GROUP BY i.id, i.name, i.participant_type, i.status, i.created_at, u.email
         ORDER BY i.created_at DESC
     """)
@@ -233,7 +259,8 @@ def list_initiatives(
                 participant_type=row["participant_type"],
                 status=row["status"],
                 created_at=row["created_at"].isoformat(),
-                answer_count=row["answer_count"] or 0,
+                completed_assessment_count=row["completed_assessment_count"] or 0,
+                has_draft_in_progress=bool(row["has_draft_in_progress"]),
             )
         )
     return rows

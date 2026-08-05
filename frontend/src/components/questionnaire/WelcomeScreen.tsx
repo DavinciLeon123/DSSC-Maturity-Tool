@@ -73,7 +73,7 @@ export function WelcomeScreen({ onBegin }: Props) {
       <div
         style={{
           background: "white",
-          borderRadius: "16px",
+          borderRadius: "0",
           boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           padding: "2.5rem",
         }}
@@ -145,7 +145,7 @@ export function WelcomeScreen({ onBegin }: Props) {
               background: "#76b82a",
               color: "white",
               border: "none",
-              borderRadius: "8px",
+              borderRadius: "0",
               fontWeight: 600,
               fontSize: "1rem",
               cursor: "pointer",

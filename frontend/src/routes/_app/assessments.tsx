@@ -80,11 +80,11 @@ function AssessmentsPage() {
     {
       title: "Report",
       key: "report",
-      // Phase 15 scope: links to the existing single /report view (always
-      // reflects the current live assessment). A true per-version archived
-      // report is Phase 16's job (D-16 explicitly scopes this phase's
-      // history view to "boring tabular", not a rebuilt report).
-      render: () => <Link to="/report">View report</Link>,
+      render: (_: unknown, record: AssessmentSummary) => (
+        <Link to="/report" search={{ assessment_id: record.id }}>
+          View report
+        </Link>
+      ),
     },
   ];
 
@@ -155,13 +155,13 @@ function AssessmentsPage() {
       )}
 
       {!isError && isLoading && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
+        <Card style={{ borderRadius: "0", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <Skeleton active paragraph={{ rows: 4 }} />
         </Card>
       )}
 
       {!isError && !isLoading && history && history.length === 0 && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
+        <Card style={{ borderRadius: "0", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <h2
             style={{
               fontSize: "1.25rem",
@@ -190,7 +190,7 @@ function AssessmentsPage() {
         <>
           <Card
             style={{
-              borderRadius: "16px",
+              borderRadius: "0",
               boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
               marginBottom: "1.5rem",
             }}
@@ -218,7 +218,7 @@ function AssessmentsPage() {
 
           <Card
             style={{
-              borderRadius: "16px",
+              borderRadius: "0",
               boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
             }}
           >

@@ -21,7 +21,7 @@ function AboutPage() {
       </h1>
       <Card
         style={{
-          borderRadius: "16px",
+          borderRadius: "0",
           boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >

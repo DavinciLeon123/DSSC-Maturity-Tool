@@ -193,7 +193,7 @@ function InitiativePage() {
       {initiative && !showForm ? (
         <Card
           style={{
-            borderRadius: "16px",
+            borderRadius: "0",
             boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
@@ -231,7 +231,7 @@ function InitiativePage() {
                 type="primary"
                 onClick={startEdit}
                 style={{
-                  borderRadius: "8px",
+                  borderRadius: "0",
                   fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                 }}
@@ -259,7 +259,7 @@ function InitiativePage() {
       {(notFound || showForm) && !initiative ? (
         <Card
           style={{
-            borderRadius: "16px",
+            borderRadius: "0",
             boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
@@ -343,7 +343,7 @@ function InitiativePage() {
               htmlType="submit"
               size="large"
               style={{
-                borderRadius: "8px",
+                borderRadius: "0",
                 fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
               }}
@@ -360,7 +360,7 @@ function InitiativePage() {
             onClick={() => { setShowForm(false); setError(null); }}
             style={{
               marginBottom: "1rem",
-              borderRadius: "8px",
+              borderRadius: "0",
               fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
@@ -368,7 +368,7 @@ function InitiativePage() {
           </Button>
           <Card
             style={{
-              borderRadius: "16px",
+              borderRadius: "0",
               boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
             }}
           >
@@ -452,7 +452,7 @@ function InitiativePage() {
                 htmlType="submit"
                 size="large"
                 style={{
-                  borderRadius: "8px",
+                  borderRadius: "0",
                   fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                 }}

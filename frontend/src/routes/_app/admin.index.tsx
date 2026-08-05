@@ -19,7 +19,8 @@ interface AdminUserRow {
   created_at: string;
   initiative_name?: string;
   initiative_status?: string;
-  answer_count: number;
+  completed_assessment_count: number;
+  has_draft_in_progress: boolean;
 }
 
 interface AdminInitiativeRow {
@@ -29,7 +30,8 @@ interface AdminInitiativeRow {
   participant_type: string;
   status: string;
   created_at: string;
-  answer_count: number;
+  completed_assessment_count: number;
+  has_draft_in_progress: boolean;
 }
 
 // ─── AdminPage ────────────────────────────────────────────────────────────────
@@ -181,7 +183,13 @@ function AdminPage() {
         <Tag color={v === "submitted" ? "green" : "default"}>{v}</Tag>
       ),
     },
-    { title: "Answers", dataIndex: "answer_count" },
+    { title: "Completed Assessments", dataIndex: "completed_assessment_count" },
+    {
+      title: "Next Assessment",
+      key: "has_draft_in_progress",
+      render: (_: unknown, record: AdminInitiativeRow) =>
+        record.has_draft_in_progress ? <Tag color="processing">In progress</Tag> : null,
+    },
     {
       title: "Created",
       dataIndex: "created_at",
@@ -214,7 +222,7 @@ function AdminPage() {
         style={{
           padding: "0.75rem 1.5rem",
           background: "#F9FAFB",
-          borderRadius: "8px",
+          borderRadius: "0",
         }}
       >
         <div
@@ -238,7 +246,11 @@ function AdminPage() {
             {record.initiative_status ?? "—"}
           </div>
           <div>
-            <strong>Answers saved:</strong> {record.answer_count}
+            <strong>Completed assessments:</strong> {record.completed_assessment_count}
+          </div>
+          <div>
+            <strong>Next assessment:</strong>{" "}
+            {record.has_draft_in_progress ? <Tag color="processing">In progress</Tag> : "—"}
           </div>
           <div>
             <strong>Registered:</strong>{" "}
@@ -316,7 +328,7 @@ function AdminPage() {
             onClick={handleExport}
             style={{
               marginBottom: "3rem",
-              borderRadius: "8px",
+              borderRadius: "0",
               fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
@@ -360,7 +372,7 @@ function AdminPage() {
             loading={resetDemoMutation.isPending}
             onClick={handleResetDemo}
             style={{
-              borderRadius: "8px",
+              borderRadius: "0",
               fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
@@ -407,7 +419,7 @@ function AdminPage() {
       </div>
       <Card
         style={{
-          borderRadius: "16px",
+          borderRadius: "0",
           boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >

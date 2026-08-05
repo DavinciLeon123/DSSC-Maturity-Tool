@@ -89,7 +89,7 @@ export function AnswerButtonGroup({ options, value, onChange }: Props) {
                 fontSize: "0.8125rem",
                 lineHeight: 1.4,
                 textAlign: "center",
-                color: "#008ecf",
+                color: "#1c2025",
                 fontWeight: isSelected ? 600 : 400,
                 // Wrap up to 2 lines, never ellipsis-truncate — a truncated
                 // maturity-level label could hide its meaning (QSTN-02).

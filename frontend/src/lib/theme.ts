@@ -17,7 +17,7 @@ export const mamiTheme: ThemeConfig = {
   components: {
     Button: {
       colorPrimary: '#008ecf',
-      borderRadius: 8,
+      borderRadius: 0,
       controlHeight: 44,
     },
     Input: {
@@ -28,7 +28,7 @@ export const mamiTheme: ThemeConfig = {
       bodyBg: '#ffffff',
     },
     Card: {
-      borderRadiusLG: 16,
+      borderRadiusLG: 0,
     },
     Form: {
       labelColor: '#008ecf',

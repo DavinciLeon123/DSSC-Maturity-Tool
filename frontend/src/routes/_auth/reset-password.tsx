@@ -20,7 +20,7 @@ function ResetPasswordPage() {
   if (!token) {
     return (
       <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-        <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)", textAlign: "center" }}>
+        <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)", textAlign: "center" }}>
           <Alert message="Invalid or missing reset token." type="error" style={{ marginBottom: "1rem" }} showIcon />
           <Link to="/forgot-password" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
             Request a new reset link
@@ -66,7 +66,7 @@ function ResetPasswordPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
+      <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
           <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
           <div style={{ fontSize: "0.75rem", color: "#76b82a", fontWeight: 600, letterSpacing: "0.1em", marginBottom: "0.5rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>DSSC</div>
@@ -102,7 +102,7 @@ function ResetPasswordPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "0", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Reset Password
           </Button>

@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Drawer, Button } from 'antd';
+import { Drawer, Button, message } from 'antd';
 import { authStore } from '../../lib/auth';
 import { api } from '../../lib/api';
+import { useStartOrRetakeAssessment } from '../../lib/retake';
 import logoSrc from '../../assets/logo-dssc-color.png';
 
 export function TopNav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const startOrRetake = useStartOrRetakeAssessment((msg) => void message.error(msg));
 
   const { data: currentUser } = useQuery<{ role: string; email: string }>({
     queryKey: ['current-user-role'],
@@ -21,9 +24,21 @@ export function TopNav() {
 
   const isAdmin = currentUser?.role === 'ADMIN';
 
-  const navItems: Array<{ label: string; to: '/dashboard' | '/questionnaire' | '/about' | '/admin' }> = [
+  const navItems: Array<{
+    label: string;
+    to: '/dashboard' | '/questionnaire' | '/about' | '/admin';
+    onClick?: (e: MouseEvent) => void;
+  }> = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Dataspace Maturity Assessment', to: '/questionnaire' },
+    {
+      label: 'Dataspace Maturity Assessment',
+      to: '/questionnaire',
+      onClick: (e: MouseEvent) => {
+        e.preventDefault();
+        setDrawerOpen(false);
+        void startOrRetake();
+      },
+    },
     { label: 'About', to: '/about' },
     ...(isAdmin ? [{ label: 'Admin', to: '/admin' as const }] : []),
   ];
@@ -96,11 +111,11 @@ export function TopNav() {
         }}
       >
         <nav style={{ flex: 1 }}>
-          {navItems.map(({ label, to }) => (
+          {navItems.map(({ label, to, onClick }) => (
             <Link
               key={to}
               to={to}
-              onClick={() => setDrawerOpen(false)}
+              onClick={onClick ?? (() => setDrawerOpen(false))}
               style={{
                 display: 'block',
                 padding: '0.875rem 1.5rem',
