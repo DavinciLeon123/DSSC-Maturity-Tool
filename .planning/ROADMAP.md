@@ -208,14 +208,14 @@ Plans:
 **Goal:** Ship 3 user-requested changes: (1) registration requires ticking a mandatory data-collection consent checkbox before an account can be created, with existing test users backfilled as consented; (2) the final maturity scoring's 3-tier label system ("Needs Attention"/"Developing"/"Mature") is replaced with a 5-tier scale (Exploratory 1.00-1.49, Preparatory 1.50-2.49, Implementation 2.50-3.49, Operational 3.50-4.49, Scaling 4.50-5.00) everywhere aggregate scoring is displayed; (3) the completed-assessment report page shows a thank-you message with a mailto:info@dssc.eu contact/feedback button.
 **Requirements**: TBD (phase-local pseudo-IDs REQ-1/REQ-2/REQ-3 used in plan frontmatter, mapped 1:1 to the 3 changes above — see 16.4-RESEARCH.md's Phase Requirements table)
 **Depends on:** Phase 16
-**Plans:** 3/3 plans planned
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1** *(3 plans, disjoint files, run in parallel — verified no file overlap: consent touches auth/user/register.tsx; tier scale touches config/report_generator.py/reports.py/report.html/its own test file; CTA touches only report.tsx)*
 
 - [ ] 16.4-01-PLAN.md — Consent checkbox: single-step Alembic migration (`data_consent` NOT NULL DEFAULT true) + User model + UserCreate validator (422 on false/missing) + register() wiring + register.tsx required checkbox + openapi regen (Wave 1; REQ-1)
 - [ ] 16.4-02-PLAN.md — 5-tier maturity scale: new `maturity_tiers` config array + `get_maturity_tier()` + `build_priority_list()`'s band_label re-sourced (band_color/band_id unchanged) + PDF's new separate 5-tier text legend + rewritten `test_maturity_band_same_for_both_callers` (Wave 1; REQ-2)
-- [ ] 16.4-03-PLAN.md — Report page CTA: thank-you text + mailto:info@dssc.eu Button on report.tsx, in-app only per D-04 (Wave 1; REQ-3)
+- [x] 16.4-03-PLAN.md — Report page CTA: thank-you text + mailto:info@dssc.eu Button on report.tsx, in-app only per D-04 (Wave 1; REQ-3)
 
 ### Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)
 
