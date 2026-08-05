@@ -143,6 +143,31 @@
     }
     .legend-item .band-dot { margin-right: 8px; vertical-align: middle; }
 
+    /* ── Tier legend (Phase 16.4, D-03) ──
+       A SEPARATE block from .legend above — that one explains the 3
+       dot COLORS (unchanged). This one lists the 5 text TIERS. No dot
+       per row, deliberately: a single color cannot map 1:1 onto 5
+       tiers, so attaching one would misleadingly imply a false
+       correspondence between the coarse 3-color system and the finer
+       5-tier labels. */
+    .tier-legend {
+      padding: 12px 24px 20px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .tier-legend-heading {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0,142,207,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 8px;
+    }
+    .tier-legend-item {
+      font-size: 13px;
+      color: rgba(0,142,207,0.65);
+      line-height: 1.8;
+    }
+
     /* ── Expert help box ── */
     .expert-help {
       background: var(--primary);
@@ -206,6 +231,12 @@
         <span class="band-dot" style="background: {{ band.color }};"></span>
         {{ band.label }}
       </div>
+      {% endfor %}
+    </div>
+    <div class="tier-legend">
+      <div class="tier-legend-heading">Maturity tiers</div>
+      {% for tier in maturity_tiers %}
+      <div class="tier-legend-item">{{ tier.label }} ({{ "%.2f"|format(tier.min) }}&ndash;{{ "%.2f"|format(tier.max) }})</div>
       {% endfor %}
     </div>
   </div>
