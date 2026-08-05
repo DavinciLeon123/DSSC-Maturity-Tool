@@ -105,13 +105,17 @@
       },
       "AdminInitiativeRow": {
         "properties": {
-          "answer_count": {
-            "title": "Answer Count",
+          "completed_assessment_count": {
+            "title": "Completed Assessment Count",
             "type": "integer"
           },
           "created_at": {
             "title": "Created At",
             "type": "string"
+          },
+          "has_draft_in_progress": {
+            "title": "Has Draft In Progress",
+            "type": "boolean"
           },
           "id": {
             "title": "Id",
@@ -148,16 +152,17 @@
           "participant_type",
           "status",
           "created_at",
-          "answer_count"
+          "completed_assessment_count",
+          "has_draft_in_progress"
         ],
         "title": "AdminInitiativeRow",
         "type": "object"
       },
       "AdminUserRow": {
         "properties": {
-          "answer_count": {
+          "completed_assessment_count": {
             "default": 0,
-            "title": "Answer Count",
+            "title": "Completed Assessment Count",
             "type": "integer"
           },
           "created_at": {
@@ -167,6 +172,11 @@
           "email": {
             "title": "Email",
             "type": "string"
+          },
+          "has_draft_in_progress": {
+            "default": false,
+            "title": "Has Draft In Progress",
+            "type": "boolean"
           },
           "id": {
             "title": "Id",
@@ -1110,7 +1120,7 @@
     },
     "/api/v1/admin/initiatives": {
       "get": {
-        "description": "List all initiatives with owner email, status, and answer count.",
+        "description": "List all initiatives with owner email, status, and completed-assessment count.",
         "operationId": "list_initiatives_api_v1_admin_initiatives_get",
         "responses": {
           "200": {
