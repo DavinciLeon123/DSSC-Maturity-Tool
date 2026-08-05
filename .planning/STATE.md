@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
+stopped_at: Phase 16.4 Plan 01 executed (Wave 1, REQ-1 — mandatory data-collection consent checkbox at registration; migration `l3c4d5e6f7a8`, `UserCreate.data_consent` 422 gate, register.tsx required Checkbox). Commits `1bd4f97` (Task 1) and `4a0ed44` (Task 2) landed. Phase 16.4 is 2/3 plans complete (16.4-01, 16.4-03; 16.4-02 in flight). Ready for 16.4-02 to be confirmed, then the feature-branch/PR-to-`staging` workflow once all 3 are consistent.
+last_updated: "2026-08-05T17:37:19.548Z"
+progress:
+  total_phases: 21
+  completed_phases: 19
+  total_plans: 88
+  completed_plans: 87
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
 stopped_at: "Phase 16.4 Plan 02 executed (Wave 1, REQ-2 — new independent 5-tier maturity scale: config/dssc-questionnaire.json's maturity_tiers array, get_maturity_tier(), build_priority_list()'s band_label re-sourced from it while band_id/band_color stay on get_maturity_band unchanged, report.html's new separate plain-text tier legend, rewritten test_maturity_band_same_for_both_callers plus a new tier-boundary test). Three commits landed this session (44d7ed2 Task 1, 7cd5276 Task 2, e6681cc Task 3). Ran concurrently with sibling Wave-1 plans 16.4-01 (consent checkbox) and 16.4-03 (report contact CTA) in separate agents sharing this working tree — both already had SUMMARY.md files on disk by the time this plan finished, so `gsd-tools roadmap update-plan-progress 16.4` now reports summary_count 3/3, status Complete. Phase 16.4 is now fully complete (3/3 plans: 16.4-01/02/03). Ready for the feature-branch + PR-to-`staging` workflow once the orchestrator confirms phase-completion."
 last_updated: "2026-08-05T19:30:00.000Z"
 progress:
