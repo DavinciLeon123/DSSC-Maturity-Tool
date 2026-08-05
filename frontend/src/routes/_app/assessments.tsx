@@ -80,11 +80,11 @@ function AssessmentsPage() {
     {
       title: "Report",
       key: "report",
-      // Phase 15 scope: links to the existing single /report view (always
-      // reflects the current live assessment). A true per-version archived
-      // report is Phase 16's job (D-16 explicitly scopes this phase's
-      // history view to "boring tabular", not a rebuilt report).
-      render: () => <Link to="/report">View report</Link>,
+      render: (_: unknown, record: AssessmentSummary) => (
+        <Link to="/report" search={{ assessment_id: record.id }}>
+          View report
+        </Link>
+      ),
     },
   ];
 

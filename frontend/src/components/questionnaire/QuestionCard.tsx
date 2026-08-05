@@ -32,7 +32,7 @@ export function QuestionCard({ question, defaultOptions, value, onAnswerChange }
           fontWeight: 400,
           fontSize: "1rem",
           lineHeight: 1.5,
-          color: "#008ecf",
+          color: "#1c2025",
           marginBottom: "1rem",
           marginTop: 0,
         }}
