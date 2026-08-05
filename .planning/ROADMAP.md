@@ -214,7 +214,7 @@ Plans:
 - [x] 16.3-01-PLAN.md — Retake-save fix: shared useStartOrRetakeAssessment hook wired into TopNav + Dashboard + a questionnaire.tsx defense-in-depth guard (Wave 1; BUG-01)
 - [x] 16.3-02-PLAN.md — Questionnaire text color: QuestionCard.tsx + AnswerButtonGroup.tsx blue-to-black (Wave 1; BUG-02)
 - [x] 16.3-03-PLAN.md — "View Report" assessment_id fix in assessments.tsx, matching the already-proven admin.heatmap.tsx pattern (Wave 1; BUG-03)
-- [ ] 16.3-04-PLAN.md — PDF report.html: "For the initiative:" label, flattened WeasyPrint-safe answers-row (score-dot clipping), "Data Spaces Support Centre" wording + human-verify checkpoint (Wave 1; BUG-04, BUG-05A, BUG-05B)
+- [x] 16.3-04-PLAN.md — PDF report.html: "For the initiative:" label, flattened WeasyPrint-safe answers-row (score-dot clipping), "Data Spaces Support Centre" wording + human-verify checkpoint (Wave 1; BUG-04, BUG-05A, BUG-05B)
 - [x] 16.3-05-PLAN.md — Admin panel completed-assessment count + in-progress indicator on both the Assessments and Users tabs (backend query rewrite + rewritten tests + frontend columns) (Wave 1; BUG-07)
 
 **Wave 2** *(blocked on Wave 1 completion — touches files 16.3-01/02/03/05 already modified)*
