@@ -213,7 +213,7 @@ Plans:
 Plans:
 **Wave 1** *(3 plans, disjoint files, run in parallel — verified no file overlap: consent touches auth/user/register.tsx; tier scale touches config/report_generator.py/reports.py/report.html/its own test file; CTA touches only report.tsx)*
 
-- [ ] 16.4-01-PLAN.md — Consent checkbox: single-step Alembic migration (`data_consent` NOT NULL DEFAULT true) + User model + UserCreate validator (422 on false/missing) + register() wiring + register.tsx required checkbox + openapi regen (Wave 1; REQ-1)
+- [x] 16.4-01-PLAN.md — Consent checkbox: single-step Alembic migration (`data_consent` NOT NULL DEFAULT true) + User model + UserCreate validator (422 on false/missing) + register() wiring + register.tsx required checkbox + openapi regen (Wave 1; REQ-1)
 - [x] 16.4-02-PLAN.md — 5-tier maturity scale: new `maturity_tiers` config array + `get_maturity_tier()` + `build_priority_list()`'s band_label re-sourced (band_color/band_id unchanged) + PDF's new separate 5-tier text legend + rewritten `test_maturity_band_same_for_both_callers` (Wave 1; REQ-2)
 - [x] 16.4-03-PLAN.md — Report page CTA: thank-you text + mailto:info@dssc.eu Button on report.tsx, in-app only per D-04 (Wave 1; REQ-3)
 
