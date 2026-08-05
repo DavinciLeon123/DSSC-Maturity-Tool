@@ -25,7 +25,7 @@ export function StepPills({
         flexShrink: 0,
         padding: "1.5rem",
         background: "white",
-        borderRadius: "16px",
+        borderRadius: "0",
         boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         alignSelf: "flex-start",
         position: "sticky",

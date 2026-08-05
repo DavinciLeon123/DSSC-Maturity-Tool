@@ -47,7 +47,7 @@ function LoginPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
+      <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         {sessionExpired && (
           <Alert message="Your session expired. Please log in again." type="warning" style={{ marginBottom: 16 }} showIcon />
         )}
@@ -91,7 +91,7 @@ function LoginPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "0", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Sign In
           </Button>

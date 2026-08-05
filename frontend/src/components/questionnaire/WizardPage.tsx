@@ -120,7 +120,7 @@ function AutosaveBadge({ state, onRetry }: { state: SaveState; onRetry: () => vo
             color: "#991B1B",
             background: "transparent",
             border: "1px solid #991B1B",
-            borderRadius: "6px",
+            borderRadius: "0",
             padding: "0.125rem 0.5rem",
             cursor: "pointer",
             fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
@@ -435,7 +435,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
             background: reportLoading ? "rgba(118,184,42,0.6)" : "#76b82a",
             color: "white",
             border: "none",
-            borderRadius: "8px",
+            borderRadius: "0",
             fontWeight: 600,
             fontSize: "1rem",
             cursor: reportLoading ? "not-allowed" : "pointer",
@@ -512,7 +512,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
         <div
           style={{
             background: "white",
-            borderRadius: "16px",
+            borderRadius: "0",
             padding: "2.5rem",
             boxShadow: "0 2px 16px rgba(0,142,207,0.08)",
           }}
@@ -649,7 +649,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               style={{
                 padding: "0.75rem 1.5rem",
                 border: `1px solid ${isBackDisabled || isNavigating ? "rgba(0,142,207,0.2)" : "#008ecf"}`,
-                borderRadius: "8px",
+                borderRadius: "0",
                 background: "transparent",
                 color: isBackDisabled || isNavigating ? "rgba(0,142,207,0.3)" : "#008ecf",
                 fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
@@ -668,7 +668,7 @@ export function WizardPage({ config, initiativeId, savedAnswers, lastViewedCateg
               style={{
                 padding: "0.75rem 1.5rem",
                 border: `1px solid ${isNextDisabled ? "rgba(0,142,207,0.2)" : "#008ecf"}`,
-                borderRadius: "8px",
+                borderRadius: "0",
                 background: isNextDisabled ? "rgba(0,142,207,0.05)" : "#008ecf",
                 color: isNextDisabled ? "rgba(0,142,207,0.3)" : "white",
                 fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",

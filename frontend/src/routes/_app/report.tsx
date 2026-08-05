@@ -244,7 +244,7 @@ function ReportPage() {
               style={{
                 flex: "3 1 480px",
                 background: "#ffffff",
-                borderRadius: "16px",
+                borderRadius: "0",
                 boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 padding: "24px",
               }}
@@ -273,7 +273,7 @@ function ReportPage() {
               style={{
                 flex: "2 1 360px",
                 background: "#ffffff",
-                borderRadius: "16px",
+                borderRadius: "0",
                 boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 padding: "24px",
               }}
@@ -305,7 +305,7 @@ function ReportPage() {
               disabled={isDownloading}
               onClick={handleDownload}
               style={{
-                borderRadius: "8px",
+                borderRadius: "0",
                 fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 600,
               }}

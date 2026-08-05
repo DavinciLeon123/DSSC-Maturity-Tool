@@ -40,7 +40,7 @@ function ForgotPasswordPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
+      <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
           <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
           <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", margin: 0 }}>Reset Password</h1>
@@ -85,7 +85,7 @@ function ForgotPasswordPage() {
                 block
                 size="large"
                 loading={loading}
-                style={{ borderRadius: "8px", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
+                style={{ borderRadius: "0", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
               >
                 Send Reset Link
               </Button>

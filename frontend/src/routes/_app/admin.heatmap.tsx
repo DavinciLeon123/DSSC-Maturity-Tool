@@ -195,7 +195,7 @@ export function AdminHeatmapPage() {
           {isOrgEmpty ? (
             <Card
               style={{
-                borderRadius: "16px",
+                borderRadius: "0",
                 boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 marginBottom: "1.5rem",
               }}
@@ -213,7 +213,7 @@ export function AdminHeatmapPage() {
           ) : (
             <Card
               style={{
-                borderRadius: "16px",
+                borderRadius: "0",
                 boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
                 marginBottom: "1.5rem",
               }}
@@ -246,7 +246,7 @@ export function AdminHeatmapPage() {
           {/* Per-initiative table — always rendered, regardless of
               org-wide radar state (WR-02); handles has_data=False rows via
               the "No data yet" tag. */}
-          <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.08)" }}>
+          <Card style={{ borderRadius: "0", boxShadow: "0 2px 12px rgba(0,142,207,0.08)" }}>
             <Title
               level={2}
               style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: "#008ecf", fontSize: "20px", marginBottom: "1rem" }}
