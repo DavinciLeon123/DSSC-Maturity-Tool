@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Input, Button, Alert } from "antd";
+import { Input, Button, Alert, Checkbox } from "antd";
 import logoSrc from "../../assets/logo-dssc-color.png";
 
 export const Route = createFileRoute("/_auth/register")({
@@ -16,11 +16,16 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [participantType, setParticipantType] = useState<"DSI" | "SP">("DSI");
+  const [dataConsent, setDataConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dataConsent) {
+      setError("You must agree to data collection to register.");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -28,7 +33,12 @@ function RegisterPage() {
         (import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1") + "/auth/register",
         {
           method: "POST",
-          body: JSON.stringify({ email, password, participant_type: participantType }),
+          body: JSON.stringify({
+            email,
+            password,
+            participant_type: participantType,
+            data_consent: dataConsent,
+          }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -113,12 +123,24 @@ function RegisterPage() {
               </p>
             </div>
           )}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <Checkbox
+              checked={dataConsent}
+              onChange={(e) => setDataConsent(e.target.checked)}
+            >
+              {/* D-05: placeholder copy — no DSSC house wording exists for this yet; swap for real legal/privacy-notice text if/when DSSC provides it. */}
+              <span style={{ fontSize: "0.8125rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
+                I agree that the data I submit in this assessment is collected and stored by DSSC.
+              </span>
+            </Checkbox>
+          </div>
           <Button
             type="primary"
             htmlType="submit"
             block
             size="large"
             loading={loading}
+            disabled={!dataConsent || loading}
             style={{ borderRadius: "0", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Register
