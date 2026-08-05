@@ -206,7 +206,7 @@ Plans:
 **Goal:** Fix 7 user-reported bugs: (1) retaking the questionnaire fails to save because the retake isn't registered as a new assessment, (2) questionnaire question/answer text renders blue instead of black, (3) "View Report" always shows/downloads the newest survey instead of the one the user selected, (4) PDF report is missing a "For the initiative:" label before the DSI name, (5a) PDF report's score status dot (green/orange/red) is visually clipped, (5b) PDF "Get expert help" box says "Centre of Excellence" instead of "Data Spaces Support Centre", (6) buttons AND cards app-wide have rounded corners but DSSC's brand style (dssc.eu) uses square corners, (7) Admin Panel's "Answers per user" should show completed-assessment count instead of raw answer count on both the Dataspace Maturity Assessments tab and the Users tab, plus an indicator for an in-progress next assessment.
 **Requirements**: TBD (phase-local pseudo-IDs BUG-01/02/03/04/05A/05B/06/07 used in plan frontmatter, mapped 1:1 to the 7 bugs above)
 **Depends on:** Phase 16
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1** *(5 plans, disjoint files, run in parallel)*
@@ -219,7 +219,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion — touches files 16.3-01/02/03/05 already modified)*
 
-- [ ] 16.3-06-PLAN.md — Square corners (buttons + cards, D-01): theme.ts component-scoped Button/Card radius + ~53 inline-style edits across 17 files (Wave 2, depends on 16.3-01, 16.3-02, 16.3-03, 16.3-05; BUG-06)
+- [x] 16.3-06-PLAN.md — Square corners (buttons + cards, D-01): theme.ts component-scoped Button/Card radius + ~53 inline-style edits across 17 files (Wave 2, depends on 16.3-01, 16.3-02, 16.3-03, 16.3-05; BUG-06)
 
 ### Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)
 
