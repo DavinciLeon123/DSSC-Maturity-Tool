@@ -107,6 +107,7 @@ def _render_html_for(
         priority_list=contract["priority_list"],
         radar_chart_svg=contract["radar_chart_svg"],
         maturity_bands=contract["maturity_bands"],
+        maturity_tiers=config["maturity_tiers"],
         answers_by_category=answers_by_category,
     )
 
