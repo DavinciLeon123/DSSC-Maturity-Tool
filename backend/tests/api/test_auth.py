@@ -28,6 +28,7 @@ def test_register_returns_201_with_user_read_shape(client):
             "email": "newuser@example.com",
             "password": VALID_PASSWORD,
             "participant_type": "DSI",
+            "data_consent": True,
         },
     )
     assert response.status_code == 201
@@ -43,16 +44,42 @@ def test_register_duplicate_email_returns_409(client):
     email = "dupe@example.com"
     first = client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": VALID_PASSWORD, "participant_type": "DSI"},
+        json={
+            "email": email,
+            "password": VALID_PASSWORD,
+            "participant_type": "DSI",
+            "data_consent": True,
+        },
     )
     assert first.status_code == 201
 
     second = client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": VALID_PASSWORD, "participant_type": "DSI"},
+        json={
+            "email": email,
+            "password": VALID_PASSWORD,
+            "participant_type": "DSI",
+            "data_consent": True,
+        },
     )
     assert second.status_code == 409
     assert second.json()["detail"] == "Email already registered"
+
+
+def test_register_rejects_false_consent_returns_422(client):
+    response = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "noconsent@example.com",
+            "password": VALID_PASSWORD,
+            "participant_type": "DSI",
+            "data_consent": False,
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert any("data_consent" in err.get("loc", []) for err in body["detail"])
+    assert any("agree" in str(err.get("msg", "")).lower() for err in body["detail"])
 
 
 def test_login_success_returns_bearer_token(client, session):

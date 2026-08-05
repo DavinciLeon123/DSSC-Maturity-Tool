@@ -42,6 +42,7 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
         email=user_in.email,
         hashed_password=hash_password(user_in.password),
         participant_type=user_in.participant_type,
+        data_consent=user_in.data_consent,
     )
     session.add(user)
     session.commit()
