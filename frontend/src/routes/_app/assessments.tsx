@@ -155,13 +155,13 @@ function AssessmentsPage() {
       )}
 
       {!isError && isLoading && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
+        <Card style={{ borderRadius: "0", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <Skeleton active paragraph={{ rows: 4 }} />
         </Card>
       )}
 
       {!isError && !isLoading && history && history.length === 0 && (
-        <Card style={{ borderRadius: "16px", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
+        <Card style={{ borderRadius: "0", boxShadow: "0 2px 12px rgba(0,142,207,0.06)" }}>
           <h2
             style={{
               fontSize: "1.25rem",
@@ -190,7 +190,7 @@ function AssessmentsPage() {
         <>
           <Card
             style={{
-              borderRadius: "16px",
+              borderRadius: "0",
               boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
               marginBottom: "1.5rem",
             }}
@@ -218,7 +218,7 @@ function AssessmentsPage() {
 
           <Card
             style={{
-              borderRadius: "16px",
+              borderRadius: "0",
               boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
             }}
           >

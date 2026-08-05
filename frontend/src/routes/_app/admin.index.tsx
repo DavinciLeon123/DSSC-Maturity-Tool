@@ -222,7 +222,7 @@ function AdminPage() {
         style={{
           padding: "0.75rem 1.5rem",
           background: "#F9FAFB",
-          borderRadius: "8px",
+          borderRadius: "0",
         }}
       >
         <div
@@ -328,7 +328,7 @@ function AdminPage() {
             onClick={handleExport}
             style={{
               marginBottom: "3rem",
-              borderRadius: "8px",
+              borderRadius: "0",
               fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
@@ -372,7 +372,7 @@ function AdminPage() {
             loading={resetDemoMutation.isPending}
             onClick={handleResetDemo}
             style={{
-              borderRadius: "8px",
+              borderRadius: "0",
               fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
@@ -419,7 +419,7 @@ function AdminPage() {
       </div>
       <Card
         style={{
-          borderRadius: "16px",
+          borderRadius: "0",
           boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >

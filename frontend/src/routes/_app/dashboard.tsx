@@ -144,7 +144,7 @@ function DashboardPage() {
       {user ? (
         <Card
           style={{
-            borderRadius: "16px",
+            borderRadius: "0",
             boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
@@ -163,7 +163,7 @@ function DashboardPage() {
             <Card
               style={{
                 marginTop: "1.5rem",
-                borderRadius: "16px",
+                borderRadius: "0",
                 boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
               }}
             >
@@ -245,7 +245,7 @@ function DashboardPage() {
                   loading={regLoading}
                   size="large"
                   style={{
-                    borderRadius: "8px",
+                    borderRadius: "0",
                     fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                     fontWeight: 600,
                   }}
@@ -261,7 +261,7 @@ function DashboardPage() {
             <div style={{ marginTop: "1.5rem" }}>
               <Card
                 style={{
-                  borderRadius: "16px",
+                  borderRadius: "0",
                   boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
                   marginBottom: "1rem",
                 }}
@@ -323,7 +323,7 @@ function DashboardPage() {
                       size="large"
                       onClick={handleStartOrRetake}
                       style={{
-                        borderRadius: "8px",
+                        borderRadius: "0",
                         fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}
@@ -336,7 +336,7 @@ function DashboardPage() {
                       onClick={handleGenerateReport}
                       loading={reportLoading}
                       style={{
-                        borderRadius: "8px",
+                        borderRadius: "0",
                         fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}

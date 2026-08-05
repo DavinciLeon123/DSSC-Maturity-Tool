@@ -141,7 +141,7 @@ function QuestionnairePage() {
             style={{
               padding: "0.5rem 1rem",
               border: "1px solid #991B1B",
-              borderRadius: "6px",
+              borderRadius: "0",
               background: "transparent",
               color: "#991B1B",
               fontWeight: 600,
