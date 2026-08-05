@@ -183,9 +183,7 @@ def list_users(
             completed_assessment_count = (
                 (stats_row["completed_assessment_count"] or 0) if stats_row else 0
             )
-            has_draft_in_progress = (
-                bool(stats_row["has_draft_in_progress"]) if stats_row else False
-            )
+            has_draft_in_progress = bool(stats_row["has_draft_in_progress"]) if stats_row else False
         else:
             completed_assessment_count = 0
             has_draft_in_progress = False

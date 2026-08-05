@@ -84,9 +84,7 @@ def test_admin_endpoints_reject_plain_user_token_with_403(user_client, method, p
     assert response.json()["detail"] == "Admin access required"
 
 
-def test_list_users_returns_completed_assessment_count_and_draft_indicator(
-    admin_client, session
-):
+def test_list_users_returns_completed_assessment_count_and_draft_indicator(admin_client, session):
     user_a = make_user(session)
     initiative_a = make_initiative(session, user=user_a)
     make_assessment(session, initiative=initiative_a, status=AssessmentStatus.submitted)
