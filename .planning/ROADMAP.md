@@ -37,6 +37,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 16.1: DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default (INSERTED)** - Replace CoE-DSC colors/logo/wording with DSSC's own across the app and PDF, add submitted answers to the PDF, default new registrations to DSI-only (completed 2026-08-03)
 - [x] **Phase 16.2: Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping (INSERTED)** - New DSMA copy for the homepage and About page, a welcome screen before the assessment plus a per-dimension intro text within it, and question grouping into 16 named subsections, all per `Teksten MAMI Tool.pdf` (completed 2026-08-04, pending Railway visual sign-off)
 - [x] **Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)** - Fixed 7 user-reported bugs: retake-save failure, blue questionnaire text, "View Report" showing the wrong survey, PDF initiative label/score-dot clipping/expert-help wording, square button+card corners app-wide, and admin panel completed-assessment counts on both tabs (completed 2026-08-05, Railway visual sign-off confirmed 2026-08-05 — all 7 bugs verified fixed, including the PDF dot-clip render)
+- [ ] **Phase 16.4: Consent checkbox, 5-tier maturity scale, and report contact CTA (INSERTED)** - Mandatory registration data-consent checkbox (existing test users backfilled as consented), 3-tier -> 5-tier maturity scoring labels (Exploratory/Preparatory/Implementation/Operational/Scaling) everywhere aggregate scoring displays, and a thank-you + mailto:info@dssc.eu contact CTA on the report page
 - [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
@@ -201,6 +202,16 @@ Plans:
 - [x] 16-05-PLAN.md — Report-rendering fixes: position-aware radar axis text-anchor + widened viewBox (G-16-1, clipped labels in browser + PDF) and flattened single-level flex priority-row/legend with fixed-width right-aligned score column (G-16-2, PDF score misalignment + legend wrap) + backend regression tests + human WeasyPrint visual confirmation (RPRT-01/02/04)
 
 **UI hint**: yes
+
+### Phase 16.4: Consent checkbox, 5-tier maturity scale, and report contact CTA (INSERTED)
+
+**Goal:** Ship 3 user-requested changes: (1) registration requires ticking a mandatory data-collection consent checkbox before an account can be created, with existing test users backfilled as consented; (2) the final maturity scoring's 3-tier label system ("Needs Attention"/"Developing"/"Mature") is replaced with a 5-tier scale (Exploratory 1.00-1.49, Preparatory 1.50-2.49, Implementation 2.50-3.49, Operational 3.50-4.49, Scaling 4.50-5.00) everywhere aggregate scoring is displayed; (3) the completed-assessment report page shows a thank-you message with a mailto:info@dssc.eu contact/feedback button.
+**Requirements**: TBD (phase-local pseudo-IDs expected, see 16.4-CONTEXT.md)
+**Depends on:** Phase 16
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16.4 to break down — see 16.4-CONTEXT.md for full requirements and interpretation notes)
 
 ### Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)
 
