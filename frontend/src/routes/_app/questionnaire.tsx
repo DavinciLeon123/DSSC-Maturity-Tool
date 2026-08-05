@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchQuestionnaireConfig,
@@ -13,16 +14,31 @@ export const Route = createFileRoute("/_app/questionnaire")({
 });
 
 function QuestionnairePage() {
+  const navigate = useNavigate();
   const { data: initiative, isLoading: initiativeLoading } = useQuery({
     queryKey: ["initiative"],
     queryFn: async () => {
-      const res = await api.get<{ id: number; participant_type: string }>("/initiatives/me");
+      const res = await api.get<{ id: number; participant_type: string; status: string }>(
+        "/initiatives/me",
+      );
       return res.data;
     },
     retry: false,
   });
 
   const initiativeId = initiative?.id;
+
+  useEffect(() => {
+    // Defense-in-depth (bug #1): a submitted initiative must never render a
+    // doomed-to-403 blank wizard. Every correct entry point (TopNav's
+    // guarded nav item, dashboard's handleStartOrRetake) already routes
+    // through useStartOrRetakeAssessment and never lands here with a
+    // submitted status — this only protects against a future or bypassed
+    // entry point (stale bookmark, back-button) doing the same thing.
+    if (initiative?.status === "submitted") {
+      navigate({ to: "/dashboard" });
+    }
+  }, [initiative, navigate]);
 
   const {
     data: config,

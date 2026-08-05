@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Card, Button, Alert, Input, Select, Tag, Modal } from "antd";
+import { Card, Button, Alert, Input, Select, Tag } from "antd";
 import { api } from "../../lib/api";
+import { useStartOrRetakeAssessment } from "../../lib/retake";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: DashboardPage,
@@ -58,6 +59,8 @@ function DashboardPage() {
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
 
+  const startOrRetake = useStartOrRetakeAssessment(setReportError);
+
   useEffect(() => {
     api
       .get<UserMe>("/auth/me")
@@ -100,33 +103,10 @@ function DashboardPage() {
 
   function handleStartOrRetake() {
     if (!initiative) return;
-    // D-13/D-14: retaking a SUBMITTED initiative is an explicit, confirmed,
-    // permanence-communicating action. The first-ever-draft case (no prior
-    // submission) has nothing to confirm overwriting yet, so it navigates
-    // straight through with no dialog.
-    if (initiative.status === "submitted") {
-      Modal.confirm({
-        title: "Start a new assessment?",
-        content:
-          "This creates a new, permanent version in your history. Your previous submitted assessment stays unchanged, and you'll answer all 52 questions again from scratch — nothing carries over.",
-        okText: "Start new assessment",
-        cancelText: "Cancel",
-        onOk: async () => {
-          try {
-            await api.post(`/initiatives/${initiative.id}/retake`);
-            navigate({ to: "/questionnaire" });
-          } catch {
-            setReportError("Could not start a new assessment. Please try again.");
-            // antd Modal.confirm keeps the dialog open when onOk's promise
-            // rejects — re-throw so a failed retake never navigates into a
-            // still-locked questionnaire.
-            throw new Error("retake failed");
-          }
-        },
-      });
-      return;
-    }
-    navigate({ to: "/questionnaire" });
+    // D-13/D-14: delegates to the shared useStartOrRetakeAssessment hook
+    // (frontend/src/lib/retake.ts) — the single source of truth for the
+    // confirm-before-retake UX, also consumed by TopNav's nav-drawer item.
+    void startOrRetake();
   }
 
   async function handleGenerateReport() {
