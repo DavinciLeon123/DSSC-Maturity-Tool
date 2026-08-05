@@ -32,6 +32,7 @@ from app.services.report_generator import (
     generate_html_report,
     generate_radar_svg,
     get_maturity_band,
+    get_maturity_tier,
 )
 
 
@@ -41,6 +42,10 @@ def _config() -> dict:
 
 def _bands() -> list[dict]:
     return _config()["maturity_bands"]
+
+
+def _tiers() -> list[dict]:
+    return _config()["maturity_tiers"]
 
 
 def _six_scores(
@@ -74,8 +79,9 @@ def test_generate_html_report_renders_non_empty_html_with_initiative_name():
         "participant_type": "DSI",
     }
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(value=3.0)
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
 
     html = generate_html_report(
@@ -85,6 +91,7 @@ def test_generate_html_report_renders_non_empty_html_with_initiative_name():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -101,8 +108,9 @@ def test_priority_score_column_css_has_fixed_width_and_right_align():
     of WeasyPrint's justify-content free-space distribution."""
     initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(value=3.0)
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
 
     html = generate_html_report(
@@ -112,6 +120,7 @@ def test_priority_score_column_css_has_fixed_width_and_right_align():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -132,8 +141,9 @@ def test_radar_wrap_svg_sized_by_height_not_width():
     (labels included) whenever the viewBox got wider."""
     initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(value=3.0)
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
 
     html = generate_html_report(
@@ -143,6 +153,7 @@ def test_radar_wrap_svg_sized_by_height_not_width():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -166,11 +177,12 @@ def test_priority_band_label_has_fixed_width_independent_of_content():
     dimensions sorted by score."""
     initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
     bands = _bands()
+    tiers = _tiers()
     # Force at least two distinct bands (red + green) in the same report.
     categories = _config()["categories"]
     values = {cat["id"]: (1.5 if i % 2 == 0 else 4.5) for i, cat in enumerate(categories)}
     scores = _six_scores(values=values)
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
     band_labels_present = {row["band_label"] for row in priority_list}
     assert len(band_labels_present) > 1, "test setup must span more than one maturity band"
@@ -182,6 +194,7 @@ def test_priority_band_label_has_fixed_width_independent_of_content():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -202,10 +215,11 @@ def test_priority_row_flattened_no_inner_name_wrapper():
     dimension's name and 2-decimal score still render."""
     initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(
         values={cat["id"]: round(1.0 + i * 0.6, 2) for i, cat in enumerate(_config()["categories"])}
     )
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
 
     html = generate_html_report(
@@ -215,6 +229,7 @@ def test_priority_row_flattened_no_inner_name_wrapper():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -236,8 +251,9 @@ def test_legend_renders_one_entry_per_band_with_labels():
     .legend-item out of the nested-flex structure."""
     initiative = {"name": "Acme Dataspace", "organization": "Acme Corp"}
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(value=3.0)
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     radar_chart_svg = generate_radar_svg(scores, bands)
 
     html = generate_html_report(
@@ -247,6 +263,7 @@ def test_legend_renders_one_entry_per_band_with_labels():
         priority_list=priority_list,
         radar_chart_svg=radar_chart_svg,
         maturity_bands=bands,
+        maturity_tiers=tiers,
         answers_by_category=[],
     )
 
@@ -269,22 +286,47 @@ def test_maturity_band_boundaries():
     assert get_maturity_band(5.0, bands)["id"] == "green"
 
 
-def test_maturity_band_same_for_both_callers():
-    """RPRT-03: the band returned for a given score is identical whether
-    obtained directly via get_maturity_band or via a build_priority_list
-    row for that same score — proves the single source of truth."""
+def test_priority_list_band_color_from_bands_label_from_tiers():
+    """Phase 16.4/REQ-2/D-02: build_priority_list's band_id/band_color
+    still come from get_maturity_band (unchanged 3-color system,
+    RPRT-02/03 stay locked) but band_label now comes from
+    get_maturity_tier (new, independent 5-tier text classification).
+    Replaces the old test_maturity_band_same_for_both_callers, which
+    pinned the pre-Phase-16.4 coupling this phase intentionally
+    breaks (band_label used to equal the band's own label — it no
+    longer does)."""
     bands = _bands()
+    tiers = _tiers()
     scores = _six_scores(values={"cat-1": 2.0, "cat-2": 3.5, "cat-3": 1.5})
 
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
     by_category = {row["category_id"]: row for row in priority_list}
 
     for category_id, score in (("cat-1", 2.0), ("cat-2", 3.5), ("cat-3", 1.5)):
         direct_band = get_maturity_band(score, bands)
+        direct_tier = get_maturity_tier(score, tiers)
         row = by_category[category_id]
         assert row["band_id"] == direct_band["id"]
-        assert row["band_label"] == direct_band["label"]
         assert row["band_color"] == direct_band["color"]
+        assert row["band_label"] == direct_tier["label"]
+
+
+def test_maturity_tier_boundaries():
+    """REQ-2/D-01/D-02: boundary table for the 5 (deliberately
+    non-contiguous, 0.01-gapped) maturity tiers — every 2dp-rounded
+    score, including each tier's own max, resolves to exactly one
+    tier."""
+    tiers = _tiers()
+    assert get_maturity_tier(1.00, tiers)["label"] == "Exploratory"
+    assert get_maturity_tier(1.49, tiers)["label"] == "Exploratory"
+    assert get_maturity_tier(1.50, tiers)["label"] == "Preparatory"
+    assert get_maturity_tier(2.49, tiers)["label"] == "Preparatory"
+    assert get_maturity_tier(2.50, tiers)["label"] == "Implementation"
+    assert get_maturity_tier(3.49, tiers)["label"] == "Implementation"
+    assert get_maturity_tier(3.50, tiers)["label"] == "Operational"
+    assert get_maturity_tier(4.49, tiers)["label"] == "Operational"
+    assert get_maturity_tier(4.50, tiers)["label"] == "Scaling"
+    assert get_maturity_tier(5.00, tiers)["label"] == "Scaling"
 
 
 def test_priority_list_six_rows_sorted():
@@ -292,13 +334,14 @@ def test_priority_list_six_rows_sorted():
     red/orange), sorted ascending by score."""
     config = _config()
     bands = _bands()
+    tiers = _tiers()
     category_ids = [cat["id"] for cat in config["categories"]]
     assert len(category_ids) == 6
 
     values = {cat_id: round(5.0 - i * 0.7, 2) for i, cat_id in enumerate(category_ids)}
     scores = _six_scores(values=values)
 
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
 
     assert len(priority_list) == 6
     result_scores = [row["score"] for row in priority_list]
@@ -314,13 +357,14 @@ def test_priority_list_tie_stable():
     category order (stable sort)."""
     config = _config()
     bands = _bands()
+    tiers = _tiers()
     category_ids = [cat["id"] for cat in config["categories"]]
 
     # Every dimension tied at the same score -> output order must equal
     # config category order exactly (stable sort proof).
     scores = _six_scores(value=3.0)
 
-    priority_list = build_priority_list(scores, bands)
+    priority_list = build_priority_list(scores, bands, tiers)
 
     assert [row["category_id"] for row in priority_list] == category_ids
 

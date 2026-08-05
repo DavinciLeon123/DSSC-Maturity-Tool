@@ -13,6 +13,12 @@ class User(SQLModel, table=True):
     # defaults new registrations to a concrete "DSI"/"SP" value; nothing
     # currently stops populating it going forward (WR-04).
     participant_type: str | None = Field(default=None)
+    # Default True is deliberate and load-bearing: every pre-existing
+    # direct User(...) construction site (make_user/_create_authed_user/
+    # create_admin, and any legacy row backfilled by the migration) is
+    # treated as already consented, per D-05/REQ-1 — only new registrations
+    # go through UserCreate's stricter no-default validator below.
+    data_consent: bool = Field(default=True)
     failed_login_attempts: int = Field(default=0)
     lockout_until: datetime | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)

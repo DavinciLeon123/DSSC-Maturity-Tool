@@ -20,6 +20,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     participant_type: Literal["DSI", "SP"] = "DSI"
+    data_consent: bool
 
     @field_validator("password")
     @classmethod
@@ -28,6 +29,13 @@ class UserCreate(BaseModel):
             raise ValueError("Password must be at least 12 characters")
         if v.lower() in COMMON_PASSWORDS:
             raise ValueError("Password is too common — choose a stronger password")
+        return v
+
+    @field_validator("data_consent")
+    @classmethod
+    def validate_data_consent(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("You must agree to data collection to register")
         return v
 
 

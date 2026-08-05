@@ -51,6 +51,7 @@ def generate_html_report(
     priority_list: list[dict],
     radar_chart_svg: str,
     maturity_bands: list[dict],
+    maturity_tiers: list[dict],
     answers_by_category: list[dict],
 ) -> str:
     """Render the 6-dimension compliance report HTML (RPRT-01/02/04) from the
@@ -64,6 +65,10 @@ def generate_html_report(
             response — passed through unmodified so the in-app view and the
             mailed PDF render from one shared payload (RPRT-04), never a
             second independently-built context.
+        maturity_tiers: config["maturity_tiers"] (Phase 16.4/REQ-2/D-03) —
+            rendered as a new, separate 5-row plain-text legend in the PDF
+            only; NOT part of the JSON ReportContract (see
+            build_report_contract's docstring for why).
         answers_by_category: list of dicts with category_id, name, and answers
             (the new submitted-answers section per RPRT-05).
     """
@@ -77,6 +82,7 @@ def generate_html_report(
         "priority_list": priority_list,
         "radar_chart_svg": radar_chart_svg,
         "maturity_bands": maturity_bands,
+        "maturity_tiers": maturity_tiers,
         "answers_by_category": answers_by_category,
         "logo_src": _logo_data_uri(),
     }
@@ -84,9 +90,13 @@ def generate_html_report(
 
 
 def get_maturity_band(score: float, bands: list[dict]) -> dict:
-    """Phase 16 (RPRT-03): the SOLE band-classification function in this
-    codebase. Both `build_priority_list` and `generate_radar_svg` call this —
-    no second inequality chain may exist anywhere else, on any surface.
+    """Phase 16 (RPRT-03): the SOLE *color*-classification function in this
+    codebase. Both `build_priority_list` (band_id/band_color) and
+    `generate_radar_svg` call this — no second color-inequality chain may
+    exist anywhere else, on any surface. Phase 16.4/REQ-2 adds a separate,
+    independent sibling, `get_maturity_tier`, as the sole source of
+    *text-label* classification (band_label) — the two are deliberately
+    decoupled (D-02).
 
     Bands are checked in ascending `min` order (config order — see
     `maturity_bands` in `config/dssc-questionnaire.json`, D-05); a score
@@ -103,17 +113,47 @@ def get_maturity_band(score: float, bands: list[dict]) -> dict:
     raise ValueError(f"score {score} not covered by any maturity_bands entry")
 
 
-def build_priority_list(scores: list[dict], bands: list[dict]) -> list[dict]:
-    """RPRT-02/D-06: always returns all 6 dimensions (never filtered to only
-    red/orange), sorted ascending by score. `sorted()` is a stable sort, so
-    dimensions with equal scores retain config category order (RPRT-02
-    ordering). Each row's band fields are sourced only from
-    `get_maturity_band` — never re-derived.
+def get_maturity_tier(score: float, tiers: list[dict]) -> dict:
+    """Sibling to get_maturity_band (Phase 16.4, REQ-2): classifies a
+    score into one of the 5 maturity_tiers (text label only, no
+    color) rather than one of the 3 color-coded maturity_bands. The
+    two functions are deliberately independent — get_maturity_band
+    remains the SOLE source of color classification (RPRT-03); this
+    function is the sole source of tier-label classification.
+
+    Unlike maturity_bands (contiguous — orange's max 2.0 equals
+    green's min 2.0, requiring the "higher band wins on a shared
+    boundary" rule get_maturity_band implements), maturity_tiers
+    entries are deliberately non-contiguous with a 0.01 gap between
+    each (e.g. exploratory max 1.49, preparatory min 1.50) — the
+    finest gap representable by a 2dp-rounded score
+    (compute_dimension_scores's existing rounding precedent). This
+    means every valid score matches exactly one tier via a simple
+    inclusive-both-ends range check, with no shared-boundary
+    ambiguity to resolve and no special last-tier casing needed.
+    """
+    for tier in tiers:
+        if tier["min"] <= score <= tier["max"]:
+            return tier
+    raise ValueError(f"score {score} not covered by any maturity_tiers entry")
+
+
+def build_priority_list(scores: list[dict], bands: list[dict], tiers: list[dict]) -> list[dict]:
+    """RPRT-02/D-06 (band_id/band_color) + Phase 16.4 REQ-2/D-02
+    (band_label): band_id/band_color are sourced from get_maturity_band
+    (unchanged 3-color system, RPRT-02/03 stay locked); band_label is
+    now sourced from get_maturity_tier (new, independent 5-tier text
+    classification) instead of the band's own label.
+
+    Always returns all 6 dimensions (never filtered to only red/orange),
+    sorted ascending by score. `sorted()` is a stable sort, so dimensions
+    with equal scores retain config category order (RPRT-02 ordering).
 
     Args:
         scores: [{category_id, name, score}, ...] — already 2dp-rounded by
             `compute_dimension_scores`'s existing precedent.
-        bands: config["maturity_bands"].
+        bands: config["maturity_bands"] — used for band_id/band_color.
+        tiers: config["maturity_tiers"] — used for band_label only.
     """
     return [
         {
@@ -121,7 +161,7 @@ def build_priority_list(scores: list[dict], bands: list[dict]) -> list[dict]:
             "name": s["name"],
             "score": s["score"],
             "band_id": (band := get_maturity_band(s["score"], bands))["id"],
-            "band_label": band["label"],
+            "band_label": get_maturity_tier(s["score"], tiers)["label"],
             "band_color": band["color"],
         }
         for s in sorted(scores, key=lambda s: s["score"])
@@ -345,6 +385,7 @@ def build_report_contract(
             "maturity_bands").
     """
     bands = config["maturity_bands"]
+    tiers = config["maturity_tiers"]
 
     # ORM-or-dict flexibility idiom
     if hasattr(initiative, "id"):
@@ -366,7 +407,7 @@ def build_report_contract(
         "version": version,
         "initiative": {"id": initiative_id, "name": initiative_name},
         "dimension_scores": dimension_scores,
-        "priority_list": build_priority_list(dimension_scores, bands),
+        "priority_list": build_priority_list(dimension_scores, bands, tiers),
         "radar_chart_svg": generate_radar_svg(dimension_scores, bands),
         "maturity_bands": bands,
     }

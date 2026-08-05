@@ -723,5 +723,12 @@
     { "id": "red", "label": "Needs attention", "min": 1.0, "max": 2.0, "color": "#d64545" },
     { "id": "orange", "label": "Developing", "min": 2.0, "max": 3.5, "color": "#e08e2b" },
     { "id": "green", "label": "Mature", "min": 3.5, "max": 5.0, "color": "#399e5a" }
+  ],
+  "maturity_tiers": [
+    { "id": "exploratory", "label": "Exploratory", "min": 1.00, "max": 1.49 },
+    { "id": "preparatory", "label": "Preparatory", "min": 1.50, "max": 2.49 },
+    { "id": "implementation", "label": "Implementation", "min": 2.50, "max": 3.49 },
+    { "id": "operational", "label": "Operational", "min": 3.50, "max": 4.49 },
+    { "id": "scaling", "label": "Scaling", "min": 4.50, "max": 5.00 }
   ]
 }

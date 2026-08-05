@@ -936,6 +936,10 @@
       },
       "UserCreate": {
         "properties": {
+          "data_consent": {
+            "title": "Data Consent",
+            "type": "boolean"
+          },
           "email": {
             "format": "email",
             "title": "Email",
@@ -957,7 +961,8 @@
         },
         "required": [
           "email",
-          "password"
+          "password",
+          "data_consent"
         ],
         "title": "UserCreate",
         "type": "object"

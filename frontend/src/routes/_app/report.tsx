@@ -316,6 +316,40 @@ function ReportPage() {
               <Alert type="error" message={downloadError} showIcon style={{ marginTop: "12px", maxWidth: "600px" }} />
             )}
           </div>
+
+          <div
+            style={{
+              marginTop: "24px",
+              background: "#ffffff",
+              borderRadius: "0",
+              boxShadow: "0 2px 12px rgba(0,142,207,0.08)",
+              padding: "24px",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+                fontSize: "14px",
+                color: "#008ecf",
+                marginBottom: "16px",
+              }}
+            >
+              Thank you for taking this assessment. If you have feedback or would like to
+              have a conversation with an expert about your results, please click below to
+              contact us.
+            </p>
+            <Button
+              href="mailto:info@dssc.eu"
+              size="large"
+              style={{
+                borderRadius: "0",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+                fontWeight: 600,
+              }}
+            >
+              Contact us
+            </Button>
+          </div>
         </>
       )}
     </div>
