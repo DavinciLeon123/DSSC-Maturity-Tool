@@ -250,6 +250,7 @@ function LandingPage() {
                 fontSize: '2rem',
                 fontWeight: 700,
                 color: '#1c2025',
+                lineHeight: 1.4,
                 marginBottom: '1rem',
               }}
             >

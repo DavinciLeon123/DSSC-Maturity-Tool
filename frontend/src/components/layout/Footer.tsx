@@ -43,8 +43,8 @@ export function Footer() {
                 lineHeight: 1.6,
               }}
             >
-              Data Space Support Center – Tool Powered by the Centre of Excellence
-              for Data Sharing and Cloud
+              Data Space Support Centre – Tool created by the Centre of Excellence
+              for Data Sharing and Cloud under Creative Commons Attribution 4.0
             </div>
           </div>
 
@@ -62,7 +62,9 @@ export function Footer() {
                 Links
               </div>
               <a
-                href="mailto:info@dssc.eu"
+                href="https://dataspacessupportcentre.atlassian.net/servicedesk/customer/portal/40/create/98"
+                target="_blank"
+                rel="noopener"
                 style={{
                   display: 'block',
                   color: 'rgba(255,255,255,0.6)',
@@ -87,7 +89,9 @@ export function Footer() {
             color: 'rgba(255,255,255,0.4)',
           }}
         >
-          &copy; {new Date().getFullYear()} DSSC. All rights reserved.
+          &copy; {new Date().getFullYear()} Data Space Support Centre. This tool is made
+          available under the Creative Commons Attribution 4.0 International License (CC
+          BY 4.0).
         </div>
       </div>
     </footer>
