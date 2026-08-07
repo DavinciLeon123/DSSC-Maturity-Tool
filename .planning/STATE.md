@@ -1,5 +1,19 @@
 ---
 gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Phase 16.4 Plan 01 executed (Wave 1, REQ-1 — mandatory data-collection consent checkbox at registration; migration `l3c4d5e6f7a8`, `UserCreate.data_consent` 422 gate, register.tsx required Checkbox). Commits `1bd4f97` (Task 1) and `4a0ed44` (Task 2) landed. Phase 16.4 is 2/3 plans complete (16.4-01, 16.4-03; 16.4-02 in flight). Ready for 16.4-02 to be confirmed, then the feature-branch/PR-to-`staging` workflow once all 3 are consistent.
+last_updated: "2026-08-07T05:56:06.664Z"
+progress:
+  total_phases: 21
+  completed_phases: 20
+  total_plans: 91
+  completed_plans: 90
+---
+
+---
+gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: DSSC Maturity Scan for Dataspaces
 status: active
