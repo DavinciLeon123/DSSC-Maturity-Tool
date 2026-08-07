@@ -24,8 +24,12 @@ test('critical path: register -> answer questionnaire -> submit -> view report',
   await page.waitForURL('**/dashboard');
 
   // ---- Register initiative ------------------------------------------------
+  // Sector is an antd <Select>: the visible "Select a sector..." placeholder is a decorative
+  // <div>, not the actual click target — an invisible role="combobox" <input> sits on top of it
+  // and intercepts pointer events, so clicking the placeholder text times out. Target the
+  // combobox itself, matching how Ant Design's own accessibility markup exposes it.
   await page.getByPlaceholder('Enter initiative name').fill('E2E Test Initiative');
-  await page.getByText('Select a sector...').click();
+  await page.getByRole('combobox').click();
   await page.getByRole('option', { name: 'Healthcare' }).click();
   await page.getByRole('button', { name: 'Register Initiative' }).click();
 
