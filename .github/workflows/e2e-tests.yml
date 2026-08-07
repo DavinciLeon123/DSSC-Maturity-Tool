@@ -67,7 +67,11 @@ jobs:
         # docker-compose.yml only healthchecks `db` — backend/frontend have none, so an HTTP-level
         # check is required; `docker compose up --wait` alone would falsely report ready the
         # instant the container process starts, before alembic upgrade + admin seed finish.
-        run: npx --yes wait-on http://localhost:8000/health http://localhost:3000 -t 120000
+        # http-get:// forces a GET request — wait-on's default HEAD request 405s against
+        # /health, since it's only registered for GET (confirmed: backend was fully up and
+        # serving GET /health the whole time in the first CI run, but every HEAD probe 405'd
+        # until the 120s timeout).
+        run: npx --yes wait-on http-get://localhost:8000/health http-get://localhost:3000 -t 120000
 
       - name: Install Playwright
         working-directory: e2e
