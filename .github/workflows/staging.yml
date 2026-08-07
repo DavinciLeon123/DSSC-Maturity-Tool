@@ -167,18 +167,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "backend/uv.lock"
       - run: uv sync --locked
-      # Phase 14 deleted the ZEN-engine perf test without a replacement (Phase 17 owns writing
-      # the new dimension-scoring perf/benchmark coverage, per 14-04's deferred-items.md) — until
-      # then, "no perf tests collected" (pytest exit 5) is expected, not a failure.
-      - run: |
-          uv run pytest tests/ -m perf -q || {
-            code=$?
-            if [ "$code" -eq 5 ]; then
-              echo "::warning::No perf-marked tests currently exist (expected until Phase 17 adds dimension-scoring perf coverage) — treating as pass."
-              exit 0
-            fi
-            exit "$code"
-          }
+      # No -n auto here: pytest-benchmark's timing needs a single worker, not parallel xdist workers.
+      - run: uv run pytest tests/ -m perf -q
 
   docker-build:
     runs-on: ubuntu-latest
@@ -215,6 +205,14 @@ jobs:
           file: frontend/Dockerfile
           push: true
           tags: ${{ steps.tags.outputs.frontend }}
+
+  e2e:
+    needs: docker-build
+    uses: ./.github/workflows/e2e-tests.yml
+    with:
+      backend-image: ${{ needs.docker-build.outputs.backend-image }}
+      frontend-image: ${{ needs.docker-build.outputs.frontend-image }}
+    secrets: inherit
 
   sbom:
     runs-on: ubuntu-latest
