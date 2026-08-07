@@ -314,7 +314,7 @@ Plans:
 **Wave 1** *(3 plans, disjoint files, run in parallel — backend gap-fill touches only backend/tests/**, pr.yml, CLAUDE.md; frontend coverage touches only report.tsx/report.test.tsx/useDebouncedSave.test.ts; E2E touches only e2e/**, e2e-tests.yml, staging.yml, main.yml)*
 
 - [ ] 17-01-PLAN.md — Backend gap-fill: auth-negative dependency test (missing/malformed/expired token, deleted user) against 3 representative routes + perf/benchmark coverage for compute_dimension_scores (closes Phase 14's deferred IOU) + pr.yml perf-gate exit-5-tolerance cleanup (Wave 1; TEST-01)
-- [ ] 17-02-PLAN.md — Frontend coverage: useDebouncedSave fake-timer tests (debounce/retry-backoff/rate-limit) + report.tsx radar-SVG/priority-list data-driven tests (ReportPage export fix included) (Wave 1; TEST-02)
+- [x] 17-02-PLAN.md — Frontend coverage: useDebouncedSave fake-timer tests (debounce/retry-backoff/rate-limit) + report.tsx radar-SVG/priority-list data-driven tests (ReportPage export fix included) (Wave 1; TEST-02)
 - [x] 17-03-PLAN.md — Playwright E2E: new top-level e2e/ critical-path suite (register→questionnaire→submit→report) + reusable e2e-tests.yml CI workflow wired into staging.yml (pulls :staging images) and main.yml (builds from source) (Wave 1; TEST-03)
 
 ### Phase 18: Security Hardening & Password Reset Review
