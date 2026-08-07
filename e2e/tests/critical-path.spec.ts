@@ -24,13 +24,16 @@ test('critical path: register -> answer questionnaire -> submit -> view report',
   await page.waitForURL('**/dashboard');
 
   // ---- Register initiative ------------------------------------------------
-  // Sector is an antd <Select>: the visible "Select a sector..." placeholder is a decorative
-  // <div>, not the actual click target — an invisible role="combobox" <input> sits on top of it
-  // and intercepts pointer events, so clicking the placeholder text times out. Target the
-  // combobox itself, matching how Ant Design's own accessibility markup exposes it.
+  // Sector is an antd <Select>. rc-select renders TWO separate trees for its dropdown: a hidden,
+  // zero-size role="listbox"/role="option" shadow copy (height:0; overflow:hidden) that exists
+  // purely for accessibility semantics, and the actual visible/clickable rows in a completely
+  // separate rc-virtual-list tree as plain <div class="ant-select-item-option" title="...">  with
+  // no ARIA role at all. getByRole('option', ...) always matches the hidden shadow node — confirmed
+  // by dumping the live DOM (dropdown HTML) locally, not a guess. Target the real virtual-list row
+  // by its title attribute instead.
   await page.getByPlaceholder('Enter initiative name').fill('E2E Test Initiative');
   await page.getByRole('combobox').click();
-  await page.getByRole('option', { name: 'Healthcare' }).click();
+  await page.locator('.ant-select-item-option[title="Healthcare"]').click();
   await page.getByRole('button', { name: 'Register Initiative' }).click();
 
   // ---- Start the assessment (fresh draft -> straight to /questionnaire, no retake confirm) ---
@@ -45,13 +48,27 @@ test('critical path: register -> answer questionnaire -> submit -> view report',
     // handleNext() is async (awaits a real backend flush before navigating) — wait for the new
     // category's radiogroups to actually render before re-querying, a genuine race otherwise.
     await expect(page.getByRole('radiogroup').first()).toBeVisible();
-    const groups = await page.getByRole('radiogroup').all();
-    for (const group of groups) {
-      await group.getByRole('radio').nth(2).click();
-    }
+
     const isLastCategory = categoryPage === 5;
     const buttonName = isLastCategory ? 'Submit assessment →' : 'Next →';
-    await page.getByRole('button', { name: buttonName }).click();
+    const nextButton = page.getByRole('button', { name: buttonName });
+
+    // Questions render progressively — querying radiogroups right after only the first one
+    // appears can miss ones that mount a beat later (confirmed live: a category with 9
+    // questions was sometimes only 8-strong on the first query). Re-query and answer any
+    // still-unchecked radiogroup across a few passes until the button the app itself only
+    // enables once every question is answered actually reports enabled — the real success
+    // signal, rather than trusting a single query pass or a hardcoded count.
+    for (let pass = 0; pass < 5 && !(await nextButton.isEnabled()); pass++) {
+      const groups = await page.getByRole('radiogroup').all();
+      for (const group of groups) {
+        const radio = group.getByRole('radio').nth(2);
+        if (!(await radio.isChecked())) {
+          await radio.click();
+        }
+      }
+    }
+    await nextButton.click();
   }
 
   // ---- Post-submit: generate + view report --------------------------------
