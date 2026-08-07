@@ -16,21 +16,23 @@ from app.core.security import hash_password
 from app.models.user import User
 
 
+def _seed_admin(session: Session, email: str, password: str) -> None:
+    existing = session.exec(select(User).where(User.email == email)).first()
+    if not existing:
+        admin = User(email=email, hashed_password=hash_password(password), role="ADMIN")
+        session.add(admin)
+        session.commit()
+        print(f"Admin user created: {email}")
+    else:
+        print(f"Admin user already exists — skipping: {email}")
+
+
 def create_admin():
     engine = create_engine(settings.DATABASE_URL)
     with Session(engine) as session:
-        existing = session.exec(select(User).where(User.email == settings.ADMIN_EMAIL)).first()
-        if not existing:
-            admin = User(
-                email=settings.ADMIN_EMAIL,
-                hashed_password=hash_password(settings.ADMIN_PASSWORD),
-                role="ADMIN",
-            )
-            session.add(admin)
-            session.commit()
-            print(f"Admin user created: {settings.ADMIN_EMAIL}")
-        else:
-            print(f"Admin user already exists — skipping: {settings.ADMIN_EMAIL}")
+        _seed_admin(session, settings.ADMIN_EMAIL, settings.ADMIN_PASSWORD)
+        for email, password in settings.additional_admins_list:
+            _seed_admin(session, email, password)
 
 
 if __name__ == "__main__":

@@ -23,3 +23,5 @@ def test_no_secrets_leak_into_responses():
         assert settings.SECRET_KEY not in response_text
         assert settings.DATABASE_URL not in response_text
         assert settings.ADMIN_PASSWORD not in response_text
+        for _, extra_password in settings.additional_admins_list:
+            assert extra_password not in response_text
