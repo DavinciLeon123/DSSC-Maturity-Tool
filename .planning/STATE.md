@@ -4,6 +4,48 @@ milestone: v1.0
 milestone_name: milestone
 status: unknown
 stopped_at: Phase 16.4 Plan 01 executed (Wave 1, REQ-1 — mandatory data-collection consent checkbox at registration; migration `l3c4d5e6f7a8`, `UserCreate.data_consent` 422 gate, register.tsx required Checkbox). Commits `1bd4f97` (Task 1) and `4a0ed44` (Task 2) landed. Phase 16.4 is 2/3 plans complete (16.4-01, 16.4-03; 16.4-02 in flight). Ready for 16.4-02 to be confirmed, then the feature-branch/PR-to-`staging` workflow once all 3 are consistent.
+last_updated: "2026-08-07T05:56:06.664Z"
+progress:
+  total_phases: 21
+  completed_phases: 20
+  total_plans: 91
+  completed_plans: 90
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: DSSC Maturity Scan for Dataspaces
+status: active
+stopped_at: "Phase 17 Plan 01 executed (Wave 1, TEST-01 — Backend test coverage gap-fill: auth-negative dependency tests + perf/benchmark for dimension scoring). Task 1: created test_auth_dependency.py with 12 parametrized tests (4 scenarios × 3 routes) covering missing header / malformed-or-expired token / deleted-user 401 paths (all pass). Task 2: created test_dimension_scoring_perf.py (p95 latency <1.0s) and test_dimension_scoring_regression.py (deterministic golden-value output); both pass, pytest tests/ -m perf now collects 1 test instead of exiting 5. Task 3: removed pr.yml perf-gate exit-5 tolerance wrapper, updated CLAUDE.md to document Phase 17 resolution of Phase 14's deferred IOU. Four commits landed (6a4d1fe Task 1, 18c2e33 Task 2, cce091a Task 3, 600a878 linting fix, ecd38be SUMMARY.md). Phase 17 is now 3/3 plans complete (17-01, 17-02, 17-03). Ready for feature-branch/PR-to-`staging` workflow."
+last_updated: "2026-08-07T05:36:00.000Z"
+progress:
+  total_phases: 21
+  completed_phases: 20
+  total_plans: 90
+  completed_plans: 90
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: DSSC Maturity Scan for Dataspaces
+status: active
+stopped_at: "Phase 17 Plan 02 executed (Wave 1, TEST-02 — Frontend test coverage for wizard's save/state-machine and report rendering). Task 1: exported ReportPage from report.tsx and created report.test.tsx with two data-driven tests (happy path: radar SVG attributes + priority list rendering; error path: retry button). Task 2: created useDebouncedSave.test.ts with five fake-timer tests (debounce, reset, retry-succeed, terminal-failed, rate-limit). All 8 tests (including existing TopNav.test.tsx) pass; tsc/eslint clean. Two commits landed (5d891f6 Task 1, 724c9f9 Task 2). Phase 17 is now 2/3 plans complete (17-03 and 17-02 done; 17-01 pending). Ready for 17-01 to complete, then feature-branch/PR-to-`staging` workflow."
+last_updated: "2026-08-07T07:35:00.000Z"
+progress:
+  total_phases: 21
+  completed_phases: 19
+  total_plans: 89
+  completed_plans: 89
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Phase 16.4 Plan 01 executed (Wave 1, REQ-1 — mandatory data-collection consent checkbox at registration; migration `l3c4d5e6f7a8`, `UserCreate.data_consent` 422 gate, register.tsx required Checkbox). Commits `1bd4f97` (Task 1) and `4a0ed44` (Task 2) landed. Phase 16.4 is 2/3 plans complete (16.4-01, 16.4-03; 16.4-02 in flight). Ready for 16.4-02 to be confirmed, then the feature-branch/PR-to-`staging` workflow once all 3 are consistent.
 last_updated: "2026-08-05T17:37:19.548Z"
 progress:
   total_phases: 21

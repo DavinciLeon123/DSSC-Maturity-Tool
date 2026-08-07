@@ -94,7 +94,7 @@ function PriorityRow({
 
 // ---- Main page ----------------------------------------------------------------
 
-function ReportPage() {
+export function ReportPage() {
   const { initiativeId: initiativeIdParam, assessmentId } = useReportSearchParams();
 
   const [loading, setLoading] = useState(true);

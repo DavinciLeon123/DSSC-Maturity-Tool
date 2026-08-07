@@ -70,9 +70,9 @@ Requirements for the v2.0 milestone. Each maps to roadmap phases.
 
 ### Testing (TEST)
 
-- [ ] **TEST-01**: Backend has pytest unit test coverage for the scoring engine, questionnaire API, and auth flows
-- [ ] **TEST-02**: Frontend has Vitest + React Testing Library coverage for wizard save/state logic and report rendering
-- [ ] **TEST-03**: Playwright E2E suite covers the critical path: register → answer questionnaire → submit → view report
+- [x] **TEST-01**: Backend has pytest unit test coverage for the scoring engine, questionnaire API, and auth flows
+- [x] **TEST-02**: Frontend has Vitest + React Testing Library coverage for wizard save/state logic and report rendering
+- [x] **TEST-03**: Playwright E2E suite covers the critical path: register → answer questionnaire → submit → view report
 
 ### Auth (AUTH) — stretch, time permitting
 
@@ -135,9 +135,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SECU-03 | Phase 18 | Pending |
 | SECU-04 | Phase 18 | Pending |
 | ADMN-01 | Phase 16 | Complete |
-| TEST-01 | Phase 17 | Pending |
-| TEST-02 | Phase 17 | Pending |
-| TEST-03 | Phase 17 | Pending |
+| TEST-01 | Phase 17 | Complete |
+| TEST-02 | Phase 17 | Complete |
+| TEST-03 | Phase 17 | Complete |
 | AUTH-01 | Phase 18 | Pending |
 
 **Coverage:**

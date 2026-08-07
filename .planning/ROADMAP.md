@@ -38,7 +38,7 @@ Requirements: [`.planning/milestones/v1.0-REQUIREMENTS.md`](.planning/milestones
 - [x] **Phase 16.2: Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping (INSERTED)** - New DSMA copy for the homepage and About page, a welcome screen before the assessment plus a per-dimension intro text within it, and question grouping into 16 named subsections, all per `Teksten MAMI Tool.pdf` (completed 2026-08-04, pending Railway visual sign-off)
 - [x] **Phase 16.3: Bug fixes batch: survey retake, report colors, and PDF (INSERTED)** - Fixed 7 user-reported bugs: retake-save failure, blue questionnaire text, "View Report" showing the wrong survey, PDF initiative label/score-dot clipping/expert-help wording, square button+card corners app-wide, and admin panel completed-assessment counts on both tabs (completed 2026-08-05, Railway visual sign-off confirmed 2026-08-05 — all 7 bugs verified fixed, including the PDF dot-clip render)
 - [x] **Phase 16.4: Consent checkbox, 5-tier maturity scale, and report contact CTA (INSERTED)** - Mandatory registration data-consent checkbox (existing test users backfilled as consented), 3-tier -> 5-tier maturity scoring labels (Exploratory/Preparatory/Implementation/Operational/Scaling) everywhere aggregate scoring displays, and a thank-you + mailto:info@dssc.eu contact CTA on the report page (completed 2026-08-05)
-- [ ] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite
+- [x] **Phase 17: Test Coverage — New Scoring, Questionnaire & Visualization Logic + E2E** - Automated coverage for the rebuilt subsystems, plus a critical-path Playwright suite (completed 2026-08-07)
 - [ ] **Phase 18: Security Hardening & Password Reset Review** - httpOnly-cookie auth + CSRF, ID-enumeration fix, explicit error handling, admin audit log, password-reset verification
 
 ## Phase Details
@@ -308,7 +308,14 @@ Plans:
   2. Frontend Vitest + React Testing Library coverage exists for the wizard's save/state logic and the report's rendering (radar chart + priority list).
   3. A Playwright E2E suite runs the critical path — register, answer the full questionnaire, submit, view the report — and passes in CI.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1** *(3 plans, disjoint files, run in parallel — backend gap-fill touches only backend/tests/**, pr.yml, CLAUDE.md; frontend coverage touches only report.tsx/report.test.tsx/useDebouncedSave.test.ts; E2E touches only e2e/**, e2e-tests.yml, staging.yml, main.yml)*
+
+- [x] 17-01-PLAN.md — Backend gap-fill: auth-negative dependency test (missing/malformed/expired token, deleted user) against 3 representative routes + perf/benchmark coverage for compute_dimension_scores (closes Phase 14's deferred IOU) + pr.yml perf-gate exit-5-tolerance cleanup (Wave 1; TEST-01)
+- [x] 17-02-PLAN.md — Frontend coverage: useDebouncedSave fake-timer tests (debounce/retry-backoff/rate-limit) + report.tsx radar-SVG/priority-list data-driven tests (ReportPage export fix included) (Wave 1; TEST-02)
+- [x] 17-03-PLAN.md — Playwright E2E: new top-level e2e/ critical-path suite (register→questionnaire→submit→report) + reusable e2e-tests.yml CI workflow wired into staging.yml (pulls :staging images) and main.yml (builds from source) (Wave 1; TEST-03)
 
 ### Phase 18: Security Hardening & Password Reset Review
 
@@ -340,5 +347,5 @@ Phases execute in numeric order: 12 → 13 → 14 → 15 → 16 → 17 → 18
 | 16. Report Data Contract, Dual Visualization & Admin Aggregation | v2.0 | 5/5 | Complete    | 2026-07-28 |
 | 16.1. DSSC Rebrand — Visual Identity, Terminology, PDF Content & Registration Default | v2.0 | 4/4 | Complete    | 2026-08-03 |
 | 16.2. Content & UX Updates — Frontpage/About Rebrand Copy, Assessment Intro Texts & Question Grouping | v2.0 | 6/6 | In Progress | - |
-| 17. Test Coverage — New Logic + E2E | v2.0 | 0/TBD | Not started | - |
+| 17. Test Coverage — New Logic + E2E | v2.0 | Complete    | 2026-08-07 | 2026-08-07 |
 | 18. Security Hardening & Password Reset Review | v2.0 | 0/TBD | Not started | - |

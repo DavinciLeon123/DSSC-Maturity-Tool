@@ -24,9 +24,12 @@ to Railway's API. `main`'s environment should have auto-deploy left off; deploy 
 from the Railway dashboard when ready. See "Setup checklist" below — this isn't wired up yet
 because no Railway project exists for this repo.
 
-## The 5 GitHub Actions workflows
+## The 5 GitHub Actions workflows (+ 1 reusable sub-workflow)
 
 All live in `.github/workflows/`. Each bullet below maps to one job of the same name unless noted.
+A 6th file, `e2e-tests.yml`, is `workflow_call`-only (never triggers on its own) — it's the shared
+Playwright E2E implementation `staging.yml` and `main.yml` both call, documented under workflow 2
+and 3 below rather than as its own numbered entry.
 
 ### 1. `pr.yml` — every PR into `main` or `staging`
 - `backend-lint` — `ruff check` + `ruff format --check`
@@ -34,7 +37,7 @@ All live in `.github/workflows/`. Each bullet below maps to one job of the same 
 - `frontend-lint` / `frontend-typecheck` — `eslint` / `tsc -b --noEmit`
 - `security-audit` — `pip-audit` (3 attempts, backend) + `npm audit --audit-level=high` (frontend)
 - `test` — `pytest -n auto -m "not perf and not benchmark"` (perf/benchmark excluded to keep PR feedback fast)
-- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker). **Temporarily tolerant of zero perf tests (2026-07-24):** Phase 14 deleted the only `perf`-marked test (`tests/perf/test_scoring_perf.py`, benchmarked the removed ZEN engine) without a same-phase replacement — Phase 17 owns writing new dimension-scoring perf coverage (see `14-04`'s `deferred-items.md`). Bare `pytest -m perf` exits 5 ("no tests collected") on zero matches, which GitHub Actions treats as a failure, so `pr.yml`/`staging.yml`/`main.yml` all wrap the call to treat exit 5 as a pass and any other non-zero exit as a real failure. Remove this tolerance once Phase 17 adds a perf test back.
+- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker). **Resolved (Phase 17):** `tests/perf/test_dimension_scoring_perf.py` now covers the equal-weight scoring path's p95 latency, replacing the ZEN-engine perf test Phase 14 deleted — the exit-5 tolerance wrapper has been removed from `pr.yml`/`staging.yml`/`main.yml`; a bare `pytest -m perf -q` now always collects at least one test.
 - `docs-freshness` — regenerates `docs/api/openapi.json` from the FastAPI app and fails on any `git diff`
 
 ### 2. `staging.yml` — push to `staging` (i.e. after a PR merges)
@@ -42,10 +45,17 @@ Same jobs as `pr.yml`, except:
 - `test` includes the `benchmark`-marked regression suite (`-m "not perf"` instead of excluding it too)
 - `docker-build` (needs lint + test green) — builds and pushes `backend`/`frontend` images to `ghcr.io` tagged `:staging`
 - `sbom` (needs `docker-build`) — generates CycloneDX + SPDX SBOMs for both images, commits them to `docs/security/` (commit message includes `[skip ci]` to avoid a push-triggered loop)
+- `e2e` (needs `docker-build`) — calls the reusable `e2e-tests.yml`, passing `docker-build`'s pushed `:staging` image tags so it pulls rather than rebuilds
 
 ### 3. `main.yml` — push to `main`
 Same quality jobs as `staging.yml` (full lint/type/audit/test/docs/perf), plus:
 - `docker-build-and-sbom` — builds both images locally (no registry push — `main` deploys manually), generates SBOMs, uploads them as a workflow artifact with 90-day retention
+- `e2e` — calls the reusable `e2e-tests.yml` with no image inputs, since `docker-build-and-sbom` never pushes anywhere for it to pull from; builds the compose stack from source instead
+
+Both `e2e` jobs run Playwright's Chromium-only critical-path suite (`e2e/tests/critical-path.spec.ts`)
+against the real `docker-compose.yml` stack (fresh DB, `wait-on`-gated readiness), never against a
+mocked backend or the live Railway deployment. Like the `benchmark` marker, E2E is excluded from
+`pr.yml` to keep PR feedback fast and only runs from `staging` onward.
 
 ### 4. `release.yml` — push of tag `v*`
 - `quality-gate` — full lint/mypy/tests including the privacy canary (see below), plus frontend lint/typecheck/`npm audit --omit=dev`
