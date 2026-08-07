@@ -72,6 +72,10 @@ SECRET_KEY=                 # 64-character hex string
 ADMIN_EMAIL=                # Email address for the admin account
 ADMIN_PASSWORD=             # Strong password for the admin account
 
+# Optional — extra admin accounts beyond ADMIN_EMAIL. Format: "email:password,email:password".
+# Leave unset on deployments that should only have the single primary admin.
+ADDITIONAL_ADMINS=
+
 DOMAIN=                     # Your domain, e.g. checker.yourdomain.com
 
 RESEND_API_KEY=             # From the Resend dashboard (leave empty to disable email)
@@ -217,6 +221,7 @@ Add this line (runs renewal check twice a day and reloads nginx if a certificate
 | `SECRET_KEY` | Yes | 64-char hex string for JWT signing |
 | `ADMIN_EMAIL` | Yes | Email for the initial admin account |
 | `ADMIN_PASSWORD` | Yes | Password for the initial admin account |
+| `ADDITIONAL_ADMINS` | No | Extra admin accounts, `email:password,email:password` — unset means only the one primary admin |
 | `DOMAIN` | Yes | Your domain name (used for CORS) |
 | `RESEND_API_KEY` | No | Resend API key — email is disabled if empty |
 | `FRONTEND_URL` | No | Full HTTPS URL — used in password reset emails |
