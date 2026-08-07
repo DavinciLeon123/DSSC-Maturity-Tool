@@ -339,7 +339,9 @@ function ReportPage() {
               contact us.
             </p>
             <Button
-              href="mailto:info@dssc.eu"
+              href="https://dataspacessupportcentre.atlassian.net/servicedesk/customer/portal/40/create/98"
+              target="_blank"
+              rel="noopener"
               size="large"
               style={{
                 borderRadius: "0",

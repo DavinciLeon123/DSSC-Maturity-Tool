@@ -370,24 +370,31 @@ def test_priority_list_tie_stable():
 
 
 def test_radar_svg_structure():
-    """RPRT-01: output has viewBox, one polygon, and all 6 category names,
-    with explicit font presentation attributes on every <text> (Pitfall 3)."""
+    """RPRT-01: output has viewBox, a grid ring per scale level plus one
+    data polygon, and all 6 category names, with explicit font presentation
+    attributes on every <text> (Pitfall 3)."""
     config = _config()
     bands = _bands()
     scores = _six_scores(value=3.0)
 
     svg = generate_radar_svg(scores, bands)
 
+    max_score = 5.0
+    grid_ring_count = int(max_score)
+
     assert svg.startswith("<svg")
     assert "viewBox" in svg
-    assert svg.count("<polygon") == 1
+    # grid rings (scale levels 1..max_score) + exactly one data polygon
+    assert svg.count("<polygon") == grid_ring_count + 1
+    assert svg.count('fill-opacity="0.25"') == 1  # the data polygon
     for cat in config["categories"]:
         # WR-05: category names are XML-escaped before interpolation (real
         # config content includes "Control over Data & Trust", proving this
         # isn't just a hypothetical) — assert against the escaped form.
         assert xml_escape(cat["name"]) in svg
-    assert svg.count("font-family") == len(config["categories"])
-    assert svg.count("font-size") == len(config["categories"])
+    # category labels + scale tick labels each carry font-family/font-size
+    assert svg.count("font-family") == len(config["categories"]) + grid_ring_count
+    assert svg.count("font-size") == len(config["categories"]) + grid_ring_count
 
 
 def test_radar_svg_escapes_special_characters_in_category_name():

@@ -290,6 +290,13 @@ def generate_radar_svg(
     (negative min-x, width > height) to give those outward-growing labels
     room, sized from the longest category name rather than a hardcoded
     axis-count assumption.
+
+    Scale grid: concentric rings at each whole-number level from 1 to
+    max_score are drawn behind the spokes/data polygon, giving the chart an
+    actual "web" to read the data polygon against instead of a bare
+    star-burst of spokes. The top axis (index 0) additionally gets small
+    numeric tick labels at each ring so the scale itself is legible, not
+    just the data shape.
     """
     n = len(scores)
     cx = cy = size / 2
@@ -314,6 +321,30 @@ def generate_radar_svg(
         for i, s in enumerate(scores)
         for x, y in [point(i, min(s["score"], max_score) / max_score)]
     )
+
+    # Scale grid rings — concentric n-sided polygons at each whole-number
+    # level (1..max_score), drawn first so spokes/data polygon layer on top.
+    grid_levels = range(1, int(max_score) + 1)
+    grid_rings = []
+    for level in grid_levels:
+        ring_points = " ".join(
+            f"{x:.1f},{y:.1f}" for i in range(n) for x, y in [point(i, level / max_score)]
+        )
+        grid_rings.append(
+            f'<polygon points="{ring_points}" fill="none" stroke="#e8e8e8" stroke-width="1"/>'
+        )
+
+    # Scale tick labels along the top axis (index 0), marking each grid
+    # ring with its numeric level. No text-anchor override (defaults to
+    # "start"), and offset right of the vertical spoke so it doesn't
+    # overlap it.
+    tick_labels = []
+    for level in grid_levels:
+        tx, ty = point(0, level / max_score)
+        tick_labels.append(
+            f'<text x="{tx + 4:.1f}" y="{ty - 2:.1f}" font-size="9" '
+            f'font-family="Jost, sans-serif" fill="#999999">{level}</text>'
+        )
 
     # Axis spokes (full-radius lines) + labels
     spokes = []
@@ -357,10 +388,12 @@ def generate_radar_svg(
     return (
         f'<svg viewBox="{view_min_x:.1f} 0 {view_width:.1f} {size}" '
         f'xmlns="http://www.w3.org/2000/svg">'
+        + "".join(grid_rings)
         + "".join(spokes)
         + f'<polygon points="{data_points}" fill="{band["color"]}" '
         f'fill-opacity="0.25" stroke="{band["color"]}" stroke-width="2"/>'
         + "".join(labels)
+        + "".join(tick_labels)
         + "</svg>"
     )
 
