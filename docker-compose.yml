@@ -27,6 +27,7 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADDITIONAL_ADMINS: ${ADDITIONAL_ADMINS:-}
       CORS_ORIGINS: '["http://localhost:3000", "http://localhost:5173"]'
     ports:
       - "8000:8000"

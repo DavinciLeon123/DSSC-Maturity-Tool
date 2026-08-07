@@ -24,6 +24,11 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "backend/uv.lock"
+      # WeasyPrint (used by tests/api/test_reports.py's PDF-generation path) needs native
+      # Pango/GLib libraries beyond the Python package — without these, importing weasyprint
+      # raises OSError: cannot load library 'libgobject-2.0-0'.
+      - name: Install WeasyPrint system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf2.0-0 libcairo2
       - name: Backend lint, types, tests (incl. privacy canary)
         working-directory: backend
         run: |
@@ -37,12 +42,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Frontend lint, types, audit (prod deps only)
+      - name: Frontend lint, types, tests, audit (prod deps only)
         working-directory: frontend
         run: |
           npm ci
           npm run lint
           npm run typecheck
+          npx vitest run --coverage
           # --omit=dev: build-only tooling (vite, esbuild, eslint...) never ships in the
           # runtime image, so its CVEs shouldn't block a release.
           npm audit --audit-level=high --omit=dev

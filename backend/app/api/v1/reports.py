@@ -1,30 +1,115 @@
-"""Report API endpoints — generate and retrieve MAMI compliance reports."""
+"""Report API endpoints — generate and retrieve DSSC maturity reports.
+
+Phase 16 (D-03/D-04, RESEARCH Pitfall 1): every endpoint now resolves its
+assessment via the submitted-scoped `resolve_report_assessment` (never a
+draft-scoped lookup) — this is what makes a real post-submission report
+reachable at all; previously every endpoint 422'd unconditionally the
+moment an assessment was actually submitted. An optional `assessment_id`
+query param lets any endpoint target a specific past submitted version
+(D-04).
+
+Phase 16 (RESEARCH Pitfall 2, decision A1 — see 16-RESEARCH.md Open
+Question 1, and this plan's SUMMARY for the removed-storage decision):
+every read recomputes the report contract fresh from the frozen
+`Assessment.dimension_scores` snapshot (falling back to a live recompute
+only for legacy submitted rows whose snapshot is null, D-03) — there is no
+correctness or performance reason to persist a second copy of a rendered
+report.
+"""
 
 import logging
 from datetime import datetime
 
 import resend
-import zen
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import HTMLResponse
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.core.config import settings
-from app.core.deps import get_current_user, get_mami_config, get_zen_engine
+from app.core.deps import get_current_user, get_dssc_questionnaire_config
 from app.db.session import get_session
-from app.models.evidence import EvidenceURL
+from app.models.assessment import Assessment
 from app.models.initiative import Initiative
-from app.models.questionnaire import QuestionnaireAnswer
-from app.models.report import ComplianceReport
 from app.models.user import User
-from app.services.report_generator import generate_html_report, generate_report_data
-from app.services.scoring_engine import score_all_answers
+from app.schemas.report import ReportContract
+from app.services.dimension_scoring import compute_dimension_scores, resolve_report_assessment
+from app.services.report_generator import (
+    build_answers_by_category,
+    build_report_contract,
+    generate_html_report,
+)
 
 router = APIRouter(tags=["reports"])
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_authorized_initiative(
+    session: Session, initiative_id: int, current_user: User
+) -> Initiative:
+    """Ownership check extended for the D-07 admin bypass: an ADMIN may view
+    any initiative's report; a non-admin non-owner (or a nonexistent
+    initiative) gets 404 — never 403, matching every other ownership check
+    in this file (no existence leak). The owner-scoped check itself is not
+    weakened for non-admins — admin access is granted only via the extra
+    `current_user.role == "ADMIN"` branch (T-16-03)."""
+    initiative = session.get(Initiative, initiative_id)
+    if not initiative or (initiative.user_id != current_user.id and current_user.role != "ADMIN"):
+        raise HTTPException(status_code=404, detail="Initiative not found")
+    return initiative
+
+
+def _resolve_scores(session: Session, assessment: Assessment, config: dict) -> list[dict]:
+    """Prefer the frozen `Assessment.dimension_scores` snapshot (D-03); fall
+    back to a live recompute only for legacy submitted rows whose snapshot
+    is null — mirrors initiatives.py's `_to_summary` idiom exactly."""
+    assert assessment.id is not None  # always a persisted, submitted row
+    return (
+        assessment.dimension_scores
+        if assessment.dimension_scores is not None
+        else compute_dimension_scores(session, assessment.id, config)
+    )
+
+
+def _initiative_dict(initiative: Initiative) -> dict:
+    return {
+        "name": initiative.name,
+        "organization": initiative.organization,
+        "contact_name": initiative.contact_name,
+        # D-12/Pitfall 5: participant_type is nullable now — guard .value.
+        "participant_type": (
+            initiative.participant_type.value if initiative.participant_type else None
+        ),
+    }
+
+
+def _generated_at_str() -> str:
+    now = datetime.utcnow()
+    return f"{now.day} {now.strftime('%B %Y, %H:%M')} UTC"
+
+
+def _render_html_for(
+    session: Session, initiative: Initiative, assessment: Assessment, config: dict
+) -> str:
+    """RPRT-04: builds the shared contract once, then feeds its keys into
+    the Jinja2 template — the same contract dict `/report/data` returns
+    verbatim as JSON (one payload, two renderings). RPRT-05: also builds
+    answers_by_category for the new submitted-answers section."""
+    scores = _resolve_scores(session, assessment, config)
+    contract = build_report_contract(scores, initiative, assessment, config)
+    assert assessment.id is not None  # always a persisted, submitted row
+    answers_by_category = build_answers_by_category(session, assessment.id, config)
+    return generate_html_report(
+        initiative=_initiative_dict(initiative),
+        generated_at=_generated_at_str(),
+        dimension_scores=contract["dimension_scores"],
+        priority_list=contract["priority_list"],
+        radar_chart_svg=contract["radar_chart_svg"],
+        maturity_bands=contract["maturity_bands"],
+        maturity_tiers=config["maturity_tiers"],
+        answers_by_category=answers_by_category,
+    )
 
 
 def _send_report_email(email: str, html_content: str, api_key: str) -> None:
@@ -40,24 +125,24 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
         logger.info("[MAIL] PDF generated (%d bytes), sending via Resend", len(pdf_bytes))
         attachment: resend.Attachment = {
             "content": list(pdf_bytes),
-            "filename": "MAMI-Interoperability-Report.pdf",
+            "filename": "DSSC-Maturity-Report.pdf",
         }
         resend.api_key = api_key
         params: resend.Emails.SendParams = {
-            "from": "MaMi Checker <onboarding@resend.dev>",
+            "from": "DSSC Maturity Scan <onboarding@resend.dev>",
             "to": [email],
-            "subject": "Your MAMI Interoperability Heatmap",
+            "subject": "Your DSSC Maturity Report",
             "text": (
                 "Dear participant,\n\n"
-                "Thank you for completing the MAMI Interoperability Assessment. "
-                "Please find your personalised Interoperability Heatmap report attached as a PDF.\n\n"
-                "Would you like expert guidance on your results? The Centre of Excellence "
-                "for Data Sharing and Cloud (CoE-DSC) is available to help you translate "
-                "your assessment into a concrete improvement plan. Visit the CoE-DSC website "
+                "Thank you for completing the DSSC Dataspace Maturity Assessment. "
+                "Please find your personalised DSSC Maturity Report attached as a PDF.\n\n"
+                "Would you like expert guidance on your results? The Data Spaces Support Centre "
+                "(DSSC) is available to help you translate "
+                "your assessment into a concrete improvement plan. Visit the DSSC website "
                 "or contact us directly to schedule a follow-up conversation.\n\n"
                 "Kind regards,\n"
-                "The MAMI Checker team\n"
-                "Centre of Excellence for Data Sharing and Cloud (CoE-DSC)"
+                "The DSSC Maturity Scan team\n"
+                "Data Spaces Support Centre (DSSC)"
             ),
             "attachments": [attachment],
         }
@@ -68,406 +153,110 @@ def _send_report_email(email: str, html_content: str, api_key: str) -> None:
 
 
 @router.post("/initiatives/{initiative_id}/report", response_class=HTMLResponse)
-async def generate_report(
+def generate_report(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Generate a compliance report for an initiative.
-
-    Scores all saved answers, loads evidence, renders a full HTML report via
-    Jinja2, and upserts the result into the compliance_report table.
-    Returns the rendered HTML directly.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    # Load saved answers
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
-
-    # Build code metadata lookup for scoring
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
-
-    # Score answers — returns only FINDING-status entries
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    # Load evidence URLs grouped by mami_code
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
-    # Prepare plain-dict versions for the generator
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
-
-    # Render the HTML report
-    html_content = generate_html_report(
-        initiative=initiative_dict,
-        answers=answers_dict,
-        findings=findings_raw,
-        evidence_by_code=evidence_by_code,
-        mami_config=mami_config,
-    )
-
-    # Compute counts
-    critical_count = sum(1 for f in findings_raw if f.get("severity") == "CRITICAL")
-    non_critical_count = sum(1 for f in findings_raw if f.get("severity") == "NON_CRITICAL")
-    compliant_count = len(answers) - sum(1 for f in findings_raw if f.get("status") == "FINDING")
-
-    # Upsert: one report per initiative — regeneration replaces previous report
-    stmt = (
-        pg_insert(ComplianceReport)
-        .values(
-            initiative_id=initiative_id,
-            html_content=html_content,
-            generated_at=datetime.utcnow(),
-            questionnaire_version="2.0",
-            total_answers=len(answers),
-            critical_count=critical_count,
-            non_critical_count=non_critical_count,
-            compliant_count=compliant_count,
-        )
-        .on_conflict_do_update(
-            index_elements=["initiative_id"],
-            set_={
-                "html_content": pg_insert(ComplianceReport).excluded.html_content,
-                "generated_at": pg_insert(ComplianceReport).excluded.generated_at,
-                "questionnaire_version": pg_insert(ComplianceReport).excluded.questionnaire_version,
-                "total_answers": pg_insert(ComplianceReport).excluded.total_answers,
-                "critical_count": pg_insert(ComplianceReport).excluded.critical_count,
-                "non_critical_count": pg_insert(ComplianceReport).excluded.non_critical_count,
-                "compliant_count": pg_insert(ComplianceReport).excluded.compliant_count,
-            },
-        )
-    )
-    session.exec(stmt)
-    session.commit()
-
+    """Render the compliance report as HTML on the fly from the shared
+    report contract and return it directly — no persistence (RESEARCH
+    Pitfall 2, decision A1)."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
     return HTMLResponse(content=html_content, status_code=200)
 
 
 @router.get("/initiatives/{initiative_id}/report", response_class=HTMLResponse)
 def get_report(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Retrieve the stored compliance report HTML for an initiative."""
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    report = session.exec(
-        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
-    ).first()
-    if not report:
-        raise HTTPException(status_code=404, detail="No report generated yet")
-
-    return HTMLResponse(content=report.html_content, status_code=200)
+    """Identical rendering path to POST /report — there is no stored report
+    to look up anymore (RESEARCH Pitfall 2), so this always renders fresh
+    from the resolved assessment's frozen contract."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
+    return HTMLResponse(content=html_content, status_code=200)
 
 
-@router.post("/initiatives/{initiative_id}/report/data")
-async def generate_report_data_endpoint(
+@router.post("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
+def generate_report_data_endpoint(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Generate and return structured JSON report data for the React /report page."""
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    # Load saved answers
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
-
-    # Build code metadata lookup for scoring
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
-
-    # Score answers — returns only FINDING-status entries
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    # Load evidence URLs grouped by mami_code
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
-    # Prepare plain-dict versions for the generator
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-
-    return generate_report_data(
-        initiative=initiative,
-        answers=answers_dict,
-        findings=findings_raw,
-        evidence_by_code=evidence_by_code,
-        mami_config=mami_config,
-    )
+    """Return the shared ReportContract dict (RPRT-04) for a submitted
+    assessment — the same payload the in-app report page and the PDF/mail
+    paths render from."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    scores = _resolve_scores(session, assessment, config)
+    return build_report_contract(scores, initiative, assessment, config)
 
 
-@router.get("/initiatives/{initiative_id}/report/data")
-async def get_report_data_endpoint(
+@router.get("/initiatives/{initiative_id}/report/data", response_model=ReportContract)
+def get_report_data_endpoint(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Retrieve structured JSON report data for an initiative.
-
-    Re-runs scoring on the fly from stored answers to avoid storing JSON separately.
-    Returns 404 if no report has been generated yet.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    # Check a report exists (i.e. the user has generated one before)
-    report = session.exec(
-        select(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)
-    ).first()
-    if not report:
-        raise HTTPException(status_code=404, detail="No report generated yet")
-
-    # Regenerate from current answers (avoids schema change for JSON storage)
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
-
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
-
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-
-    return generate_report_data(
-        initiative=initiative,
-        answers=answers_dict,
-        findings=findings_raw,
-        evidence_by_code=evidence_by_code,
-        mami_config=mami_config,
-    )
+    """Retrieve the shared ReportContract dict for an initiative's submitted
+    assessment (default: the latest; or a specific past version via
+    `?assessment_id=`, D-04) — the primary read path for the in-app React
+    report page."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    scores = _resolve_scores(session, assessment, config)
+    return build_report_contract(scores, initiative, assessment, config)
 
 
 @router.get("/initiatives/{initiative_id}/report/pdf")
-async def download_report_pdf(
+def download_report_pdf(
     initiative_id: int,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
     """Generate the compliance report as a PDF and return it as a file download."""
     from fastapi.responses import Response
     from weasyprint import HTML as WeasyHTML
 
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
-    if not answers:
-        raise HTTPException(
-            status_code=422, detail="No answers found. Please complete the questionnaire first."
-        )
-
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
-    html_content = generate_html_report(
-        initiative=initiative_dict,
-        answers=answers_dict,
-        findings=findings_raw,
-        evidence_by_code=evidence_by_code,
-        mami_config=mami_config,
-    )
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
     pdf_bytes: bytes = WeasyHTML(string=html_content).write_pdf()
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=MAMI-Interoperability-Report.pdf"},
+        headers={"Content-Disposition": "attachment; filename=DSSC-Maturity-Report.pdf"},
     )
 
 
 @router.post("/initiatives/{initiative_id}/report/mail", status_code=202)
-async def mail_report(
+def mail_report(
     initiative_id: int,
     background_tasks: BackgroundTasks,
+    assessment_id: int | None = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
-    engine: zen.ZenEngine = Depends(get_zen_engine),
-    mami_config: dict = Depends(get_mami_config),
+    config: dict = Depends(get_dssc_questionnaire_config),
 ):
-    """Email the compliance report as a PDF attachment to the authenticated user.
-
-    Generates HTML on the fly from current answers so it always works,
-    regardless of whether the old /report endpoint has been called.
-    """
-    initiative = session.get(Initiative, initiative_id)
-    if not initiative or initiative.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Initiative not found")
-
-    answers = session.exec(
-        select(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)
-    ).all()
-    if not answers:
-        raise HTTPException(
-            status_code=422, detail="No answers found. Please complete the questionnaire first."
-        )
-
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-    answers_for_scoring = [
-        {
-            "mami_code": a.mami_code,
-            "moscow_level": code_lookup.get(a.mami_code, {}).get("moscow_level", "SHOULD"),
-            "answer_value": a.answer_value,
-            "critical_override": code_lookup.get(a.mami_code, {}).get("critical_override"),
-        }
-        for a in answers
-    ]
-    findings_raw = await score_all_answers(engine, answers_for_scoring)
-
-    evidence_rows = session.exec(
-        select(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id)
-    ).all()
-    evidence_by_code: dict = {}
-    for ev in evidence_rows:
-        evidence_by_code.setdefault(ev.mami_code, []).append(ev)
-
-    answers_dict = [
-        {
-            "mami_code": a.mami_code,
-            "answer_value": a.answer_value,
-            "followup_selections": a.followup_selections or [],
-            "followup_other": a.followup_other or "",
-        }
-        for a in answers
-    ]
-    initiative_dict = {
-        "name": initiative.name,
-        "organization": initiative.organization,
-        "contact_name": initiative.contact_name,
-        "participant_type": initiative.participant_type.value,
-    }
-    html_content = generate_html_report(
-        initiative=initiative_dict,
-        answers=answers_dict,
-        findings=findings_raw,
-        evidence_by_code=evidence_by_code,
-        mami_config=mami_config,
-    )
+    """Email the compliance report as a PDF attachment to the authenticated user."""
+    initiative = _get_authorized_initiative(session, initiative_id, current_user)
+    assessment = resolve_report_assessment(session, initiative_id, assessment_id)
+    html_content = _render_html_for(session, initiative, assessment, config)
 
     background_tasks.add_task(
         _send_report_email,

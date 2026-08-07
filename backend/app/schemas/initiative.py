@@ -51,7 +51,7 @@ class InitiativeRead(BaseModel):
     contact_name: str | None
     contact_email: str | None
     organization: str | None
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     status: str
     created_at: str
     updated_at: str

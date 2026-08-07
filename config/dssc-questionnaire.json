@@ -1,0 +1,734 @@
+{
+  "version": "dssc-v2",
+  "_schema_note": "Universal DSSC questionnaire config. Every question inherits `default_options` (5 labels mapped to integer scores 1-5) unless it defines its own `options` array of the same 5-object shape, which overrides the default for that question only. Every question in this real content set carries its own `options` override, since each question's maturity-level wording is unique -- `default_options` is kept as the shape's fallback but is not used by any question here.",
+  "default_options": [
+    {
+      "label": "Not started",
+      "score": 1
+    },
+    {
+      "label": "Initial",
+      "score": 2
+    },
+    {
+      "label": "Developing",
+      "score": 3
+    },
+    {
+      "label": "Established",
+      "score": 4
+    },
+    {
+      "label": "Optimized",
+      "score": 5
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Governance",
+      "intro": "This section assesses how your data space is organized and managed. The questions focus on governance structures, decision-making, the rulebook, operational processes, participant management, and support mechanisms. Together, these elements demonstrate how effectively the data space can operate, onboard participants, manage change, and ensure long-term sustainability.",
+      "subsections": [
+        { "name": "Governance Framework Establishment", "count": 4 },
+        { "name": "Participation Management", "count": 4 }
+      ],
+      "questions": [
+        {
+          "id": "q-1-1",
+          "category_id": "cat-1",
+          "text": "Is the Organizational Form of your data space set up?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Established", "score": 3 },
+            { "label": "Enforced", "score": 4 },
+            { "label": "Long-term sustainable", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-2",
+          "category_id": "cat-1",
+          "text": "What is the Governance Authority (GA) level of establishment in your data space?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Under validation", "score": 3 },
+            { "label": "Operational", "score": 4 },
+            { "label": "Scalable", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-3",
+          "category_id": "cat-1",
+          "text": "Does your data space have a Rulebook?",
+          "options": [
+            { "label": "Not existing", "score": 1 },
+            { "label": "Basic tailoring", "score": 2 },
+            { "label": "Comprehensive tailored", "score": 3 },
+            { "label": "Human-readable ops", "score": 4 },
+            { "label": "Machine-readable operational", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-4",
+          "category_id": "cat-1",
+          "text": "Are the Governance processes of your data space in place?",
+          "options": [
+            { "label": "No processes", "score": 1 },
+            { "label": "Draft processes", "score": 2 },
+            { "label": "Defined processes", "score": 3 },
+            { "label": "Enforced updated", "score": 4 },
+            { "label": "Size-adapted processes", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-5",
+          "category_id": "cat-1",
+          "text": "Has your data space defined the roles and responsibilities of participants?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Established", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-6",
+          "category_id": "cat-1",
+          "text": "Is the Onboarding process in your data space defined for new participants?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Established", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-7",
+          "category_id": "cat-1",
+          "text": "Is the Offboarding process in your data space defined for new participants?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Established", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-1-8",
+          "category_id": "cat-1",
+          "text": "Does your data space have some support mechanisms for participants?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Drafted", "score": 2 },
+            { "label": "Established", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-2",
+      "name": "Business",
+      "intro": "This section evaluates the business foundations of your data space. The questions examine business goals, funding and revenue models, value propositions, use cases, participant engagement, data sharing activities, and the creation of value-added services. The objective is to understand whether the data space can deliver sustainable value to its participants over time.",
+      "subsections": [
+        { "name": "Business Model Development", "count": 4 },
+        { "name": "Use Case Development", "count": 5 }
+      ],
+      "questions": [
+        {
+          "id": "q-2-1",
+          "category_id": "cat-2",
+          "text": "Has your data space defined the overall business goal and profits for participants?",
+          "options": [
+            { "label": "Discussed", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Market validated", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-2",
+          "category_id": "cat-2",
+          "text": "Has your data space defined a clear revenue and funding mechanisms for sustainability?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-3",
+          "category_id": "cat-2",
+          "text": "Has your data space established the mechanisms to monitor and evolve the adopted business model?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-4",
+          "category_id": "cat-2",
+          "text": "Has your data space identified the value proposition of data sharing for each of the participants?",
+          "options": [
+            { "label": "Discussed", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-5",
+          "category_id": "cat-2",
+          "text": "Has your data space identified the use cases which instantiate the data sharing in real scenarios?",
+          "options": [
+            { "label": "Identified", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-6",
+          "category_id": "cat-2",
+          "text": "Have the data space use cases identified the data products that will be shared between the participants in these use cases?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Identified", "score": 2 },
+            { "label": "In sharing", "score": 3 },
+            { "label": "Continuously shared", "score": 4 },
+            { "label": "Massively shared", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-7",
+          "category_id": "cat-2",
+          "text": "Have the data space use cases identified the participants involved in them for data sharing?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Identified", "score": 2 },
+            { "label": "Engaged", "score": 3 },
+            { "label": "Continuously engaged", "score": 4 },
+            { "label": "Expanding engagement", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-8",
+          "category_id": "cat-2",
+          "text": "Does the data space monitor the data transactions which are executed in the use cases?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Not executed yet", "score": 2 },
+            { "label": "Executed in validation", "score": 3 },
+            { "label": "Continuously executed", "score": 4 },
+            { "label": "Large-scale execution", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-2-9",
+          "category_id": "cat-2",
+          "text": "Have the data space use cases generated some added value service out of the shared data?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Size-adapted", "score": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-3",
+      "name": "Legal",
+      "intro": "This section assesses the legal readiness of your data space. The questions focus on identifying applicable regulations, translating them into requirements, ensuring compliance, and establishing agreements that govern participation, data sharing, and service provision. Together, these elements help create a legally sound environment for trusted data exchange.",
+      "subsections": [
+        { "name": "Regulatory Compliance", "count": 3 },
+        { "name": "Contractual Framework", "count": 3 }
+      ],
+      "questions": [
+        {
+          "id": "q-3-1",
+          "category_id": "cat-3",
+          "text": "Has the data space identified the regulations in its scope and derived requirements?",
+          "options": [
+            { "label": "Identified", "score": 1 },
+            { "label": "Requirements defined", "score": 2 },
+            { "label": "Requirements implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Scope-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-3-2",
+          "category_id": "cat-3",
+          "text": "Has the data space identified the triggers of regulations in its scope and derived requirements?",
+          "options": [
+            { "label": "Identified", "score": 1 },
+            { "label": "Requirements defined", "score": 2 },
+            { "label": "Requirements implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Scope-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-3-3",
+          "category_id": "cat-3",
+          "text": "Has the data space defined the mechanisms to ensure the compliance with the related regulation?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Automated", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-3-4",
+          "category_id": "cat-3",
+          "text": "Has the data space defined the agreement for the participation in the data space?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "In definition", "score": 2 },
+            { "label": "Available", "score": 3 },
+            { "label": "Continuously provided", "score": 4 },
+            { "label": "Scope-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-3-5",
+          "category_id": "cat-3",
+          "text": "Has the data space defined the agreement for sharing data in the data space?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "In definition", "score": 2 },
+            { "label": "Available", "score": 3 },
+            { "label": "Continuously provided", "score": 4 },
+            { "label": "Scope-adapted", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-3-6",
+          "category_id": "cat-3",
+          "text": "Has the data space defined the agreement for provisioning of services?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "In definition", "score": 2 },
+            { "label": "Available", "score": 3 },
+            { "label": "Continuously provided", "score": 4 },
+            { "label": "Scope-adapted", "score": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-4",
+      "name": "Interoperability",
+      "intro": "This section evaluates how effectively participants can exchange and understand data. The questions cover data models, semantic standards, reference datasets, APIs, data exchange protocols, and mechanisms for provenance, observability, and traceability. These capabilities enable consistent, reliable, and scalable data sharing both within and across data spaces.",
+      "subsections": [
+        { "name": "Shared Semantics", "count": 4 },
+        { "name": "Interoperable Exchange", "count": 2 },
+        { "name": "Provenance, Observability and Monitoring", "count": 3 }
+      ],
+      "questions": [
+        {
+          "id": "q-4-1",
+          "category_id": "cat-4",
+          "text": "Has the data space adopted the necessary data models for representing the data shared in the data space?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-2",
+          "category_id": "cat-4",
+          "text": "Is the data space using open standards for defining the data models and describing the data shared in the data space?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-3",
+          "category_id": "cat-4",
+          "text": "Is the data space using reference datasets for data representation?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-4",
+          "category_id": "cat-4",
+          "text": "Has the data space defined mechanisms for governing the data models maintenance and evolution?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-5",
+          "category_id": "cat-4",
+          "text": "Has the data space defined a protocol for data exchange?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-6",
+          "category_id": "cat-4",
+          "text": "Does the data space use a standardized API for data exchange?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Defined", "score": 2 },
+            { "label": "Adopted", "score": 3 },
+            { "label": "Continuously used", "score": 4 },
+            { "label": "Cross-DS use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-7",
+          "category_id": "cat-4",
+          "text": "Does the data space have mechanisms for monitoring the provenance of the shared data?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-8",
+          "category_id": "cat-4",
+          "text": "Does the data space have mechanisms for monitoring the observability of data sharing contracts?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-4-9",
+          "category_id": "cat-4",
+          "text": "Does the data space have mechanisms for monitoring the traceability of shared data?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-5",
+      "name": "Control over Data & Trust",
+      "intro": "This section assesses the mechanisms that enable participants to share data with confidence while retaining control. The questions focus on digital identity, verifiable credentials, trust frameworks, compliance verification, registries, and the enforcement of access, usage, and consent policies. Together, these capabilities establish trust, security, and data sovereignty within the data space.",
+      "subsections": [
+        { "name": "Identity Management and Attestation", "count": 3 },
+        { "name": "Trust Framework", "count": 3 },
+        { "name": "Access and Usage Policies Enforcement", "count": 3 }
+      ],
+      "questions": [
+        {
+          "id": "q-5-1",
+          "category_id": "cat-5",
+          "text": "Does the data space use a standardize method for verifying the digital identity of participants?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-2",
+          "category_id": "cat-5",
+          "text": "Does the data space use a secure and standardize credential exchange protocol?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-3",
+          "category_id": "cat-5",
+          "text": "Has the data space established mechanisms for ensuring systematically the compliance of participants with the Rulebook?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-4",
+          "category_id": "cat-5",
+          "text": "Has the data space established mechanisms for enforcing technically the data space governance?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-5",
+          "category_id": "cat-5",
+          "text": "Has the data space established the necessary trust anchors for identities attestation?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-6",
+          "category_id": "cat-5",
+          "text": "Has the data space set up a registry of participants credentials?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-7",
+          "category_id": "cat-5",
+          "text": "Has the data space implemented the access control policies?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-8",
+          "category_id": "cat-5",
+          "text": "Has the data space implemented the usage control policies?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-5-9",
+          "category_id": "cat-5",
+          "text": "Has the data space implemented the consent management policies?",
+          "options": [
+            { "label": "Not in place", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous operation", "score": 4 },
+            { "label": "Auto extended", "score": 5 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cat-6",
+      "name": "Value Creation",
+      "intro": "This section evaluates how your data space enables participants to discover, use, and create value from shared data. The questions focus on data and service descriptions, catalogues, value creation services, federation with other data spaces, participant adoption, data reuse, satisfaction, and the generation of new services and offerings. The goal is to understand the tangible value produced by the data space ecosystem.",
+      "subsections": [
+        { "name": "Data, Services and Offerings Descriptions", "count": 1 },
+        { "name": "Publication and Discovery", "count": 2 },
+        { "name": "Value Creation Services", "count": 3 },
+        { "name": "Adoption Level", "count": 5 }
+      ],
+      "questions": [
+        {
+          "id": "q-6-1",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a complete description of data products and services?",
+          "options": [
+            { "label": "Undefined", "score": 1 },
+            { "label": "Standardized description", "score": 2 },
+            { "label": "Machine-readable description", "score": 3 },
+            { "label": "Updated descriptions", "score": 4 },
+            { "label": "Automated descriptions", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-2",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a catalogue for publishing data products and services?",
+          "options": [
+            { "label": "Not available", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Auto mass use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-3",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a catalogue for discovering data products and services?",
+          "options": [
+            { "label": "Not available", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Auto mass use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-4",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a catalogue of value creation services?",
+          "options": [
+            { "label": "Not available", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Auto mass use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-5",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a service management system?",
+          "options": [
+            { "label": "Not available", "score": 1 },
+            { "label": "Designed", "score": 2 },
+            { "label": "Implemented", "score": 3 },
+            { "label": "Continuous updates", "score": 4 },
+            { "label": "Auto mass use", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-6",
+          "category_id": "cat-6",
+          "text": "Does the data space provide a cross-data space interoperability to federate with other data spaces?",
+          "options": [
+            { "label": "Not planned", "score": 1 },
+            { "label": "Planned 1+ DS", "score": 2 },
+            { "label": "Adopted 1+ DS", "score": 3 },
+            { "label": "Running 1+ DS", "score": 4 },
+            { "label": "Expanded federation", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-7",
+          "category_id": "cat-6",
+          "text": "Could you indicate which is the level of participation in your data space?",
+          "options": [
+            { "label": "Founding stakeholders", "score": 1 },
+            { "label": "Founding+use cases", "score": 2 },
+            { "label": "Early community", "score": 3 },
+            { "label": "Mature community", "score": 4 },
+            { "label": "Extensive participation", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-8",
+          "category_id": "cat-6",
+          "text": "Could you indicate which is the level of data reusability in your data space?",
+          "options": [
+            { "label": "Not sharing yet", "score": 1 },
+            { "label": "Data identified", "score": 2 },
+            { "label": "One-to-one sharing", "score": 3 },
+            { "label": "Regular one-to-one", "score": 4 },
+            { "label": "One-to-many scale", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-9",
+          "category_id": "cat-6",
+          "text": "Could you indicate which is the data available in the catalogue of your data space?",
+          "options": [
+            { "label": "No data", "score": 1 },
+            { "label": "Use cases documented", "score": 2 },
+            { "label": "Catalogue described", "score": 3 },
+            { "label": "Continuously populated", "score": 4 },
+            { "label": "Massive catalogue", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-10",
+          "category_id": "cat-6",
+          "text": "Does your data space have mechanisms for assessing the satisfaction of your participants?",
+          "options": [
+            { "label": "No assessment", "score": 1 },
+            { "label": "Gathering defined", "score": 2 },
+            { "label": "Use case feedback", "score": 3 },
+            { "label": "Community feedback", "score": 4 },
+            { "label": "Automated feedback", "score": 5 }
+          ]
+        },
+        {
+          "id": "q-6-11",
+          "category_id": "cat-6",
+          "text": "Could you indicate the number of new services and offerings generated from shared data between participants?",
+          "options": [
+            { "label": "No services", "score": 1 },
+            { "label": "Use-case identified", "score": 2 },
+            { "label": "Beyond use cases", "score": 3 },
+            { "label": "Continuous generation", "score": 4 },
+            { "label": "High-value services", "score": 5 }
+          ]
+        }
+      ]
+    }
+  ],
+  "maturity_bands": [
+    { "id": "red", "label": "Needs attention", "min": 1.0, "max": 2.0, "color": "#d64545" },
+    { "id": "orange", "label": "Developing", "min": 2.0, "max": 3.5, "color": "#e08e2b" },
+    { "id": "green", "label": "Mature", "min": 3.5, "max": 5.0, "color": "#399e5a" }
+  ],
+  "maturity_tiers": [
+    { "id": "exploratory", "label": "Exploratory", "min": 1.00, "max": 1.49 },
+    { "id": "preparatory", "label": "Preparatory", "min": 1.50, "max": 2.49 },
+    { "id": "implementation", "label": "Implementation", "min": 2.50, "max": 3.49 },
+    { "id": "operational", "label": "Operational", "min": 3.50, "max": 4.49 },
+    { "id": "scaling", "label": "Scaling", "min": 4.50, "max": 5.00 }
+  ]
+}

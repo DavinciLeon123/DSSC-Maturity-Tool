@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Drawer, Button } from 'antd';
+import { Drawer, Button, message } from 'antd';
 import { authStore } from '../../lib/auth';
 import { api } from '../../lib/api';
-import logoSrc from '../../assets/logo-coe-dsc.svg';
+import { useStartOrRetakeAssessment } from '../../lib/retake';
+import logoSrc from '../../assets/logo-dssc-color.png';
 
 export function TopNav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const startOrRetake = useStartOrRetakeAssessment((msg) => void message.error(msg));
 
   const { data: currentUser } = useQuery<{ role: string; email: string }>({
     queryKey: ['current-user-role'],
@@ -21,9 +24,21 @@ export function TopNav() {
 
   const isAdmin = currentUser?.role === 'ADMIN';
 
-  const navItems: Array<{ label: string; to: '/dashboard' | '/questionnaire' | '/about' | '/admin' }> = [
+  const navItems: Array<{
+    label: string;
+    to: '/dashboard' | '/questionnaire' | '/about' | '/admin';
+    onClick?: (e: MouseEvent) => void;
+  }> = [
     { label: 'Dashboard', to: '/dashboard' },
-    { label: 'Questionnaire', to: '/questionnaire' },
+    {
+      label: 'Dataspace Maturity Assessment',
+      to: '/questionnaire',
+      onClick: (e: MouseEvent) => {
+        e.preventDefault();
+        setDrawerOpen(false);
+        void startOrRetake();
+      },
+    },
     { label: 'About', to: '/about' },
     ...(isAdmin ? [{ label: 'Admin', to: '/admin' as const }] : []),
   ];
@@ -40,16 +55,16 @@ export function TopNav() {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 2rem',
-        height: '64px',
+        height: '96px',
         background: '#ffffff',
-        borderBottom: '1px solid rgba(6,0,79,0.1)',
+        borderBottom: '1px solid rgba(0,142,207,0.1)',
         position: 'sticky',
         top: 0,
         zIndex: 100,
       }}>
         {/* Logo — left side */}
         <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src={logoSrc} alt="CoE DSC" height={36} />
+          <img src={logoSrc} alt="DSSC" height={75} />
         </Link>
 
         {/* Hamburger + Menu label — right side */}
@@ -63,8 +78,8 @@ export function TopNav() {
             border: 'none',
             cursor: 'pointer',
             padding: '0.5rem',
-            color: '#06004f',
-            fontFamily: "'Rubik', sans-serif",
+            color: '#008ecf',
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             fontWeight: 500,
             fontSize: '1rem',
           }}
@@ -72,9 +87,9 @@ export function TopNav() {
         >
           {/* Hamburger icon (three lines) */}
           <span style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '22px' }}>
-            <span style={{ display: 'block', height: '2px', background: '#06004f', borderRadius: '1px' }} />
-            <span style={{ display: 'block', height: '2px', background: '#06004f', borderRadius: '1px' }} />
-            <span style={{ display: 'block', height: '2px', background: '#06004f', borderRadius: '1px' }} />
+            <span style={{ display: 'block', height: '2px', background: '#008ecf', borderRadius: '1px' }} />
+            <span style={{ display: 'block', height: '2px', background: '#008ecf', borderRadius: '1px' }} />
+            <span style={{ display: 'block', height: '2px', background: '#008ecf', borderRadius: '1px' }} />
           </span>
           Menu
         </button>
@@ -87,7 +102,7 @@ export function TopNav() {
         placement="right"
         width={280}
         title={
-          <div style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 600, color: '#06004f', fontSize: '1rem' }}>
+          <div style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600, color: '#008ecf', fontSize: '1rem' }}>
             Navigation
           </div>
         }
@@ -96,32 +111,32 @@ export function TopNav() {
         }}
       >
         <nav style={{ flex: 1 }}>
-          {navItems.map(({ label, to }) => (
+          {navItems.map(({ label, to, onClick }) => (
             <Link
               key={to}
               to={to}
-              onClick={() => setDrawerOpen(false)}
+              onClick={onClick ?? (() => setDrawerOpen(false))}
               style={{
                 display: 'block',
                 padding: '0.875rem 1.5rem',
-                color: '#06004f',
+                color: '#008ecf',
                 textDecoration: 'none',
-                fontFamily: "'Rubik', sans-serif",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 fontWeight: 500,
                 fontSize: '1rem',
-                borderBottom: '1px solid rgba(6,0,79,0.06)',
+                borderBottom: '1px solid rgba(0,142,207,0.06)',
               }}
               activeProps={{
                 style: {
                   display: 'block',
                   padding: '0.875rem 1.5rem',
-                  color: '#399e5a',
+                  color: '#76b82a',
                   textDecoration: 'none',
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                   fontWeight: 600,
                   fontSize: '1rem',
-                  borderBottom: '1px solid rgba(6,0,79,0.06)',
-                  background: 'rgba(57,158,90,0.06)',
+                  borderBottom: '1px solid rgba(0,142,207,0.06)',
+                  background: 'rgba(118,184,42,0.06)',
                 },
               }}
             >
@@ -129,14 +144,14 @@ export function TopNav() {
             </Link>
           ))}
         </nav>
-        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(6,0,79,0.1)' }}>
+        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(0,142,207,0.1)' }}>
           <Button
             onClick={() => { setDrawerOpen(false); handleLogout(); }}
             block
             style={{
-              border: '1px solid rgba(6,0,79,0.3)',
-              color: '#06004f',
-              fontFamily: "'Rubik', sans-serif",
+              border: '1px solid rgba(0,142,207,0.3)',
+              color: '#008ecf',
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 500,
             }}
           >

@@ -1,48 +1,30 @@
-"""Jinja2-based HTML report generator for MAMI compliance reports."""
+"""Jinja2-based HTML report generator for DSSC maturity reports.
 
-import re
-from datetime import datetime
+Phase 14 (D-01a/D-05): all MAMI-matrix/heatmap/recommendation builders were
+deleted outright — the ZEN/MoSCoW subsystem this module rendered is gone.
+
+Phase 16 (RPRT-01..04, D-02/D-03): `generate_html_report` now renders the
+rebuilt 6-dimension `report.html` template from the same
+`dimension_scores`/`priority_list`/`radar_chart_svg`/`maturity_bands` keys
+that `build_report_contract` returns for the JSON response — one shared
+contract, two renderings (RPRT-04). The old `generate_report_data` helper
+(initiative-info-only JSON assembly) is removed outright: it is fully
+superseded by `build_report_contract`, which callers (reports.py) now call
+directly.
+"""
+
+import base64
+import math
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from sqlmodel import Session, select
 
-_RECOMMENDATIONS: dict[str, str] = {
-    "HRA-1.1": "Unless highly sensitive, please consider making your scheme agreements publicly available.",
-    "MRA-1.1": "Please consider publishing your scheme in a machine-readable format by having an actionable sandbox/demo for end-users to interact with.",
-    "TA-1.1": "Please consider specifying the actor responsible for publishing and updating the scheme, and also specify allowed procedures/actions that the scheme authority can conduct for updating and publishing the scheme.",
-    "HRA-1.2": "Please consider including conditions in the scheme agreement via various clauses, like settlement clauses, liability clauses or any force majeure clauses.",
-    "MRA-1.2": "Please consider supporting an automatic way for flagging incidents and an automatic way to track progress of the started disputes.",
-    "TA-1.2": "Please consider indicating what are the trust anchor(s) that parties can go to for dispute management.",
-    "HRA-1.3": "Please consider providing traceability tools generating a human readable/actionable record that can be used to achieve legal clarity for any subsequent dispute handling.",
-    "MRA-1.3": "Please consider providing traceability tools generating a machine readable/actionable record that can be used to achieve automatic flagging of incidents and aid in subsequent dispute handling.",
-    "TA-1.3": "Please consider specifying a Trust Anchor responsible for the operation/provision of the traceability tools. Also, please consider specifying what is being traced in accordance with the scope of your scheme, to ensure clarity and transparency for the interacting participants and/or 3rd parties joining the scheme.",
-    "HRA-2.1": "Please consider providing human readable/actionable information regarding your scheme participation, including onboarding and offboarding procedures (to the extent allowed by privacy & sensitivity conditions).",
-    "MRA-2.1": "Please consider providing code/APIs and/or adjacent testbeds to technically support onboarding and offboarding procedures. Also, please consider to what extent you may publicly disclose the scheme participation, onboarding procedures and access to testbeds. Also, please consider having access management controls in place for any sensitive content, including clear access conditions.",
-    "TA-2.1": "Please consider specifying trust anchors for onboarding and offboarding procedures.",
-    "HRA-2.2": "Please consider providing information about existing participants of the scheme via a registry, with access rights limited by sensitivity conditions of the scheme.",
-    "MRA-2.2": "Please consider providing a machine readable/actionable registry of participant endpoints.",
-    "TA-2.2": "Please consider specifying Trust Anchors for registry services provision.",
-    "HRA-3.1": "Please consider providing at least general information regarding data sets available to scheme participants to discover, understand, access and/or visit said data to the extent permitted by sensitivity & privacy conditions, and consider providing explicit descriptions about the access conditions. Also, please consider adhering to the FAIR principles.",
-    "MRA-3.1": "Please consider ensuring that your member provide information about data/data sets in a machine readable/actionable way, enabling other participants to discover, understand, access and/or visit said data, under specific sensitivity & privacy conditions.",
-    "TA-3.1": "Please consider specifying trust anchors used for metadata standards, and specifying trust anchors/credibility means for assurance in data characteristics relevant in the context.",
-    "HRA-3.2": "Please consider NOT providing actual data UNLESS the specified access & usage conditions are met; these conditions should then be documented in a human readable/actionable form.",
-    "MRA-3.2": "Please consider NOT providing actual data UNLESS the specified access & usage conditions are met AND during a request for data access/visiting an automatic (machine readable/actionable) procedure of authentication & authorization has been properly completed.",
-    "TA-3.2": "Please consider specifying the Scheme Authority and/or governance mechanisms/procedures as a trust anchor to ensure participants have obtained trusted digital identity means for relying parties to use for authenticating & authorizing to provide data access.",
-    "HRA-4.1": "Please consider providing (at least general) information regarding services available to the scheme participants and/or 3rd parties (to the extent permitted by sensitivity & privacy conditions).",
-    "MRA-4.1": "Please consider ensuring you and/or your participants provide (at least general) information regarding services available to other participants and/or 3rd parties in a machine readable/actionable way (to the extent permitted by sensitivity & privacy conditions).",
-    "TA-4.1": "Please consider specifying Trust Anchors for each service provided under the scheme.",
-    "HRA-4.2": "Please consider NOT providing actual services UNLESS the specified provision conditions are met; such conditions should then be made human readable/actionable.",
-    "MRA-4.2": "Please consider NOT providing actual services UNLESS the specified provision conditions are met and any automatic checks to authorize the provision of service are completed.",
-    "TA-4.2": "Please consider establishing Scheme Authority and/or governance mechanisms & procedures to ensure that trusted service providers adhere to the scheme conditions.",
-}
-
-_ANSWER_LABEL_MAP = {
-    "YES": "Yes",
-    "NOT_THERE_YET": "Not yet",
-    "NOT_APPLICABLE": "Not applicable",
-}
+from app.models.questionnaire import QuestionnaireAnswer
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+_LOGO_PATH = TEMPLATES_DIR / "assets" / "logo-dssc-white.png"
 
 
 def _get_jinja_env() -> Environment:
@@ -52,232 +34,393 @@ def _get_jinja_env() -> Environment:
     )
 
 
+def _logo_data_uri() -> str:
+    """Inline the DSSC logo as a base64 data URI so it renders on both the
+    in-browser HTML response (no StaticFiles mount exists) and the WeasyPrint
+    PDF (rendered via `HTML(string=...)`, which has no base_url to resolve a
+    relative asset path against) with a single code path."""
+    data = base64.b64encode(_LOGO_PATH.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{data}"
+
+
 def generate_html_report(
+    *,
     initiative: dict,
-    answers: list[dict],
-    findings: list[dict],
-    evidence_by_code: dict,
-    mami_config: dict,
+    generated_at: str,
+    dimension_scores: list[dict],
+    priority_list: list[dict],
+    radar_chart_svg: str,
+    maturity_bands: list[dict],
+    maturity_tiers: list[dict],
+    answers_by_category: list[dict],
 ) -> str:
-    """Render the compliance report HTML from a Jinja2 template.
+    """Render the 6-dimension compliance report HTML (RPRT-01/02/04) from the
+    rebuilt `report.html` template.
 
     Args:
-        initiative: dict with name, organization, contact_name
-        answers:    list of dicts with mami_code, answer_value, rationale
-        findings:   list of dicts from score_all_answers (FINDING status only)
-        evidence_by_code: dict mapping mami_code -> list of EvidenceURL objects
-        mami_config: full MAMI framework config dict
-
-    Returns:
-        Rendered HTML string.
+        initiative: dict with name, organization, contact_name.
+        generated_at: pre-formatted generated-at string for the template.
+        dimension_scores, priority_list, radar_chart_svg, maturity_bands:
+            the same 4 keys `build_report_contract()` returns for the JSON
+            response — passed through unmodified so the in-app view and the
+            mailed PDF render from one shared payload (RPRT-04), never a
+            second independently-built context.
+        maturity_tiers: config["maturity_tiers"] (Phase 16.4/REQ-2/D-03) —
+            rendered as a new, separate 5-row plain-text legend in the PDF
+            only; NOT part of the JSON ReportContract (see
+            build_report_contract's docstring for why).
+        answers_by_category: list of dicts with category_id, name, and answers
+            (the new submitted-answers section per RPRT-05).
     """
     env = _get_jinja_env()
     template = env.get_template("report.html")
 
-    now = datetime.utcnow()
-    generated_at = f"{now.day} {now.strftime('%B %Y, %H:%M')} UTC"
-
-    matrix = _build_matrix(answers, findings, mami_config)
-    topic_structure = _build_topic_structure(mami_config)
-    heatmap_rows = _build_heatmap_rows(matrix, topic_structure)
-    not_yet_recommendations = _build_not_yet_recommendations(answers, mami_config)
-
     context = {
         "initiative": initiative,
         "generated_at": generated_at,
-        "heatmap_rows": heatmap_rows,
-        "not_yet_recommendations": not_yet_recommendations,
+        "dimension_scores": dimension_scores,
+        "priority_list": priority_list,
+        "radar_chart_svg": radar_chart_svg,
+        "maturity_bands": maturity_bands,
+        "maturity_tiers": maturity_tiers,
+        "answers_by_category": answers_by_category,
+        "logo_src": _logo_data_uri(),
     }
     return template.render(**context)
 
 
-def _build_matrix(answers: list[dict], findings: list[dict], mami_config: dict) -> dict:
-    """Build nested dict: {category: {dimension: {code_id: status}}}."""
-    finding_lookup = {f["mami_code"]: f for f in findings}
-    answer_lookup = {a["mami_code"]: a for a in answers}
+def get_maturity_band(score: float, bands: list[dict]) -> dict:
+    """Phase 16 (RPRT-03): the SOLE *color*-classification function in this
+    codebase. Both `build_priority_list` (band_id/band_color) and
+    `generate_radar_svg` call this — no second color-inequality chain may
+    exist anywhere else, on any surface. Phase 16.4/REQ-2 adds a separate,
+    independent sibling, `get_maturity_tier`, as the sole source of
+    *text-label* classification (band_label) — the two are deliberately
+    decoupled (D-02).
 
-    categories = ["scheme", "participants", "data", "services"]
-    dimensions = ["human_readable", "machine_readable", "trust_anchors"]
-    matrix: dict = {cat: {dim: {} for dim in dimensions} for cat in categories}
-
-    for code in mami_config.get("codes", []):
-        code_id = code["id"]
-        cat = code["category"]
-        dim = code["dimension"]
-
-        if cat not in matrix or dim not in matrix[cat]:
-            continue
-
-        if code_id in finding_lookup:
-            # Answer was NOT_THERE_YET and produced a finding
-            status = "not_yet"
-        elif code_id in answer_lookup:
-            a = answer_lookup[code_id]
-            if a["answer_value"] == "NOT_APPLICABLE":
-                status = "n_a"
-            else:
-                status = "yes"
-        else:
-            status = "unanswered"
-
-        matrix[cat][dim][code_id] = status
-
-    return matrix
-
-
-def _build_findings_detail(
-    answers: list[dict],
-    findings: list[dict],
-    evidence_by_code: dict,
-    mami_config: dict,
-) -> list[dict]:
-    """Build per-finding detail list for the report template."""
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
-    answer_lookup = {a["mami_code"]: a for a in answers}
-
-    detail = []
-    for f in findings:
-        if f.get("status") != "FINDING":
-            continue
-        code = code_lookup.get(f["mami_code"], {})
-        answer = answer_lookup.get(f["mami_code"], {})
-        evidence = evidence_by_code.get(f["mami_code"], [])
-
-        # Display answer value as human-readable label
-        raw_answer = answer.get("answer_value", "")
-        answer_label = {
-            "YES": "Yes",
-            "NOT_THERE_YET": "Not there yet",
-            "NOT_APPLICABLE": "Not applicable",
-        }.get(raw_answer, raw_answer)
-
-        detail.append(
-            {
-                "mami_code": f["mami_code"],
-                "severity": f.get("severity", ""),
-                "description": code.get("description", ""),
-                "moscow_level": code.get("moscow_level", ""),
-                "answer_value": raw_answer,
-                "answer_label": answer_label,
-                "followup_selections": answer.get("followup_selections") or [],
-                "followup_other": answer.get("followup_other") or "",
-                "evidence": [
-                    {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")} for ev in evidence
-                ],
-                "next_steps": _suggest_next_steps(f.get("severity", ""), code),
-            }
-        )
-
-    return detail
-
-
-def _build_topic_structure(mami_config: dict) -> dict:
-    """Build per-category topic order with code lists.
-
-    Returns: {category: [{topic_id, topic_label, codes: [code_id]}]}
-    Used by the frontend to render the expanded heatmap with topic rows.
+    Bands are checked in ascending `min` order (config order — see
+    `maturity_bands` in `config/dssc-questionnaire.json`, D-05); a score
+    exactly on a shared boundary (e.g. 2.0, which is both the red band's
+    max and the orange band's min) belongs to the HIGHER band — i.e.
+    `min <= score < max` is the rule, except the top (last) band is also
+    inclusive of its own `max` (so 5.0 still resolves to green, not
+    uncovered).
     """
-    structure: dict = {}
-    seen: dict = {}  # category -> {topic_id -> index}
-
-    for code in mami_config.get("codes", []):
-        cat = code["category"]
-        topic_id = code["topic"]
-        topic_label = code.get("topic_label", topic_id)
-        code_id = code["id"]
-
-        if cat not in structure:
-            structure[cat] = []
-            seen[cat] = {}
-
-        if topic_id not in seen[cat]:
-            seen[cat][topic_id] = len(structure[cat])
-            structure[cat].append({"topic_id": topic_id, "topic_label": topic_label, "codes": []})
-
-        structure[cat][seen[cat][topic_id]]["codes"].append(code_id)
-
-    return structure
+    for band in bands:
+        is_last = band is bands[-1]
+        if band["min"] <= score < band["max"] or (is_last and score == band["max"]):
+            return band
+    raise ValueError(f"score {score} not covered by any maturity_bands entry")
 
 
-def _aggregate_cell(cell: dict) -> str:
-    statuses = list(cell.values())
-    if not statuses:
-        return "unanswered"
-    if "not_yet" in statuses:
-        return "not_yet"
-    if "unanswered" in statuses:
-        return "unanswered"
-    if all(s == "n_a" for s in statuses):
-        return "n_a"
-    if "yes" in statuses:
-        return "yes"
-    return "unanswered"
+def get_maturity_tier(score: float, tiers: list[dict]) -> dict:
+    """Sibling to get_maturity_band (Phase 16.4, REQ-2): classifies a
+    score into one of the 5 maturity_tiers (text label only, no
+    color) rather than one of the 3 color-coded maturity_bands. The
+    two functions are deliberately independent — get_maturity_band
+    remains the SOLE source of color classification (RPRT-03); this
+    function is the sole source of tier-label classification.
+
+    Unlike maturity_bands (contiguous — orange's max 2.0 equals
+    green's min 2.0, requiring the "higher band wins on a shared
+    boundary" rule get_maturity_band implements), maturity_tiers
+    entries are deliberately non-contiguous with a 0.01 gap between
+    each (e.g. exploratory max 1.49, preparatory min 1.50) — the
+    finest gap representable by a 2dp-rounded score
+    (compute_dimension_scores's existing rounding precedent). This
+    means every valid score matches exactly one tier via a simple
+    inclusive-both-ends range check, with no shared-boundary
+    ambiguity to resolve and no special last-tier casing needed.
+    """
+    for tier in tiers:
+        if tier["min"] <= score <= tier["max"]:
+            return tier
+    raise ValueError(f"score {score} not covered by any maturity_tiers entry")
 
 
-def _build_heatmap_rows(matrix: dict, topic_structure: dict) -> dict:
-    """Build {category: [{topic_label, human_readable, machine_readable, trust_anchors}]}."""
-    dims = ["human_readable", "machine_readable", "trust_anchors"]
-    result: dict = {}
-    for cat, topics in topic_structure.items():
-        result[cat] = []
-        for topic in topics:
-            row: dict = {"topic_label": topic["topic_label"]}
-            for dim in dims:
-                cell = {
-                    code: matrix.get(cat, {}).get(dim, {}).get(code)
-                    for code in topic["codes"]
-                    if matrix.get(cat, {}).get(dim, {}).get(code)
-                }
-                row[dim] = _aggregate_cell(cell)
-            result[cat].append(row)
-    return result
+def build_priority_list(scores: list[dict], bands: list[dict], tiers: list[dict]) -> list[dict]:
+    """RPRT-02/D-06 (band_id/band_color) + Phase 16.4 REQ-2/D-02
+    (band_label): band_id/band_color are sourced from get_maturity_band
+    (unchanged 3-color system, RPRT-02/03 stay locked); band_label is
+    now sourced from get_maturity_tier (new, independent 5-tier text
+    classification) instead of the band's own label.
 
-
-def _build_not_yet_recommendations(answers: list[dict], mami_config: dict) -> list[dict]:
-    """Return recommendations for every NOT_THERE_YET answer, in code order."""
-    code_meta = {c["id"]: c for c in mami_config.get("codes", [])}
-    result = []
-    for a in answers:
-        if a.get("answer_value") != "NOT_THERE_YET":
-            continue
-        code_id = a["mami_code"]
-        rec_key = re.sub(r"^[A-Z]+-", "", code_id)
-        rec_text = _RECOMMENDATIONS.get(rec_key)
-        if not rec_text:
-            continue
-        meta = code_meta.get(code_id, {})
-        result.append(
-            {
-                "dimension_label": meta.get("dimension_label", ""),
-                "topic_label": meta.get("topic_label", code_id),
-                "text": rec_text,
-            }
-        )
-    return result
-
-
-def generate_report_data(
-    initiative,
-    answers: list[dict],
-    findings: list[dict],
-    evidence_by_code: dict,
-    mami_config: dict,
-) -> dict:
-    """Return structured JSON-serialisable report data for the React /report page.
+    Always returns all 6 dimensions (never filtered to only red/orange),
+    sorted ascending by score. `sorted()` is a stable sort, so dimensions
+    with equal scores retain config category order (RPRT-02 ordering).
 
     Args:
-        initiative: Initiative ORM object (or dict) with id, name attributes
-        answers:    list of dicts with mami_code, answer_value, followup_selections, followup_other
-        findings:   list of dicts from score_all_answers (FINDING status only)
-        evidence_by_code: dict mapping mami_code -> list of EvidenceURL objects or dicts
-        mami_config: full MAMI framework config dict
+        scores: [{category_id, name, score}, ...] — already 2dp-rounded by
+            `compute_dimension_scores`'s existing precedent.
+        bands: config["maturity_bands"] — used for band_id/band_color.
+        tiers: config["maturity_tiers"] — used for band_label only.
+    """
+    return [
+        {
+            "category_id": s["category_id"],
+            "name": s["name"],
+            "score": s["score"],
+            "band_id": (band := get_maturity_band(s["score"], bands))["id"],
+            "band_label": get_maturity_tier(s["score"], tiers)["label"],
+            "band_color": band["color"],
+        }
+        for s in sorted(scores, key=lambda s: s["score"])
+    ]
+
+
+def build_answers_by_category(session: Session, assessment_id: int, config: dict) -> list[dict]:
+    """RPRT-05: return per-question answers grouped by category in config order,
+    with empty-state handling for unanswered categories and silent exclusion of
+    stale question_ids (not present in current config).
+
+    Args:
+        session: SQLModel session for querying QuestionnaireAnswer rows.
+        assessment_id: the assessment_id to filter answers by.
+        config: the dssc_questionnaire_config dict (must contain "categories").
 
     Returns:
-        Dict matching the JSON report shape expected by the React /report page.
+        A list with one dict per config category (in config order), shaped:
+        {
+            "category_id": str,
+            "name": str,
+            "answers": [
+                {
+                    "question_id": str,
+                    "text": str,
+                    "answer_label": str,
+                    "score": int,
+                    "band_color": str,
+                },
+                ...
+            ]
+        }
+        Each category's "answers" list is ordered by config question order
+        (not answered_at/insertion order), and is empty [] if no answers exist.
     """
-    code_lookup = {c["id"]: c for c in mami_config.get("codes", [])}
+    # Query all answers for this assessment
+    answers = session.exec(
+        select(QuestionnaireAnswer).where(QuestionnaireAnswer.assessment_id == assessment_id)
+    ).all()
 
-    # Resolve initiative id and name (supports ORM object or dict)
+    # Build a {question_id: answer_row} lookup dict for fast retrieval
+    answer_lookup = {a.question_id: a for a in answers}
+
+    bands = config["maturity_bands"]
+    result = []
+
+    for category in config["categories"]:
+        category_answers = []
+
+        # Iterate this category's questions in config order
+        for question in category["questions"]:
+            question_id = question["id"]
+
+            # Skip if this question_id is not in our answer lookup
+            # (stale/orphaned answer handling)
+            if question_id not in answer_lookup:
+                continue
+
+            answer_row = answer_lookup[question_id]
+
+            # Look up the answer_label from the question's options
+            answer_label = f"Score {answer_row.score}"  # fallback
+            for option in question["options"]:
+                if option["score"] == answer_row.score:
+                    answer_label = option["label"]
+                    break
+
+            # Get the band color for this score
+            band = get_maturity_band(answer_row.score, bands)
+
+            category_answers.append(
+                {
+                    "question_id": question_id,
+                    "text": question["text"],
+                    "answer_label": answer_label,
+                    "score": answer_row.score,
+                    "band_color": band["color"],
+                }
+            )
+
+        # Append category entry regardless of whether answers list is empty
+        result.append(
+            {
+                "category_id": category["id"],
+                "name": category["name"],
+                "answers": category_answers,
+            }
+        )
+
+    return result
+
+
+def generate_radar_svg(
+    scores: list[dict],
+    bands: list[dict],
+    *,
+    size: int = 320,
+    max_score: float = 5.0,
+) -> str:
+    """RPRT-01/D-01/D-02: one server-side SVG string, reused verbatim for
+    both the in-app report and the admin org-average chart — the browser
+    and WeasyPrint only ever render this markup, never recompute geometry.
+
+    `viewBox` (not fixed pixel width/height) is used so the SVG scales in
+    both the responsive in-app card and the fixed-width PDF page (D-02
+    overflow). Axis 0 points straight up (angle offset by -pi/2), and axes
+    are placed in config category order (deterministic, RPRT-01 ordering).
+
+    Per RESEARCH Pitfall 3 (WeasyPrint SVG `<text>` parity), every `<text>`
+    element carries explicit `font-size`/`font-family`/`fill` presentation
+    attributes rather than relying on external CSS.
+
+    Only server-controlled config category names and computed numeric
+    scores flow into this string — never end-user free-text (e.g.
+    initiative.name) is ever interpolated here (threat T-16-02).
+
+    Phase 16 gap-closure (G-16-1, 16-05): `text-anchor` is no longer a
+    uniform "middle" for every label — a centered anchor point close to the
+    viewBox's left edge clips long left-side labels (e.g. "Control over
+    Data & Trust"). Each label's anchor is now derived from the horizontal
+    component (cos) of its own axis angle: top/bottom axes (cos ~ 0) stay
+    "middle", right-side axes (cos > 0) become "start" so the label grows
+    rightward away from the chart, and left-side axes (cos < 0) become
+    "end" so the label grows leftward into the widened viewBox margin
+    instead of overflowing it. The viewBox itself is widened horizontally
+    (negative min-x, width > height) to give those outward-growing labels
+    room, sized from the longest category name rather than a hardcoded
+    axis-count assumption.
+
+    Scale grid: concentric rings at each whole-number level from 1 to
+    max_score are drawn behind the spokes/data polygon, giving the chart an
+    actual "web" to read the data polygon against instead of a bare
+    star-burst of spokes. The top axis (index 0) additionally gets small
+    numeric tick labels at each ring so the scale itself is legible, not
+    just the data shape.
+    """
+    n = len(scores)
+    cx = cy = size / 2
+    radius = size * 0.38  # leave room for axis labels outside the chart
+
+    def point(i: int, value_fraction: float) -> tuple[float, float]:
+        angle = (2 * math.pi * i / n) - (math.pi / 2)
+        r = radius * value_fraction
+        return (cx + r * math.cos(angle), cy + r * math.sin(angle))
+
+    def anchor_for(i: int) -> str:
+        angle = (2 * math.pi * i / n) - (math.pi / 2)
+        cos_angle = math.cos(angle)
+        epsilon = 1e-6
+        if abs(cos_angle) < epsilon:
+            return "middle"
+        return "start" if cos_angle > 0 else "end"
+
+    # Data polygon
+    data_points = " ".join(
+        f"{x:.1f},{y:.1f}"
+        for i, s in enumerate(scores)
+        for x, y in [point(i, min(s["score"], max_score) / max_score)]
+    )
+
+    # Scale grid rings — concentric n-sided polygons at each whole-number
+    # level (1..max_score), drawn first so spokes/data polygon layer on top.
+    grid_levels = range(1, int(max_score) + 1)
+    grid_rings = []
+    for level in grid_levels:
+        ring_points = " ".join(
+            f"{x:.1f},{y:.1f}" for i in range(n) for x, y in [point(i, level / max_score)]
+        )
+        grid_rings.append(
+            f'<polygon points="{ring_points}" fill="none" stroke="#e8e8e8" stroke-width="1"/>'
+        )
+
+    # Scale tick labels along the top axis (index 0), marking each grid
+    # ring with its numeric level. No text-anchor override (defaults to
+    # "start"), and offset right of the vertical spoke so it doesn't
+    # overlap it.
+    tick_labels = []
+    for level in grid_levels:
+        tx, ty = point(0, level / max_score)
+        tick_labels.append(
+            f'<text x="{tx + 4:.1f}" y="{ty - 2:.1f}" font-size="9" '
+            f'font-family="Jost, sans-serif" fill="#999999">{level}</text>'
+        )
+
+    # Axis spokes (full-radius lines) + labels
+    spokes = []
+    labels = []
+    label_font_size = 11
+    longest_name_len = max((len(s["name"]) for s in scores), default=0)
+    for i, s in enumerate(scores):
+        x, y = point(i, 1.0)
+        spokes.append(
+            f'<line x1="{cx}" y1="{cy}" x2="{x:.1f}" y2="{y:.1f}" '
+            f'stroke="#d9d9d9" stroke-width="1"/>'
+        )
+        lx, ly = point(i, 1.18)  # push labels outside the polygon
+        # WR-05: XML-escape the category name before interpolating into SVG
+        # text content. Today this is only defense-in-depth (config category
+        # names are server-controlled, never end-user free-text — see this
+        # function's own docstring), but it's cheap insurance against the
+        # invariant being broken by a future feature (e.g. an admin-editable
+        # questionnaire builder), since this string is later marked `| safe`
+        # in report.html and rendered via dangerouslySetInnerHTML on both
+        # React pages.
+        labels.append(
+            f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="{label_font_size}" '
+            f'font-family="Jost, sans-serif" fill="#008ecf" '
+            f'text-anchor="{anchor_for(i)}">{xml_escape(s["name"])}</text>'
+        )
+
+    overall_average = sum(s["score"] for s in scores) / n
+    band = get_maturity_band(overall_average, bands)
+
+    # Widen the viewBox horizontally so end/start-anchored labels growing
+    # outward from the polygon aren't clipped at x=0 or x=size. The margin
+    # is sized from the longest category name at the label font size
+    # (rough average-character-width estimate), not from a fixed axis
+    # count, so it scales with real config content.
+    avg_char_width_factor = 0.6
+    horizontal_margin = (longest_name_len * label_font_size * avg_char_width_factor) + 10
+    view_min_x = -horizontal_margin
+    view_width = size + 2 * horizontal_margin
+
+    return (
+        f'<svg viewBox="{view_min_x:.1f} 0 {view_width:.1f} {size}" '
+        f'xmlns="http://www.w3.org/2000/svg">'
+        + "".join(grid_rings)
+        + "".join(spokes)
+        + f'<polygon points="{data_points}" fill="{band["color"]}" '
+        f'fill-opacity="0.25" stroke="{band["color"]}" stroke-width="2"/>'
+        + "".join(labels)
+        + "".join(tick_labels)
+        + "</svg>"
+    )
+
+
+def build_report_contract(
+    dimension_scores: list[dict],
+    initiative,
+    assessment,
+    config: dict,
+) -> dict:
+    """RPRT-04: the single shared contract dict every downstream surface
+    (in-app React report, WeasyPrint PDF, admin aggregate) consumes without
+    recomputation — one computation, reused verbatim.
+
+    Args:
+        dimension_scores: the frozen `Assessment.dimension_scores` snapshot
+            (D-03) — never a live recompute of `compute_dimension_scores`
+            for a submitted assessment.
+        initiative: Initiative ORM object (or dict) with id, name.
+        assessment: Assessment ORM object (or dict) with id, version.
+        config: dssc_questionnaire_config dict (must contain
+            "maturity_bands").
+    """
+    bands = config["maturity_bands"]
+    tiers = config["maturity_tiers"]
+
+    # ORM-or-dict flexibility idiom
     if hasattr(initiative, "id"):
         initiative_id = str(initiative.id)
         initiative_name = initiative.name
@@ -285,41 +428,19 @@ def generate_report_data(
         initiative_id = str(initiative.get("id", ""))
         initiative_name = initiative.get("name", "")
 
+    if hasattr(assessment, "id"):
+        assessment_id = assessment.id
+        version = assessment.version
+    else:
+        assessment_id = assessment.get("id")
+        version = assessment.get("version")
+
     return {
-        "initiative": {
-            "id": initiative_id,
-            "name": initiative_name,
-            "generated_at": datetime.utcnow().isoformat() + "Z",
-        },
-        "matrix": _build_matrix(answers, findings, mami_config),
-        "topic_structure": _build_topic_structure(mami_config),
-        "answers": [
-            {
-                "mami_code": a["mami_code"],
-                "answer_value": a["answer_value"],
-                "answer_label": _ANSWER_LABEL_MAP.get(a["answer_value"], a["answer_value"]),
-                "description": code_lookup.get(a["mami_code"], {}).get("description", ""),
-                "followup_selections": a.get("followup_selections") or [],
-                "followup_other": a.get("followup_other") or "",
-                "evidence": [
-                    {"url": ev.url if hasattr(ev, "url") else ev.get("url", "")}
-                    for ev in evidence_by_code.get(a["mami_code"], [])
-                ],
-            }
-            for a in answers
-        ],
+        "assessment_id": assessment_id,
+        "version": version,
+        "initiative": {"id": initiative_id, "name": initiative_name},
+        "dimension_scores": dimension_scores,
+        "priority_list": build_priority_list(dimension_scores, bands, tiers),
+        "radar_chart_svg": generate_radar_svg(dimension_scores, bands),
+        "maturity_bands": bands,
     }
-
-
-def _suggest_next_steps(severity: str, code: dict) -> str:
-    """Generate actionable next steps text based on severity and code metadata."""
-    desc = code.get("description", "this requirement")
-    if severity == "CRITICAL":
-        return (
-            f"This is a MUST requirement. Address '{desc}' to achieve compliance. "
-            "MAMI framework mandates this for full certification."
-        )
-    return (
-        f"This is a recommended improvement. Consider addressing '{desc}' "
-        "to strengthen your compliance posture."
-    )

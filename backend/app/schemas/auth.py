@@ -20,6 +20,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     participant_type: Literal["DSI", "SP"] = "DSI"
+    data_consent: bool
 
     @field_validator("password")
     @classmethod
@@ -30,12 +31,19 @@ class UserCreate(BaseModel):
             raise ValueError("Password is too common — choose a stronger password")
         return v
 
+    @field_validator("data_consent")
+    @classmethod
+    def validate_data_consent(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("You must agree to data collection to register")
+        return v
+
 
 class UserRead(BaseModel):
     id: int
     email: str
     role: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     created_at: str  # ISO format
 
 

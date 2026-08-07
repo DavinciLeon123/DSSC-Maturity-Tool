@@ -8,9 +8,14 @@ Guidance for Claude Code (and humans) working in this repo.
 |---|---|---|---|
 | `feature/*` | Active dev, cut from `staging` | No | Local only |
 | `staging` | Integration, PR-merged only | Yes (PR + CI) | Railway auto-deploys the Integration environment when CI is green |
-| `main` | Release-ready | Yes (PR + CI + 2 approvals) | Manual Railway redeploy from the dashboard |
+| `main` | Release-ready | Yes (PR + CI) | Manual Railway redeploy from the dashboard |
 
-Flow: `feature/*` → PR into `staging` (CI gates) → `staging` → PR into `main` (CI + human approval) → tag `vX.Y.Z` → release workflow.
+Flow: `feature/*` → PR into `staging` (CI gates) → `staging` → PR into `main` (CI gates) → tag `vX.Y.Z` → release workflow.
+
+**Note (2026-07-22):** `main` originally required 2 approvals before merging. Dropped to
+PR + CI only (same gate as `staging`) — this repo has a single collaborator, and the
+2-approval rule blocked the owner's own merges (see the removed setup-checklist item
+below, formerly flagged as expected first-PR friction).
 
 **Railway wiring is not a GitHub Actions step.** The standard, most reliable way to do
 "auto-deploy on green CI" is to let Railway's own GitHub integration watch the `staging`
@@ -19,9 +24,12 @@ to Railway's API. `main`'s environment should have auto-deploy left off; deploy 
 from the Railway dashboard when ready. See "Setup checklist" below — this isn't wired up yet
 because no Railway project exists for this repo.
 
-## The 5 GitHub Actions workflows
+## The 5 GitHub Actions workflows (+ 1 reusable sub-workflow)
 
 All live in `.github/workflows/`. Each bullet below maps to one job of the same name unless noted.
+A 6th file, `e2e-tests.yml`, is `workflow_call`-only (never triggers on its own) — it's the shared
+Playwright E2E implementation `staging.yml` and `main.yml` both call, documented under workflow 2
+and 3 below rather than as its own numbered entry.
 
 ### 1. `pr.yml` — every PR into `main` or `staging`
 - `backend-lint` — `ruff check` + `ruff format --check`
@@ -29,7 +37,7 @@ All live in `.github/workflows/`. Each bullet below maps to one job of the same 
 - `frontend-lint` / `frontend-typecheck` — `eslint` / `tsc -b --noEmit`
 - `security-audit` — `pip-audit` (3 attempts, backend) + `npm audit --audit-level=high` (frontend)
 - `test` — `pytest -n auto -m "not perf and not benchmark"` (perf/benchmark excluded to keep PR feedback fast)
-- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker)
+- `perf-gate` — `pytest -m perf` (dedicated job, **no** `-n auto` — pytest-benchmark's timing needs a single worker). **Resolved (Phase 17):** `tests/perf/test_dimension_scoring_perf.py` now covers the equal-weight scoring path's p95 latency, replacing the ZEN-engine perf test Phase 14 deleted — the exit-5 tolerance wrapper has been removed from `pr.yml`/`staging.yml`/`main.yml`; a bare `pytest -m perf -q` now always collects at least one test.
 - `docs-freshness` — regenerates `docs/api/openapi.json` from the FastAPI app and fails on any `git diff`
 
 ### 2. `staging.yml` — push to `staging` (i.e. after a PR merges)
@@ -37,10 +45,17 @@ Same jobs as `pr.yml`, except:
 - `test` includes the `benchmark`-marked regression suite (`-m "not perf"` instead of excluding it too)
 - `docker-build` (needs lint + test green) — builds and pushes `backend`/`frontend` images to `ghcr.io` tagged `:staging`
 - `sbom` (needs `docker-build`) — generates CycloneDX + SPDX SBOMs for both images, commits them to `docs/security/` (commit message includes `[skip ci]` to avoid a push-triggered loop)
+- `e2e` (needs `docker-build`) — calls the reusable `e2e-tests.yml`, passing `docker-build`'s pushed `:staging` image tags so it pulls rather than rebuilds
 
 ### 3. `main.yml` — push to `main`
 Same quality jobs as `staging.yml` (full lint/type/audit/test/docs/perf), plus:
 - `docker-build-and-sbom` — builds both images locally (no registry push — `main` deploys manually), generates SBOMs, uploads them as a workflow artifact with 90-day retention
+- `e2e` — calls the reusable `e2e-tests.yml` with no image inputs, since `docker-build-and-sbom` never pushes anywhere for it to pull from; builds the compose stack from source instead
+
+Both `e2e` jobs run Playwright's Chromium-only critical-path suite (`e2e/tests/critical-path.spec.ts`)
+against the real `docker-compose.yml` stack (fresh DB, `wait-on`-gated readiness), never against a
+mocked backend or the live Railway deployment. Like the `benchmark` marker, E2E is excluded from
+`pr.yml` to keep PR feedback fast and only runs from `staging` onward.
 
 ### 4. `release.yml` — push of tag `v*`
 - `quality-gate` — full lint/mypy/tests including the privacy canary (see below), plus frontend lint/typecheck/`npm audit --omit=dev`
@@ -86,5 +101,6 @@ degrade gracefully (skip, not hard-fail) until they're filled in:
 - **The codebase had never been linted before this setup.** Turning on `ruff`/`mypy` as hard PR gates against unlinted code would have broken on the very first PR, so I ran the auto-fix pass now: 145 lint issues auto-fixed, ~10 genuine mypy findings fixed by hand (mostly `int | None` narrowing after DB inserts, one real `zip()` missing `strict=True`), a few config exceptions added deliberately (`UP042` ignored — `str`+`Enum` → `StrEnum` touches SQLAlchemy column serialization and shouldn't happen via autofix; FastAPI's `Depends()`/`Query()`/etc. added to `extend-immutable-calls` since ruff's B008 otherwise flags idiomatic FastAPI DI as a bug).
 - **`uv.lock` had 49 known vulnerabilities across 13 packages** (starlette, pyjwt, pillow, python-multipart, urllib3, weasyprint, etc.) before this setup — all pre-existing, none introduced by this change. Ran `uv lock --upgrade` within the *existing* pyproject.toml version constraints (no constraint changes) and re-verified the full test suite — now zero known vulnerabilities. Flagging this since it's a real fix bundled into what was nominally a CI-setup task.
 - **No test suite existed at all.** Added minimal scaffolding (`tests/test_health.py`, `tests/perf/test_scoring_perf.py`, `tests/benchmark/test_scoring_regression.py`, `tests/test_privacy_canary.py`) so every CI gate is real and green on day one, not fabricated. These are a starting point, not coverage — there's no test yet that touches the database (auth, initiatives, scoring endpoints are all untested). First real addition to this repo should probably be a Postgres-backed test fixture.
-- **`main` currently has one collaborator (you).** The 2-approval rule on `main` will block your own merges until you add a second reviewer or use an admin override to merge. Flagging this now so it's not a surprise on the first PR into `main`.
+  - **Done (2026-07-22, Phase 12):** `tests/conftest.py` gained real-Postgres testcontainer fixtures (`postgres_container`/`engine`/`session`/`client`/`admin_client`/`user_client`), and `tests/api/` + `tests/services/` now cover auth, admin, and reports/report_generator. See `.planning/phases/12-test-retrofit-stabilize-existing-flows/`.
+- **~~`main` currently has one collaborator (you). The 2-approval rule on `main` will block your own merges...~~ Resolved (2026-07-22):** dropped `main`'s 2-approval requirement — see the Branch model note above.
 - **Default branch**: set to `staging` on GitHub (see below), since that's where `feature/*` branches are cut from and where PRs should land by default.

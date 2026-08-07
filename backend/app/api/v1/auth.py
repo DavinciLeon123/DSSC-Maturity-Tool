@@ -42,6 +42,7 @@ def register(user_in: UserCreate, session: Session = Depends(get_session)):
         email=user_in.email,
         hashed_password=hash_password(user_in.password),
         participant_type=user_in.participant_type,
+        data_consent=user_in.data_consent,
     )
     session.add(user)
     session.commit()
@@ -122,16 +123,16 @@ def _send_reset_email(email: str, token: str, frontend_url: str, api_key: str) -
         return
     resend.api_key = api_key
     params: resend.Emails.SendParams = {
-        "from": "MaMi Checker <onboarding@resend.dev>",
+        "from": "DSSC Maturity Scan <onboarding@resend.dev>",
         "to": [email],
-        "subject": "Reset your MaMi Checker password",
+        "subject": "Reset your DSSC Maturity Scan password",
         "text": (
             f"Hi,\n\n"
-            f"You requested a password reset for your MaMi Checker account.\n\n"
+            f"You requested a password reset for your DSSC Maturity Scan account.\n\n"
             f"Click the link below to set a new password:\n{reset_url}\n\n"
             f"This link expires in 30 minutes. If you did not request this, "
             f"you can safely ignore this email.\n\n"
-            f"The MaMi Checker team"
+            f"The DSSC Maturity Scan team"
         ),
     }
     resend.Emails.send(params)

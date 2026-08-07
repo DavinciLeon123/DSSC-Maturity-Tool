@@ -4,15 +4,20 @@ interface Props {
   categories: Category[];
   currentCategoryIndex: number;
   completedCategoryIds: Set<string>;
-  currentTopicIndex: number;
+  // Count of distinct answered questions across the whole questionnaire —
+  // supplied by the caller (WizardPage owns answer state); the total below
+  // is always derived from config, never hardcoded (D-04).
+  answeredCount: number;
 }
 
 export function StepPills({
   categories,
   currentCategoryIndex,
   completedCategoryIds,
-  currentTopicIndex,
+  answeredCount,
 }: Props) {
+  const totalQuestions = categories.reduce((sum, cat) => sum + cat.questions.length, 0);
+
   return (
     <div
       style={{
@@ -20,8 +25,8 @@ export function StepPills({
         flexShrink: 0,
         padding: "1.5rem",
         background: "white",
-        borderRadius: "16px",
-        boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+        borderRadius: "0",
+        boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         alignSelf: "flex-start",
         position: "sticky",
         top: "80px",
@@ -31,22 +36,36 @@ export function StepPills({
         style={{
           fontSize: "0.875rem",
           fontWeight: 600,
-          color: "#06004f",
-          marginBottom: "1.25rem",
+          color: "#008ecf",
+          marginBottom: "0.5rem",
           marginTop: 0,
           textTransform: "uppercase",
           letterSpacing: "0.06em",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         Your progress
+      </p>
+
+      {/* D-04: overall answered-count counter, always derived from config
+          (never a hardcoded 52). */}
+      <p
+        style={{
+          fontSize: "0.8125rem",
+          fontWeight: 600,
+          color: "rgba(0,142,207,0.6)",
+          marginBottom: "1.25rem",
+          marginTop: 0,
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        {answeredCount} of {totalQuestions} answered
       </p>
 
       <div style={{ display: "flex", flexDirection: "column" }}>
         {categories.map((cat, i) => {
           const isActive = i === currentCategoryIndex;
           const isComplete = completedCategoryIds.has(cat.id);
-          const isPending = !isActive && !isComplete;
           const isLast = i === categories.length - 1;
 
           return (
@@ -65,7 +84,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      background: "#399e5a",
+                      background: "#76b82a",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -89,7 +108,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      background: "#06004f",
+                      background: "#008ecf",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -112,7 +131,7 @@ export function StepPills({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      border: "2px solid rgba(6,0,79,0.2)",
+                      border: "2px solid rgba(0,142,207,0.2)",
                       background: "transparent",
                       display: "flex",
                       alignItems: "center",
@@ -122,7 +141,7 @@ export function StepPills({
                   >
                     <span
                       style={{
-                        color: "rgba(6,0,79,0.35)",
+                        color: "rgba(0,142,207,0.35)",
                         fontSize: "10px",
                         fontWeight: 600,
                       }}
@@ -136,99 +155,26 @@ export function StepPills({
                 <span
                   style={{
                     fontSize: "0.875rem",
-                    fontWeight: isActive ? 600 : isPending ? 400 : 500,
+                    fontWeight: isActive || isComplete ? 600 : 400,
                     color: isActive
-                      ? "#06004f"
+                      ? "#008ecf"
                       : isComplete
-                      ? "#399e5a"
-                      : "rgba(6,0,79,0.45)",
-                    fontFamily: "'Rubik', sans-serif",
+                      ? "#76b82a"
+                      : "rgba(0,142,207,0.45)",
+                    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                     lineHeight: 1.3,
                   }}
                 >
-                  {cat.label}
+                  {cat.name}
                 </span>
               </div>
-
-              {/* Accordion: topic list for the active category */}
-              {isActive && cat.topics.length > 0 && (
-                <div style={{ marginLeft: "36px", marginTop: "4px" }}>
-                  {cat.topics.map((topic, ti) => {
-                    const isActiveTopic = ti === currentTopicIndex;
-                    const isCompletedTopic = ti < currentTopicIndex;
-
-                    return (
-                      <div
-                        key={topic.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "4px 0",
-                          cursor: "default",
-                        }}
-                      >
-                        {/* Dot indicator */}
-                        {isActiveTopic ? (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "#06004f",
-                              flexShrink: 0,
-                            }}
-                          />
-                        ) : isCompletedTopic ? (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "#399e5a",
-                              flexShrink: 0,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              background: "transparent",
-                              flexShrink: 0,
-                            }}
-                          />
-                        )}
-
-                        {/* Topic label */}
-                        <span
-                          style={{
-                            fontSize: "0.8rem",
-                            fontWeight: isActiveTopic ? 600 : 400,
-                            color: isActiveTopic
-                              ? "#06004f"
-                              : isCompletedTopic
-                              ? "#399e5a"
-                              : "rgba(6,0,79,0.45)",
-                            fontFamily: "'Rubik', sans-serif",
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {topic.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
 
               {/* Connector line between category items */}
               {!isLast && (
                 <div
                   style={{
                     width: 2,
-                    background: "rgba(6,0,79,0.1)",
+                    background: "rgba(0,142,207,0.1)",
                     minHeight: "16px",
                     margin: "3px 11px",
                   }}

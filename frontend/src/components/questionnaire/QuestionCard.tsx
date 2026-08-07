@@ -1,31 +1,27 @@
-import type { Question, LocalAnswer, AnswerValue } from "../../lib/questionnaire";
+import type { AnswerOption, Question } from "../../lib/questionnaire";
 import { AnswerButtonGroup } from "./AnswerButtonGroup";
-import { FollowupPanel } from "./FollowupPanel";
 
 interface Props {
   question: Question;
-  answer: LocalAnswer | undefined;
-  onAnswerChange: (questionId: string, value: AnswerValue) => void;
-  onFollowupSelectionsChange: (questionId: string, selections: string[]) => void;
-  onFollowupOtherChange: (questionId: string, text: string) => void;
+  // config.default_options — the RadioScale falls back to this whenever the
+  // question itself has no per-question override (key_link: config is the
+  // source of truth, never a hardcoded array).
+  defaultOptions: AnswerOption[];
+  value: number | null;
+  onAnswerChange: (questionId: string, score: number) => void;
 }
 
-export function QuestionCard({
-  question,
-  answer,
-  onAnswerChange,
-  onFollowupSelectionsChange,
-  onFollowupOtherChange,
-}: Props) {
-  const showFollowup =
-    question.followup != null &&
-    (answer?.answer_value === "YES" || answer?.answer_value === "NOT_THERE_YET");
+// A question is now just text + the radio scale — the previous followup
+// and explanatory-callout branches are gone entirely (the new config schema
+// has no followup/context_text/context_image fields at all).
+export function QuestionCard({ question, defaultOptions, value, onAnswerChange }: Props) {
+  const options = question.options ?? defaultOptions;
 
   return (
     <div
       style={{
         background: "white",
-        borderRadius: "var(--border-radius-sm)",
+        borderRadius: "0",
         padding: "1.5rem",
         boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         marginBottom: "1rem",
@@ -33,32 +29,22 @@ export function QuestionCard({
     >
       <p
         style={{
-          fontWeight: 600,
-          color: "var(--color-navy)",
+          fontWeight: 400,
+          fontSize: "1rem",
+          lineHeight: 1.5,
+          color: "#1c2025",
           marginBottom: "1rem",
           marginTop: 0,
-          lineHeight: 1.5,
         }}
       >
         {question.text}
       </p>
 
       <AnswerButtonGroup
-        value={answer?.answer_value ?? null}
-        onChange={(v) => onAnswerChange(question.id, v)}
+        options={options}
+        value={value}
+        onChange={(score) => onAnswerChange(question.id, score)}
       />
-
-      {showFollowup && question.followup && (
-        <FollowupPanel
-          followup={question.followup}
-          selections={answer?.followup_selections ?? null}
-          other={answer?.followup_other ?? null}
-          onSelectionsChange={(selections) =>
-            onFollowupSelectionsChange(question.id, selections)
-          }
-          onOtherChange={(text) => onFollowupOtherChange(question.id, text)}
-        />
-      )}
     </div>
   );
 }

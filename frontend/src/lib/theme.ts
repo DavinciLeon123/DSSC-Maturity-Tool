@@ -1,24 +1,23 @@
 // frontend/src/lib/theme.ts
-// MCP unavailable — using locked token values from CONTEXT.md (Figma source of truth)
-// Tokens: dark blue #06004f, green #399e5a, button blue #00006b, Rubik font, 16px/8px radius
+// DSSC brand tokens: Blue #008ecf (primary), Green #76b82a (secondary), Jost typography
 import type { ThemeConfig } from 'antd';
 
 export const mamiTheme: ThemeConfig = {
   token: {
-    colorPrimary: '#06004f',          // DSC dark blue
-    colorSuccess: '#399e5a',          // DSC green
-    colorLink: '#399e5a',
-    fontFamily: "'Rubik', -apple-system, BlinkMacSystemFont, sans-serif",
+    colorPrimary: '#008ecf',          // DSSC Blue
+    colorSuccess: '#76b82a',          // DSSC Green
+    colorLink: '#76b82a',
+    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
     borderRadius: 8,                  // choice cards, buttons
     borderRadiusLG: 16,               // panels, large cards
-    colorBgLayout: 'rgba(57,158,90,0.1)',
+    colorBgLayout: '#ffffff',
     colorBgContainer: '#ffffff',
-    colorText: '#06004f',
+    colorText: '#1c2025',
   },
   components: {
     Button: {
-      colorPrimary: '#00006b',
-      borderRadius: 8,
+      colorPrimary: '#008ecf',
+      borderRadius: 0,
       controlHeight: 44,
     },
     Input: {
@@ -26,13 +25,13 @@ export const mamiTheme: ThemeConfig = {
       borderRadius: 8,
     },
     Layout: {
-      bodyBg: 'rgba(57,158,90,0.1)',
+      bodyBg: '#ffffff',
     },
     Card: {
-      borderRadiusLG: 16,
+      borderRadiusLG: 0,
     },
     Form: {
-      labelColor: '#06004f',
+      labelColor: '#008ecf',
     },
   },
 };

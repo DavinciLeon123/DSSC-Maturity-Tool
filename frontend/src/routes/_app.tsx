@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'linear-gradient(90deg, rgba(57,158,90,0.1) 0%, rgba(57,158,90,0.1) 100%), white' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'linear-gradient(135deg, rgba(118,184,42,0.06) 0%, rgba(0,142,207,0.10) 60%, rgba(255,255,255,0) 100%), #fff' }}>
       <TopNav />
       <main style={{ flex: 1, padding: '2rem' }}>
         <Outlet />

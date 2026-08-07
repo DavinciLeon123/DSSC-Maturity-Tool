@@ -1,4 +1,3 @@
-import zen
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
@@ -39,16 +38,6 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-def get_zen_engine(request: Request) -> zen.ZenEngine:
-    """FastAPI dependency: returns the ZEN Engine singleton from app.state."""
-    return request.app.state.zen_engine
-
-
-def get_mami_config(request: Request) -> dict:
-    """FastAPI dependency: returns the loaded mami-framework.json dict."""
-    return request.app.state.mami_config
-
-
 def get_questionnaire_config(request: Request) -> dict:
     """FastAPI dependency: returns the loaded questionnaire-v1.json dict (legacy)."""
     return request.app.state.questionnaire_config
@@ -57,3 +46,11 @@ def get_questionnaire_config(request: Request) -> dict:
 def get_questionnaire_configs(request: Request) -> dict:
     """FastAPI dependency: returns both v2 questionnaire configs as {"DSI": {...}, "SP": {...}}."""
     return request.app.state.questionnaire_configs
+
+
+def get_dssc_questionnaire_config(request: Request) -> dict:
+    """FastAPI dependency: returns the universal DSSC questionnaire config
+    (52 questions / 6 categories) cached at lifespan startup. No
+    participant_type selection — this config is served identically to every
+    caller (D-10, QSTN-04)."""
+    return request.app.state.dssc_questionnaire_config

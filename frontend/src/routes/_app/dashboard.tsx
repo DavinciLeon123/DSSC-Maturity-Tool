@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Card, Button, Alert, Input, Select, Tag } from "antd";
 import { api } from "../../lib/api";
+import { useStartOrRetakeAssessment } from "../../lib/retake";
 
 export const Route = createFileRoute("/_app/dashboard")({
   component: DashboardPage,
@@ -41,8 +42,8 @@ const labelStyle: React.CSSProperties = {
   fontSize: "0.875rem",
   fontWeight: 500,
   marginBottom: "0.375rem",
-  color: "#06004f",
-  fontFamily: "'Rubik', sans-serif",
+  color: "#008ecf",
+  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
 };
 
 function DashboardPage() {
@@ -57,6 +58,8 @@ function DashboardPage() {
   const [regForm, setRegForm] = useState({ name: "", sector: "", sector_other: "" });
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
+
+  const startOrRetake = useStartOrRetakeAssessment(setReportError);
 
   useEffect(() => {
     api
@@ -98,6 +101,14 @@ function DashboardPage() {
     }
   }
 
+  function handleStartOrRetake() {
+    if (!initiative) return;
+    // D-13/D-14: delegates to the shared useStartOrRetakeAssessment hook
+    // (frontend/src/lib/retake.ts) — the single source of truth for the
+    // confirm-before-retake UX, also consumed by TopNav's nav-drawer item.
+    void startOrRetake();
+  }
+
   async function handleGenerateReport() {
     if (!initiative) return;
     setReportLoading(true);
@@ -106,7 +117,7 @@ function DashboardPage() {
       await api.post(`/initiatives/${initiative.id}/report/data`, {});
       navigate({ to: "/report" });
     } catch {
-      setReportError("Failed to generate report. Make sure you have answered the questionnaire.");
+      setReportError("Failed to generate report. Make sure you have answered the dataspace maturity assessment.");
     } finally {
       setReportLoading(false);
     }
@@ -118,9 +129,9 @@ function DashboardPage() {
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#06004f",
+          color: "#008ecf",
           marginBottom: "1.5rem",
-          fontFamily: "'Rubik', sans-serif",
+          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
         }}
       >
         Dashboard
@@ -133,18 +144,18 @@ function DashboardPage() {
       {user ? (
         <Card
           style={{
-            borderRadius: "16px",
-            boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+            borderRadius: "0",
+            boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
           }}
         >
           <p
             style={{
               fontSize: "1.1rem",
-              color: "rgba(6,0,79,0.75)",
-              fontFamily: "'Rubik', sans-serif",
+              color: "rgba(0,142,207,0.75)",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
-            Welcome, <strong style={{ color: "#06004f" }}>{user.email}</strong>
+            Welcome, <strong style={{ color: "#008ecf" }}>{user.email}</strong>
           </p>
 
           {/* Inline registration form — shown when user has no initiative */}
@@ -152,17 +163,17 @@ function DashboardPage() {
             <Card
               style={{
                 marginTop: "1.5rem",
-                borderRadius: "16px",
-                boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+                borderRadius: "0",
+                boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
               }}
             >
               <h2
                 style={{
                   fontSize: "1.1rem",
                   fontWeight: 700,
-                  color: "#06004f",
+                  color: "#008ecf",
                   marginBottom: "0.5rem",
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Register Your Initiative
@@ -170,9 +181,9 @@ function DashboardPage() {
               <p
                 style={{
                   fontSize: "0.875rem",
-                  color: "rgba(6,0,79,0.6)",
+                  color: "rgba(0,142,207,0.6)",
                   marginBottom: "1.5rem",
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Get started by registering your DSI initiative.
@@ -199,7 +210,7 @@ function DashboardPage() {
                     required
                     size="large"
                     placeholder="Enter initiative name"
-                    style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                    style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                   />
                 </div>
 
@@ -210,7 +221,7 @@ function DashboardPage() {
                     onChange={(value) => setRegForm((prev) => ({ ...prev, sector: value }))}
                     placeholder="Select a sector..."
                     size="large"
-                    style={{ width: "100%", fontFamily: "'Rubik', sans-serif" }}
+                    style={{ width: "100%", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                     options={SECTOR_OPTIONS.map((s) => ({ label: s, value: s }))}
                   />
                 </div>
@@ -223,7 +234,7 @@ function DashboardPage() {
                       onChange={(e) => setRegForm((prev) => ({ ...prev, sector_other: e.target.value }))}
                       size="large"
                       placeholder="Describe your sector"
-                      style={{ borderRadius: "8px", fontFamily: "'Rubik', sans-serif" }}
+                      style={{ borderRadius: "8px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}
                     />
                   </div>
                 )}
@@ -234,8 +245,8 @@ function DashboardPage() {
                   loading={regLoading}
                   size="large"
                   style={{
-                    borderRadius: "8px",
-                    fontFamily: "'Rubik', sans-serif",
+                    borderRadius: "0",
+                    fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                     fontWeight: 600,
                   }}
                 >
@@ -250,8 +261,8 @@ function DashboardPage() {
             <div style={{ marginTop: "1.5rem" }}>
               <Card
                 style={{
-                  borderRadius: "16px",
-                  boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+                  borderRadius: "0",
+                  boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
                   marginBottom: "1rem",
                 }}
               >
@@ -269,8 +280,8 @@ function DashboardPage() {
                       style={{
                         fontSize: "1.25rem",
                         fontWeight: 700,
-                        color: "#06004f",
-                        fontFamily: "'Rubik', sans-serif",
+                        color: "#008ecf",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         margin: 0,
                       }}
                     >
@@ -280,7 +291,7 @@ function DashboardPage() {
                       <Tag
                         color={initiative.status === "submitted" ? "success" : "warning"}
                         style={{
-                          fontFamily: "'Rubik', sans-serif",
+                          fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                           fontWeight: 600,
                           textTransform: "uppercase",
                         }}
@@ -292,13 +303,13 @@ function DashboardPage() {
                       style={{
                         marginTop: "0.75rem",
                         fontSize: "0.875rem",
-                        color: "rgba(6,0,79,0.75)",
-                        fontFamily: "'Rubik', sans-serif",
+                        color: "rgba(0,142,207,0.75)",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         margin: "0.75rem 0 0",
                       }}
                     >
                       Sector:{" "}
-                      <strong style={{ color: "#06004f" }}>
+                      <strong style={{ color: "#008ecf" }}>
                         {initiative.sector_other
                           ? `${initiative.sector} — ${initiative.sector_other}`
                           : initiative.sector}
@@ -310,14 +321,14 @@ function DashboardPage() {
                     <Button
                       type="primary"
                       size="large"
-                      onClick={() => navigate({ to: "/questionnaire" })}
+                      onClick={handleStartOrRetake}
                       style={{
-                        borderRadius: "8px",
-                        fontFamily: "'Rubik', sans-serif",
+                        borderRadius: "0",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}
                     >
-                      {initiative.status === "submitted" ? "Retake Questionnaire" : "Start Questionnaire"}
+                      {initiative.status === "submitted" ? "Retake Dataspace Maturity Assessment" : "Start Dataspace Maturity Assessment"}
                     </Button>
 
                     <Button
@@ -325,12 +336,27 @@ function DashboardPage() {
                       onClick={handleGenerateReport}
                       loading={reportLoading}
                       style={{
-                        borderRadius: "8px",
-                        fontFamily: "'Rubik', sans-serif",
+                        borderRadius: "0",
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                         fontWeight: 600,
                       }}
                     >
                       Generate Heatmap
+                    </Button>
+
+                    {/* D-17: secondary/link-style button to the new history page */}
+                    <Button
+                      type="link"
+                      size="large"
+                      onClick={() => navigate({ to: "/assessments" })}
+                      style={{
+                        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+                        fontWeight: 600,
+                        paddingLeft: 0,
+                        paddingRight: 0,
+                      }}
+                    >
+                      View assessment history
                     </Button>
                   </div>
                 </div>
@@ -353,8 +379,8 @@ function DashboardPage() {
               style={{
                 marginTop: "1rem",
                 fontSize: "0.875rem",
-                color: "rgba(6,0,79,0.5)",
-                fontFamily: "'Rubik', sans-serif",
+                color: "rgba(0,142,207,0.5)",
+                fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               }}
             >
               Loading initiative...
@@ -362,7 +388,7 @@ function DashboardPage() {
           ) : null}
         </Card>
       ) : !error ? (
-        <p style={{ color: "rgba(6,0,79,0.6)", fontFamily: "'Rubik', sans-serif" }}>Loading...</p>
+        <p style={{ color: "rgba(0,142,207,0.6)", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Loading...</p>
       ) : null}
     </div>
   );

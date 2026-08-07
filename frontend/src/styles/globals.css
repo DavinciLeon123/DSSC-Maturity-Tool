@@ -1,14 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap');
+@font-face {
+  font-family: 'Jost';
+  src: url('../assets/fonts/Jost-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  --color-navy:       #020059;
-  --color-green:      #41A765;
-  --color-blue:       #3D52D5;
+  --color-navy:       #008ecf;
+  --color-green:      #76b82a;
+  --color-blue:       #008ecf;
   --color-text-gray:  #4A495B;
   --color-bg-light:   #F5F5F8;
-  --font-family:      'Rubik', sans-serif;
+  --font-family:      'Jost', 'Helvetica Neue', Arial, sans-serif;
   --border-radius-sm: 6px;
   --border-radius-lg: 30px;
+
+  /* DSSC brand tokens, fetched directly from https://dssc.eu/'s compiled CSS (Phase 16.2) */
+  --dssc-blue:   #008ecf;
+  --dssc-green:  #76b82a;
+  --dssc-indigo: #50568e;
+  --dssc-yellow: #fbbc43;
+  --dssc-slate:  #627179;
+  --dssc-black:  #111315;
+  --dssc-ink:    #1c2025;  /* main heading/body text — dssc.eu's "fg-1" */
+  --dssc-fg-2:   #3d444b;  /* secondary/muted body text */
+  --dssc-white:  #fff;
+  --dssc-paper:  #fafbfc;
+  --dssc-bg-dark: #0f1c2b; /* footer / dark-band background */
+  --dssc-hero-gradient: linear-gradient(135deg, rgba(118,184,42,0.06) 0%, rgba(0,142,207,0.10) 60%, rgba(255,255,255,0) 100%);
+  --dssc-accent-gradient: linear-gradient(135deg, var(--dssc-green) 0%, var(--dssc-blue) 100%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

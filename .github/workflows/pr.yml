@@ -103,6 +103,21 @@ jobs:
           npm ci
           npm audit --audit-level=high
 
+  frontend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx vitest run --coverage
+
   test:
     runs-on: ubuntu-latest
     defaults:
@@ -114,6 +129,11 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: "backend/uv.lock"
+      # WeasyPrint (used by tests/api/test_reports.py's PDF-generation path) needs native
+      # Pango/GLib libraries beyond the Python package — without these, importing weasyprint
+      # raises OSError: cannot load library 'libgobject-2.0-0'.
+      - name: Install WeasyPrint system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf2.0-0 libcairo2
       - run: uv sync --locked
       # perf and benchmark tests run in their own dedicated jobs, kept out of the
       # PR test job so PR feedback stays fast (see pyproject.toml markers).

@@ -1,6 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchQuestionnaireConfig, fetchAnswers } from "../../lib/questionnaire";
+import {
+  fetchQuestionnaireConfig,
+  fetchAnswers,
+  fetchLastViewedCategory,
+} from "../../lib/questionnaire";
 import { WizardPage } from "../../components/questionnaire/WizardPage";
 import { api } from "../../lib/api";
 
@@ -9,10 +14,13 @@ export const Route = createFileRoute("/_app/questionnaire")({
 });
 
 function QuestionnairePage() {
+  const navigate = useNavigate();
   const { data: initiative, isLoading: initiativeLoading } = useQuery({
     queryKey: ["initiative"],
     queryFn: async () => {
-      const res = await api.get<{ id: number; participant_type: string }>("/initiatives/me");
+      const res = await api.get<{ id: number; participant_type: string; status: string }>(
+        "/initiatives/me",
+      );
       return res.data;
     },
     retry: false,
@@ -20,19 +28,55 @@ function QuestionnairePage() {
 
   const initiativeId = initiative?.id;
 
-  const { data: config, isLoading: configLoading } = useQuery({
+  useEffect(() => {
+    // Defense-in-depth (bug #1): a submitted initiative must never render a
+    // doomed-to-403 blank wizard. Every correct entry point (TopNav's
+    // guarded nav item, dashboard's handleStartOrRetake) already routes
+    // through useStartOrRetakeAssessment and never lands here with a
+    // submitted status — this only protects against a future or bypassed
+    // entry point (stale bookmark, back-button) doing the same thing.
+    if (initiative?.status === "submitted") {
+      navigate({ to: "/dashboard" });
+    }
+  }, [initiative, navigate]);
+
+  const {
+    data: config,
+    isLoading: configLoading,
+    isError: configError,
+    refetch: refetchConfig,
+  } = useQuery({
     queryKey: ["questionnaire-config"],
     queryFn: fetchQuestionnaireConfig,
     enabled: !!initiativeId,
   });
 
-  const { data: savedAnswers = [], isLoading: answersLoading } = useQuery({
+  const {
+    data: savedAnswers = [],
+    isLoading: answersLoading,
+    isError: answersError,
+    refetch: refetchAnswers,
+  } = useQuery({
     queryKey: ["questionnaire-answers", initiativeId],
     queryFn: () => fetchAnswers(initiativeId!),
     enabled: !!initiativeId,
   });
 
-  if (initiativeLoading || configLoading || answersLoading) {
+  // D-08: the third piece of mount state — resume position — is fetched
+  // alongside config/answers so the wizard never renders category 1 and
+  // then jump-cuts to the user's real last-viewed category.
+  const {
+    data: lastViewedCategoryId = null,
+    isLoading: lastViewedLoading,
+    isError: lastViewedError,
+    refetch: refetchLastViewed,
+  } = useQuery({
+    queryKey: ["questionnaire-last-viewed-category", initiativeId],
+    queryFn: () => fetchLastViewedCategory(initiativeId!),
+    enabled: !!initiativeId,
+  });
+
+  if (initiativeLoading || configLoading || answersLoading || lastViewedLoading) {
     return (
       <div
         style={{
@@ -43,7 +87,7 @@ function QuestionnairePage() {
           color: "var(--color-text-gray)",
         }}
       >
-        Loading questionnaire...
+        Loading assessment...
       </div>
     );
   }
@@ -60,25 +104,55 @@ function QuestionnairePage() {
           }}
         >
           <p style={{ margin: 0, color: "#92400E", fontWeight: 500 }}>
-            Please create your initiative first before filling in the questionnaire.
+            Please create your initiative first before filling in the assessment.
           </p>
         </div>
       </div>
     );
   }
 
-  if (!config) {
+  // Same #991B1B-on-#FEE2E2 banner + Retry convention as autosave failures
+  // (UI-SPEC "Wizard initial mount / config or answers fetch" row) — no
+  // separate error language invented for the mount-fetch path.
+  if (configError || answersError || lastViewedError || !config) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "200px",
-          color: "var(--color-text-gray)",
-        }}
-      >
-        Failed to load questionnaire configuration.
+      <div style={{ maxWidth: "600px", margin: "2rem auto", padding: "0 1rem" }}>
+        <div
+          style={{
+            background: "#FEE2E2",
+            color: "#991B1B",
+            padding: "1rem 1.5rem",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+          }}
+        >
+          <span>Failed to load assessment. Please try again.</span>
+          <button
+            type="button"
+            onClick={() => {
+              void refetchConfig();
+              void refetchAnswers();
+              void refetchLastViewed();
+            }}
+            style={{
+              padding: "0.5rem 1rem",
+              border: "1px solid #991B1B",
+              borderRadius: "0",
+              background: "transparent",
+              color: "#991B1B",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -94,7 +168,7 @@ function QuestionnairePage() {
             margin: "0 0 0.5rem 0",
           }}
         >
-          MAMI Questionnaire
+          Dataspace Maturity Assessment
         </h1>
       </div>
 
@@ -102,6 +176,7 @@ function QuestionnairePage() {
         config={config}
         initiativeId={initiativeId}
         savedAnswers={savedAnswers}
+        lastViewedCategoryId={lastViewedCategoryId}
       />
     </div>
   );

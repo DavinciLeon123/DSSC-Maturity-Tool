@@ -32,6 +32,7 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADDITIONAL_ADMINS: ${ADDITIONAL_ADMINS:-}
       CORS_ORIGINS: '["https://${DOMAIN}","http://${DOMAIN}"]'
     restart: unless-stopped
     # No ports — nginx handles all public traffic

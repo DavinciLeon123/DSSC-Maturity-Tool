@@ -6,38 +6,65 @@ All endpoints require ADMIN role. Available via GET/DELETE/POST on /api/v1/admin
 import csv
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlmodel import Session, select
 from sqlmodel import delete as sql_delete
 
-from app.core.deps import require_admin
+from app.core.deps import get_dssc_questionnaire_config, require_admin
 from app.db.session import get_session
-from app.models.evidence import EvidenceURL
+from app.models.assessment import Assessment
 from app.models.initiative import Initiative
 from app.models.questionnaire import QuestionnaireAnswer
 from app.models.report import ComplianceReport
 from app.models.user import User
-from app.services.report_generator import _build_topic_structure
+from app.services.admin_aggregation import build_admin_aggregate
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+def _csv_safe(value: str) -> str:
+    """Neutralize CSV/formula injection (CWE-1236) in free-text cell values.
+
+    Any cell whose value starts with `=`, `+`, `-`, `@`, tab, or CR can be
+    interpreted as a formula by Excel/Sheets/LibreOffice when the exported
+    CSV is opened — prefixing with a single quote forces the cell to be
+    read as literal text instead.
+    """
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
 
 
 # ─── Admin heatmap response models ────────────────────────────────────────────
 
 
-class AdminHeatmapCell(BaseModel):
-    yes: int = 0
-    not_yet: int = 0
-    n_a: int = 0
+class AdminInitiativeAggregateRow(BaseModel):
+    """ADMN-01/D-07/D-08: one row per initiative, sourced from that
+    initiative's latest SUBMITTED assessment only. `has_data=False` (and
+    null scores) for initiatives with zero submitted assessments — never a
+    coerced zero score."""
+
+    id: int
+    name: str
+    report_assessment_id: int | None
+    dimension_scores: list[dict] | None
+    overall_average: float | None
+    has_data: bool
 
 
-class AdminHeatmapResponse(BaseModel):
-    total_submitted: int
-    matrix: dict[str, dict[str, dict[str, AdminHeatmapCell]]]
-    topic_structure: dict[str, list[dict]]
+class AdminAggregateResponse(BaseModel):
+    """ADMN-01: replaces the Phase 14 fixed degraded stub with the real
+    6-category cross-initiative aggregation — an org-wide averaged radar
+    (D-07a) plus the per-initiative breakdown (D-07b). `org_radar_chart_svg`
+    is None (suppressed, RESEARCH Pitfall 5) when zero initiatives org-wide
+    have any submitted assessment."""
+
+    org_average_scores: list[dict]
+    org_radar_chart_svg: str | None
+    initiatives: list[AdminInitiativeAggregateRow]
 
 
 # ─── Response schemas ─────────────────────────────────────────────────────────
@@ -47,21 +74,23 @@ class AdminUserRow(BaseModel):
     id: int
     email: str
     role: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     created_at: str
     initiative_name: str | None = None
     initiative_status: str | None = None
-    answer_count: int = 0
+    completed_assessment_count: int = 0
+    has_draft_in_progress: bool = False
 
 
 class AdminInitiativeRow(BaseModel):
     id: int
     user_email: str
     name: str
-    participant_type: str
+    participant_type: str | None  # D-12/Pitfall 5 — nullable on the model now
     status: str
     created_at: str
-    answer_count: int
+    completed_assessment_count: int
+    has_draft_in_progress: bool
 
 
 # ─── Cascade delete helpers ────────────────────────────────────────────────────
@@ -69,13 +98,27 @@ class AdminInitiativeRow(BaseModel):
 
 def _delete_initiative_children(initiative_id: int, session: Session) -> None:
     """Delete all child rows of an initiative in correct FK order.
-    Models have no ondelete=CASCADE — must delete children manually."""
+    Models have no ondelete=CASCADE — must delete children manually.
+
+    D-06: questionnaire_answer is now keyed by assessment_id, not
+    initiative_id directly — answers must be deleted before their
+    Assessment(s), which must be deleted before the Initiative itself.
+    (This deliberately does NOT touch questionnaire_answer_v1_archive —
+    archived legacy rows have no FK to initiative and must survive an
+    admin hard-delete of the initiative, RESEARCH Anti-Pattern / A2.)
+    """
     # SQLModel has no mypy plugin, so `Model.field == value` type-checks as plain `bool`
     # here instead of `ColumnElement[bool]` — the query itself is the standard SQLModel pattern.
-    session.exec(
-        sql_delete(QuestionnaireAnswer).where(QuestionnaireAnswer.initiative_id == initiative_id)  # type: ignore[arg-type]
-    )
-    session.exec(sql_delete(EvidenceURL).where(EvidenceURL.initiative_id == initiative_id))  # type: ignore[arg-type]
+    assessment_ids = session.exec(
+        select(Assessment.id).where(Assessment.initiative_id == initiative_id)
+    ).all()
+    if assessment_ids:
+        session.exec(
+            sql_delete(QuestionnaireAnswer).where(
+                QuestionnaireAnswer.assessment_id.in_(assessment_ids)  # type: ignore[attr-defined]
+            )
+        )
+        session.exec(sql_delete(Assessment).where(Assessment.initiative_id == initiative_id))  # type: ignore[arg-type]
     session.exec(
         sql_delete(ComplianceReport).where(ComplianceReport.initiative_id == initiative_id)  # type: ignore[arg-type]
     )
@@ -115,13 +158,35 @@ def list_users(
     rows = []
     for row in result.mappings():
         initiative_id = row["initiative_id"]
-        answer_count = 0
         if initiative_id:
-            count_result = session.execute(
-                text("SELECT COUNT(*) FROM questionnaire_answer WHERE initiative_id = :iid"),
+            # BUG-07: count completed (submitted) Assessment rows directly —
+            # not a join through questionnaire_answer, which would count raw
+            # answer rows across every draft+submitted assessment ever
+            # created. A FILTER/EXISTS pair (not a multi-join GROUP BY)
+            # avoids a Cartesian-product miscount when both submitted and
+            # draft assessments coexist for the same initiative.
+            stats_result = session.execute(
+                text("""
+                    SELECT
+                        COUNT(DISTINCT a.id)
+                            FILTER (WHERE a.status = 'submitted') AS completed_assessment_count,
+                        EXISTS (
+                            SELECT 1 FROM assessment a2
+                            WHERE a2.initiative_id = :iid AND a2.status = 'draft'
+                        ) AS has_draft_in_progress
+                    FROM assessment a
+                    WHERE a.initiative_id = :iid
+                """),
                 {"iid": initiative_id},
             )
-            answer_count = count_result.scalar() or 0
+            stats_row = stats_result.mappings().first()
+            completed_assessment_count = (
+                (stats_row["completed_assessment_count"] or 0) if stats_row else 0
+            )
+            has_draft_in_progress = bool(stats_row["has_draft_in_progress"]) if stats_row else False
+        else:
+            completed_assessment_count = 0
+            has_draft_in_progress = False
         rows.append(
             AdminUserRow(
                 id=row["id"],
@@ -131,7 +196,8 @@ def list_users(
                 created_at=row["created_at"].isoformat(),
                 initiative_name=row["initiative_name"],
                 initiative_status=row["initiative_status"],
-                answer_count=answer_count,
+                completed_assessment_count=completed_assessment_count,
+                has_draft_in_progress=has_draft_in_progress,
             )
         )
     return rows
@@ -143,7 +209,7 @@ def delete_user(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Hard-delete a user and all their data (initiative, answers, evidence, report)."""
+    """Hard-delete a user and all their data (initiative, answers, report)."""
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -159,16 +225,26 @@ def list_initiatives(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """List all initiatives with owner email, status, and answer count."""
-    # Use raw SQL to avoid enum deserialization errors on legacy data
+    """List all initiatives with owner email, status, and completed-assessment count."""
+    # Use raw SQL to avoid enum deserialization errors on legacy data.
+    # BUG-07: count completed (submitted) Assessment rows directly — not a
+    # join through questionnaire_answer, which would count raw answer rows
+    # across every draft+submitted assessment ever created. Counting
+    # Assessment rows (not answer rows) via FILTER/EXISTS sidesteps the
+    # Cartesian-product risk of a naive multi-join GROUP BY entirely.
     result = session.execute(
         text("""
         SELECT i.id, i.name, i.participant_type, i.status, i.created_at,
                u.email AS user_email,
-               COUNT(qa.id) AS answer_count
+               COUNT(DISTINCT a.id)
+                   FILTER (WHERE a.status = 'submitted') AS completed_assessment_count,
+               EXISTS (
+                   SELECT 1 FROM assessment a2
+                   WHERE a2.initiative_id = i.id AND a2.status = 'draft'
+               ) AS has_draft_in_progress
         FROM initiative i
         LEFT JOIN "user" u ON u.id = i.user_id
-        LEFT JOIN questionnaire_answer qa ON qa.initiative_id = i.id
+        LEFT JOIN assessment a ON a.initiative_id = i.id
         GROUP BY i.id, i.name, i.participant_type, i.status, i.created_at, u.email
         ORDER BY i.created_at DESC
     """)
@@ -183,7 +259,8 @@ def list_initiatives(
                 participant_type=row["participant_type"],
                 status=row["status"],
                 created_at=row["created_at"].isoformat(),
-                answer_count=row["answer_count"] or 0,
+                completed_assessment_count=row["completed_assessment_count"] or 0,
+                has_draft_in_progress=bool(row["has_draft_in_progress"]),
             )
         )
     return rows
@@ -195,7 +272,7 @@ def delete_initiative(
     session: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ):
-    """Delete an initiative and its child rows (answers, evidence, report), keeping the user."""
+    """Delete an initiative and its child rows (answers, report), keeping the user."""
     initiative = session.get(Initiative, initiative_id)
     if not initiative:
         raise HTTPException(status_code=404, detail="Initiative not found")
@@ -213,14 +290,19 @@ def export_dataset(
 ):
     """Stream all initiatives + answers as a CSV file download.
 
-    Note: evidence URLs are stored in a separate EvidenceURL table and are not
-    included in this export. The CSV contains one row per questionnaire answer.
+    The CSV contains one row per questionnaire answer.
     """
 
     def generate_csv():
         output = io.StringIO()
         writer = csv.writer(output)
-        # Header row — columns reflect what is actually populated
+        # Header row — columns reflect what is actually populated.
+        # D-02/D-06: mami_code/answer_value/followup_* no longer exist on the
+        # new-schema answer table — replaced by category_id/score. Legacy
+        # v1.0 answers are preserved read-only in
+        # questionnaire_answer_v1_archive (D-01/D-04, DB-level access only,
+        # no export/endpoint this phase) and are intentionally NOT included
+        # in this export.
         writer.writerow(
             [
                 "user_email",
@@ -228,10 +310,8 @@ def export_dataset(
                 "participant_type",
                 "initiative_status",
                 "question_id",
-                "mami_code",
-                "answer_value",
-                "followup_selections",
-                "followup_other",
+                "category_id",
+                "score",
             ]
         )
         output.seek(0)
@@ -243,29 +323,25 @@ def export_dataset(
         rows = session.execute(
             text("""
             SELECT u.email, i.name AS initiative_name, i.participant_type, i.status,
-                   qa.question_id, qa.mami_code, qa.answer_value,
-                   qa.followup_selections, qa.followup_other
+                   qa.question_id, qa.category_id, qa.score
             FROM "user" u
             JOIN initiative i ON i.user_id = u.id
-            JOIN questionnaire_answer qa ON qa.initiative_id = i.id
+            JOIN assessment a ON a.initiative_id = i.id
+            JOIN questionnaire_answer qa ON qa.assessment_id = a.id
             ORDER BY u.email, i.id, qa.question_id
         """)
         )
 
         for row in rows.mappings():
-            selections = row["followup_selections"]
-            selections_str = "; ".join(selections) if selections else ""
             writer.writerow(
                 [
                     row["email"],
-                    row["initiative_name"],
+                    _csv_safe(row["initiative_name"]),
                     row["participant_type"],
                     row["status"],
                     row["question_id"],
-                    row["mami_code"],
-                    row["answer_value"],
-                    selections_str,
-                    row["followup_other"] or "",
+                    row["category_id"],
+                    row["score"],
                 ]
             )
             output.seek(0)
@@ -276,7 +352,7 @@ def export_dataset(
     return StreamingResponse(
         generate_csv(),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=mami-dataset.csv"},
+        headers={"Content-Disposition": "attachment; filename=dssc-dataset.csv"},
     )
 
 
@@ -302,91 +378,20 @@ def reset_demo(
     }
 
 
-@router.get("/heatmap", response_model=AdminHeatmapResponse)
+@router.get("/heatmap", response_model=AdminAggregateResponse)
 def get_admin_heatmap(
-    request: Request,
-    type: str | None = None,  # "dsi" or "sp" — None means all types
     session: Session = Depends(get_session),
+    config: dict = Depends(get_dssc_questionnaire_config),
     _admin: User = Depends(require_admin),
 ):
-    """Aggregate yes/not_yet/n_a counts per heatmap cell across all submitted initiatives."""
-    type_filter = "AND LOWER(i.participant_type) = :ptype" if type else ""
-    params: dict = {"ptype": type.lower()} if type else {}
-
-    # Count submitted initiatives (alias 'i' matches type_filter which uses i.participant_type)
-    count_result = session.execute(
-        text(f"SELECT COUNT(*) FROM initiative i WHERE i.status = 'submitted' {type_filter}"),
-        params,
-    )
-    total_submitted = int(count_result.scalar() or 0)
-
-    # Aggregate answer counts per (mami_code, answer_value) for submitted initiatives only
-    agg_result = session.execute(
-        text(f"""
-        SELECT qa.mami_code, qa.answer_value, COUNT(*) as cnt
-        FROM questionnaire_answer qa
-        JOIN initiative i ON i.id = qa.initiative_id
-        WHERE i.status = 'submitted' {type_filter}
-        GROUP BY qa.mami_code, qa.answer_value
-    """),
-        params,
-    )
-
-    # Build counts dict: {mami_code: {answer_value: count}}
-    counts: dict = {}
-    for row in agg_result.mappings():
-        code = row["mami_code"]
-        val = row["answer_value"]
-        cnt = int(row["cnt"])
-        counts.setdefault(code, {})
-        counts[code][val] = cnt
-
-    # Load mami_config and build topic structure
-    mami_config = request.app.state.mami_config
-    topic_structure = _build_topic_structure(mami_config)
-
-    # Build code lookup: {code_id: {dimension: dim_key, category: cat_key}}
-    # mami_config uses a flat codes array with category, dimension, topic fields
-    code_lookup: dict = {}
-    for code in mami_config.get("codes", []):
-        code_lookup[code["id"]] = {
-            "dimension": code.get("dimension", ""),
-            "category": code.get("category", ""),
-            "topic": code.get("topic", ""),
-        }
-
-    # Collect all unique dimension keys from the config
-    dimensions = list(
-        dict.fromkeys(
-            c.get("dimension", "") for c in mami_config.get("codes", []) if c.get("dimension")
-        )
-    )
-
-    # Build matrix: {cat: {dim: {topic_id: AdminHeatmapCell}}}
-    matrix: dict = {}
-    for cat_key, topics in topic_structure.items():
-        matrix.setdefault(cat_key, {})
-        for dim_key in dimensions:
-            matrix[cat_key].setdefault(dim_key, {})
-            for topic in topics:
-                topic_id = topic["topic_id"]
-                yes_total = not_yet_total = na_total = 0
-                for code_id in topic.get("codes", []):
-                    meta = code_lookup.get(code_id, {})
-                    if meta.get("dimension") != dim_key or meta.get("category") != cat_key:
-                        continue
-                    code_counts = counts.get(code_id, {})
-                    yes_total += code_counts.get("yes", 0)
-                    not_yet_total += code_counts.get("not_there_yet", 0)
-                    na_total += code_counts.get("not_applicable", 0)
-                matrix[cat_key][dim_key][topic_id] = AdminHeatmapCell(
-                    yes=yes_total,
-                    not_yet=not_yet_total,
-                    n_a=na_total,
-                )
-
-    return AdminHeatmapResponse(
-        total_submitted=total_submitted,
-        matrix=matrix,
-        topic_structure=topic_structure,
+    """ADMN-01: real cross-initiative 6-dimension aggregation — an org-wide
+    averaged radar chart (reusing `generate_radar_svg`, D-01) plus a
+    per-initiative breakdown, each initiative contributing only its latest
+    SUBMITTED assessment (D-08). Replaces the Phase 14 fixed degraded stub.
+    """
+    aggregate = build_admin_aggregate(session, config)
+    return AdminAggregateResponse(
+        org_average_scores=aggregate["org_average_scores"],
+        org_radar_chart_svg=aggregate["org_radar_chart_svg"],
+        initiatives=[AdminInitiativeAggregateRow(**row) for row in aggregate["initiatives"]],
     )

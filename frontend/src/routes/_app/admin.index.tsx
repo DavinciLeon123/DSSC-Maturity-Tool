@@ -19,7 +19,8 @@ interface AdminUserRow {
   created_at: string;
   initiative_name?: string;
   initiative_status?: string;
-  answer_count: number;
+  completed_assessment_count: number;
+  has_draft_in_progress: boolean;
 }
 
 interface AdminInitiativeRow {
@@ -29,7 +30,8 @@ interface AdminInitiativeRow {
   participant_type: string;
   status: string;
   created_at: string;
-  answer_count: number;
+  completed_assessment_count: number;
+  has_draft_in_progress: boolean;
 }
 
 // ─── AdminPage ────────────────────────────────────────────────────────────────
@@ -103,7 +105,7 @@ function AdminPage() {
       const url = URL.createObjectURL(response.data as Blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "mami-dataset.csv";
+      a.download = "dssc-dataset.csv";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -119,7 +121,7 @@ function AdminPage() {
     Modal.confirm({
       title: "Reset Demo Data",
       content:
-        "Are you sure? This will permanently delete ALL non-admin users and their questionnaire data. This cannot be undone.",
+        "Are you sure? This will permanently delete ALL non-admin users and their dataspace maturity assessment data. This cannot be undone.",
       okText: "Reset Demo",
       okButtonProps: { danger: true },
       cancelText: "Cancel",
@@ -181,7 +183,13 @@ function AdminPage() {
         <Tag color={v === "submitted" ? "green" : "default"}>{v}</Tag>
       ),
     },
-    { title: "Answers", dataIndex: "answer_count" },
+    { title: "Completed Assessments", dataIndex: "completed_assessment_count" },
+    {
+      title: "Next Assessment",
+      key: "has_draft_in_progress",
+      render: (_: unknown, record: AdminInitiativeRow) =>
+        record.has_draft_in_progress ? <Tag color="processing">In progress</Tag> : null,
+    },
     {
       title: "Created",
       dataIndex: "created_at",
@@ -191,7 +199,7 @@ function AdminPage() {
       title: "Actions",
       render: (_: unknown, record: AdminInitiativeRow) => (
         <Popconfirm
-          title="Delete questionnaire?"
+          title="Delete Dataspace Maturity Assessment?"
           description="Permanently deletes this initiative and all its answers and evidence."
           okText="Delete"
           okButtonProps={{ danger: true }}
@@ -214,7 +222,7 @@ function AdminPage() {
         style={{
           padding: "0.75rem 1.5rem",
           background: "#F9FAFB",
-          borderRadius: "8px",
+          borderRadius: "0",
         }}
       >
         <div
@@ -238,7 +246,11 @@ function AdminPage() {
             {record.initiative_status ?? "—"}
           </div>
           <div>
-            <strong>Answers saved:</strong> {record.answer_count}
+            <strong>Completed assessments:</strong> {record.completed_assessment_count}
+          </div>
+          <div>
+            <strong>Next assessment:</strong>{" "}
+            {record.has_draft_in_progress ? <Tag color="processing">In progress</Tag> : "—"}
           </div>
           <div>
             <strong>Registered:</strong>{" "}
@@ -271,7 +283,7 @@ function AdminPage() {
     },
     {
       key: "questionnaires",
-      label: `Questionnaires (${initiatives.length})`,
+      label: `Dataspace Maturity Assessments (${initiatives.length})`,
       children: (
         <Table
           dataSource={initiatives}
@@ -293,9 +305,9 @@ function AdminPage() {
             style={{
               fontSize: "1rem",
               fontWeight: 600,
-              color: "#06004f",
+              color: "#008ecf",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Export Data
@@ -303,21 +315,21 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Download the complete dataset (all users, initiatives, and
-            questionnaire answers) as a CSV file.
+            dataspace maturity assessment answers) as a CSV file.
           </p>
           <Button
             type="primary"
             onClick={handleExport}
             style={{
               marginBottom: "3rem",
-              borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              borderRadius: "0",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
           >
@@ -330,7 +342,7 @@ function AdminPage() {
               fontWeight: 600,
               color: "#B91C1C",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Reset Demo
@@ -338,9 +350,9 @@ function AdminPage() {
           <p
             style={{
               fontSize: "0.875rem",
-              color: "rgba(6,0,79,0.6)",
+              color: "rgba(0,142,207,0.6)",
               marginBottom: "1rem",
-              fontFamily: "'Rubik', sans-serif",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             Delete all non-admin users and their data. Use this between demo
@@ -360,8 +372,8 @@ function AdminPage() {
             loading={resetDemoMutation.isPending}
             onClick={handleResetDemo}
             style={{
-              borderRadius: "8px",
-              fontFamily: "'Rubik', sans-serif",
+              borderRadius: "0",
+              fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
               fontWeight: 600,
             }}
           >
@@ -389,9 +401,9 @@ function AdminPage() {
           style={{
             fontSize: "1.75rem",
             fontWeight: 700,
-            color: "#06004f",
+            color: "#008ecf",
             margin: 0,
-            fontFamily: "'Rubik', sans-serif",
+            fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
           }}
         >
           Admin Panel
@@ -399,7 +411,7 @@ function AdminPage() {
         <Link to="/admin/heatmap">
           <Button
             type="default"
-            style={{ fontFamily: "'Rubik', sans-serif", fontWeight: 500 }}
+            style={{ fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}
           >
             View Aggregated Heatmap &rarr;
           </Button>
@@ -407,8 +419,8 @@ function AdminPage() {
       </div>
       <Card
         style={{
-          borderRadius: "16px",
-          boxShadow: "0 2px 12px rgba(6,0,79,0.06)",
+          borderRadius: "0",
+          boxShadow: "0 2px 12px rgba(0,142,207,0.06)",
         }}
       >
         <Tabs items={tabItems} defaultActiveKey="users" />

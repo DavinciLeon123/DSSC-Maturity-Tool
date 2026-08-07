@@ -1,0 +1,102 @@
+name: E2E Tests (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      backend-image:
+        description: "Pre-built backend image to pull (ghcr tag). Empty = build from source."
+        required: false
+        type: string
+        default: ""
+      frontend-image:
+        description: "Pre-built frontend image to pull (ghcr tag). Empty = build from source."
+        required: false
+        type: string
+        default: ""
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write throwaway CI .env
+        # Fixed, ephemeral, CI-only values — never production secrets (the Postgres container
+        # itself is fresh/ephemeral per run anyway). backend/scripts/create_admin.py crashes the
+        # container at startup without all 5 of these set, matching .env.example's keys.
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=e2e_user
+          POSTGRES_PASSWORD=e2e_ci_password_throwaway
+          SECRET_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd
+          ADMIN_EMAIL=admin@e2e.local
+          ADMIN_PASSWORD=E2eAdminPassw0rd!123
+          EOF
+
+      - name: Log in to GHCR (only needed when pulling pre-built images)
+        if: inputs.backend-image != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull pre-built images and start stack (staging path)
+        if: inputs.backend-image != ''
+        run: |
+          docker pull ${{ inputs.backend-image }}
+          docker pull ${{ inputs.frontend-image }}
+          E2E_BACKEND_IMAGE=${{ inputs.backend-image }} E2E_FRONTEND_IMAGE=${{ inputs.frontend-image }} \
+            docker compose -f docker-compose.yml -f e2e/docker-compose.e2e.yml up -d
+
+      - name: Build from source and start stack (main path — main.yml never pushes images)
+        if: inputs.backend-image == ''
+        run: docker compose up -d --build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Wait for backend + frontend to be ready
+        # docker-compose.yml only healthchecks `db` — backend/frontend have none, so an HTTP-level
+        # check is required; `docker compose up --wait` alone would falsely report ready the
+        # instant the container process starts, before alembic upgrade + admin seed finish.
+        # http-get:// forces a GET request — wait-on's default HEAD request 405s against
+        # /health, since it's only registered for GET (confirmed: backend was fully up and
+        # serving GET /health the whole time in the first CI run, but every HEAD probe 405'd
+        # until the 120s timeout).
+        run: npx --yes wait-on http-get://localhost:8000/health http-get://localhost:3000 -t 120000
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright critical-path suite
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Dump docker compose logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Upload Playwright report/trace on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 14
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { Input, Button, Alert } from "antd";
-import logoSrc from "../../assets/logo-coe-dsc.svg";
+import logoSrc from "../../assets/logo-dssc-color.png";
 
 export const Route = createFileRoute("/_auth/reset-password")({
   component: ResetPasswordPage,
@@ -19,10 +19,10 @@ function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div style={{ minHeight: "100vh", background: "#06004f", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-        <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(6,0,79,0.15)", textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+        <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)", textAlign: "center" }}>
           <Alert message="Invalid or missing reset token." type="error" style={{ marginBottom: "1rem" }} showIcon />
-          <Link to="/forgot-password" style={{ color: "#399e5a", fontWeight: 600, textDecoration: "none", fontFamily: "'Rubik', sans-serif" }}>
+          <Link to="/forgot-password" style={{ color: "#76b82a", fontWeight: 600, textDecoration: "none", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>
             Request a new reset link
           </Link>
         </div>
@@ -65,19 +65,19 @@ function ResetPasswordPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#06004f", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(6,0,79,0.15)" }}>
+    <div style={{ minHeight: "100vh", background: "#008ecf", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ background: "white", borderRadius: "0", padding: "2.5rem", width: "100%", maxWidth: "420px", boxShadow: "0 8px 40px rgba(0,142,207,0.15)" }}>
         <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <img src={logoSrc} alt="CoE DSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
-          <div style={{ fontSize: "0.75rem", color: "#399e5a", fontWeight: 600, letterSpacing: "0.1em", marginBottom: "0.5rem", fontFamily: "'Rubik', sans-serif" }}>CoE-DSC / TNO</div>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#06004f", fontFamily: "'Rubik', sans-serif", margin: 0 }}>Set New Password</h1>
+          <img src={logoSrc} alt="DSSC logo" style={{ width: "76px", height: "auto", display: "block", margin: "0 auto 0.75rem" }} />
+          <div style={{ fontSize: "0.75rem", color: "#76b82a", fontWeight: 600, letterSpacing: "0.1em", marginBottom: "0.5rem", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>DSSC</div>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", margin: 0 }}>Set New Password</h1>
         </div>
         {error && (
           <Alert message={error} type="error" style={{ marginBottom: 16 }} showIcon />
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>New Password</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>New Password</label>
             <Input.Password
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -88,7 +88,7 @@ function ResetPasswordPage() {
             />
           </div>
           <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#06004f", fontFamily: "'Rubik', sans-serif" }}>Confirm Password</label>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#008ecf", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif" }}>Confirm Password</label>
             <Input.Password
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -102,7 +102,7 @@ function ResetPasswordPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: "8px", height: "48px", fontFamily: "'Rubik', sans-serif", fontWeight: 600 }}
+            style={{ borderRadius: "0", height: "48px", fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif", fontWeight: 600 }}
           >
             Reset Password
           </Button>

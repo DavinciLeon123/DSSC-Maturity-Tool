@@ -1,13 +1,14 @@
 // frontend/src/components/layout/Footer.tsx
+import logoWhite from '../../assets/logo-dssc-white.png';
 
 export function Footer() {
   return (
     <footer
       style={{
-        background: '#06004f',
+        background: '#0f1c2b',
         color: 'rgba(255,255,255,0.7)',
         padding: '3rem 2rem 2rem',
-        fontFamily: "'Rubik', sans-serif",
+        fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
       }}
     >
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -23,6 +24,7 @@ export function Footer() {
         >
           {/* Brand column */}
           <div>
+            <img src={logoWhite} alt="DSSC" style={{ height: '50px', marginBottom: '0.75rem', display: 'block' }} />
             <div
               style={{
                 fontWeight: 600,
@@ -31,17 +33,18 @@ export function Footer() {
                 marginBottom: '0.5rem',
               }}
             >
-              CoE DSC
+              DSSC
             </div>
             <div
               style={{
                 fontSize: '0.875rem',
-                color: 'rgba(255,255,255,0.6)',
+                color: 'rgba(255,255,255,0.85)',
                 maxWidth: '280px',
                 lineHeight: 1.6,
               }}
             >
-              Centre of Excellence for Data Sharing &amp; Cloud
+              Data Space Support Centre – Tool created by the Centre of Excellence
+              for Data Sharing and Cloud under Creative Commons Attribution 4.0
             </div>
           </div>
 
@@ -59,14 +62,16 @@ export function Footer() {
                 Links
               </div>
               <a
-                href="mailto:info@coe-dsc.nl"
+                href="https://dataspacessupportcentre.atlassian.net/servicedesk/customer/portal/40/create/98"
+                target="_blank"
+                rel="noopener"
                 style={{
                   display: 'block',
                   color: 'rgba(255,255,255,0.6)',
                   textDecoration: 'none',
                   fontSize: '0.875rem',
                   marginBottom: '0.5rem',
-                  fontFamily: "'Rubik', sans-serif",
+                  fontFamily: "'Jost', 'Helvetica Neue', Arial, sans-serif",
                 }}
               >
                 Contact
@@ -84,7 +89,9 @@ export function Footer() {
             color: 'rgba(255,255,255,0.4)',
           }}
         >
-          &copy; {new Date().getFullYear()} CoE DSC. All rights reserved.
+          &copy; {new Date().getFullYear()} Data Space Support Centre. This tool is made
+          available under the Creative Commons Attribution 4.0 International License (CC
+          BY 4.0).
         </div>
       </div>
     </footer>
