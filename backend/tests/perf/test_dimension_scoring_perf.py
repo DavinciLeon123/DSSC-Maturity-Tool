@@ -13,7 +13,7 @@ import pytest
 
 from app.services.dimension_scoring import compute_dimension_scores
 from app.services.mami_config import load_dssc_questionnaire_config
-from tests.factories import make_user, make_initiative, make_assessment, make_answer
+from tests.factories import make_answer, make_assessment, make_initiative, make_user
 
 pytestmark = pytest.mark.perf
 

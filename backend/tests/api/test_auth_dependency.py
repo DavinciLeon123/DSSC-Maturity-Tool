@@ -14,7 +14,7 @@ import pytest
 
 from app.core.config import settings
 from app.core.security import ALGORITHM, create_access_token
-from tests.factories import make_user, make_initiative, make_assessment, make_answer
+from tests.factories import make_initiative, make_user
 
 
 # Helper to build an expired JWT directly (create_access_token has no custom-expiry param)
@@ -55,7 +55,7 @@ SCENARIOS = [
 
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda s: s["name"])
 def test_questionnaire_answer_put_rejects_invalid_auth(client, session, scenario):
-    """PUT /api/v1/questionnaire/initiatives/{id}/answers/{id} rejects all 4 auth failure modes with 401."""
+    """PUT /questionnaire/initiatives/{id}/answers/{id} rejects all 4 auth failure modes."""
     # Setup: create a user (to get an email for token scenarios)
     user = make_user(session, email="test@example.com")
     initiative = make_initiative(session, user=user)
